@@ -1561,7 +1561,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	quit:pSeed="" tSC
 	
 	// Get JSON from CSV
-	set tSC = ##class(%DeepSee.UI.Dialog.CSVImport).CSVToJSON(..FileName,.properties,.data,..ReadSize,..LineSize)
+	set tSC = ##class(%DeepSee.UI.Dialog.CSVImport).CSVToJSON(..FileName,.properties,.data,..ReadSize,..LineSize,..hasHeaders)
 	set tempdataJSON=##class(%Stream.FileBinary).%New()
 	do tempdataJSON.CopyFrom(data)
 	do tempdataJSON.%Save()
@@ -1750,7 +1750,7 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 	//console.log(body.style)
 }
 
-ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSON, ByRef dataJSON, pMaxSize As %Integer = 0, pMaxLines As %Integer = 0) As %Status
+ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSON, ByRef dataJSON, pMaxSize As %Integer = 0, pMaxLines As %Integer = 0, pHasHeaders As %Boolean) As %Status
 {
 	set stream=##class(%Stream.FileBinary).%New()
 	d stream.LinkToFile(pFileName)
@@ -1767,33 +1767,60 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	set dynamicArray = []
 	set pos=0
 	
-	if m.Locate() {
-		set line=$e(s,m.Start,m.End-1)
-		//w "Headers: "_line
-		set m2.Text=line
-		set propcount=-1
-		while m2.Locate() {
-			set propcount=$i(propcount)
-			set prop=$zstrip($zstrip($e(line,m2.Start,m2.End-1),">",","),">C")
-			set:$e(prop,1)="""" prop=$e(prop,2,*)
-			set:$e(prop,*)="""" prop=$e(prop,1,*-1)
-			set prop=$zstrip(prop,"*P")
-			d displayarray.%Push(prop)
-			d typearray.%Push("%String")
-			d dateformatarray.%Push("")
-			d intformatarray.%Push("")
-			d includearray.%Push("true")
-			d properties.%Set(prop,propcount)
-			//w "Prop "_propcount_": "_prop,!
+	if (pHasHeaders) {
+		if m.Locate() {
+			set line=$e(s,m.Start,m.End-1)
+			//w "Headers: "_line
+			set m2.Text=line
+			set propcount=-1
+			while m2.Locate() {
+				set propcount=$i(propcount)
+				set prop=$zstrip($zstrip($e(line,m2.Start,m2.End-1),">",","),">C")
+				set:$e(prop,1)="""" prop=$e(prop,2,*)
+				set:$e(prop,*)="""" prop=$e(prop,1,*-1)
+				set prop=$zstrip(prop,"*P")
+				d displayarray.%Push(prop)
+				d typearray.%Push("%String")
+				d dateformatarray.%Push("")
+				d intformatarray.%Push("")
+				d includearray.%Push("true")
+				d properties.%Set(prop,propcount)
+				//w "Prop "_propcount_": "_prop,!
+			}
+			d properties.%Set("Display",displayarray)
+			d properties.%Set("Type",typearray)
+			d properties.%Set("DateFormat",dateformatarray)
+			d properties.%Set("IntFormat",intformatarray)
+			d properties.%Set("Include",includearray)
+			set pos=m.End-1
+		} Else {
+			// Headers too long, pick different file
 		}
-		d properties.%Set("Display",displayarray)
-		d properties.%Set("Type",typearray)
-		d properties.%Set("DateFormat",dateformatarray)
-		d properties.%Set("IntFormat",intformatarray)
-		d properties.%Set("Include",includearray)
-		set pos=m.End-1
 	} Else {
-		// Headers too long, pick different file
+		if m.Locate() {
+			set line=$e(s,m.Start,m.End-1)
+			//w "Headers: "_line
+			set m2.Text=line
+			set propcount=0
+			while m2.Locate() {
+				set prop="Property"_$i(propcount)
+				d displayarray.%Push(prop)
+				d typearray.%Push("%String")
+				d dateformatarray.%Push("")
+				d intformatarray.%Push("")
+				d includearray.%Push("true")
+				d properties.%Set(prop,propcount)
+			}
+			d properties.%Set("Display",displayarray)
+			d properties.%Set("Type",typearray)
+			d properties.%Set("DateFormat",dateformatarray)
+			d properties.%Set("IntFormat",intformatarray)
+			d properties.%Set("Include",includearray)
+			
+			d m.ResetPosition()
+		} Else {
+			// Headers too long, pick different file
+		}
 	}
 	
 	set done=0
