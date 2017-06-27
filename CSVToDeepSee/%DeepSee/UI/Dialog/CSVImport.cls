@@ -1895,7 +1895,24 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 		If prop.Type="%String" {
 			d prop.Parameters.SetAt("","MAXLEN")
 		} ElseIf prop.Type="%Integer" {
-			set prop.Type=dynamicProperties.IntFormat.%Get(key)
+			set intformat=dynamicProperties.IntFormat.%Get(key)
+			set prop.Type=intformat
+			
+			if intformat="%Library.Currency" {
+				// Add setter method to strip currency signs if included
+				set method=##class(%Dictionary.MethodDefinition).%New(class.Name_"||"_prop.Name_"Set")
+				set method.Name=prop.Name_"Set"
+				set method.FormalSpec = "pVal"
+				Set method.ReturnType = "%Status"
+				
+				Do method.Implementation.WriteLine(" try { set pVal=$zstrip(pVal,""*P"",,"".,"") }")
+				Do method.Implementation.WriteLine(" catch ex {  }")
+				Do method.Implementation.WriteLine(" set i%"_prop.Name_"=pVal")
+				Do method.Implementation.WriteLine(" quit $$$OK")
+
+				Do class.Methods.Insert(method)
+
+			}
 		} ElseIf prop.Type="%Date" {
 			set tempFormat=dynamicProperties.DateFormat.%Get(key)
 			if tempFormat=5 {
