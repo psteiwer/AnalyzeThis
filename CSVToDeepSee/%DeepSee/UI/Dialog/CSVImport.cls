@@ -1610,7 +1610,8 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 			&html<<option value="20">[D]D Mmmmm YYYY</option>>
 			&html<<option value="21">[D]D [M]M YYYY</option>>*/
 			&html<</select><select id="intFormat#(key)#" style="display:none;"/>>
-			&html<<option value="%Integer" selected="selected">Number</option>>
+			&html<<option value="%Integer" selected="selected">Integer</option>>
+			&html<<option value="%Double">Double</option>>
 			&html<<option value="%Library.Currency">Currency</option>>
 			&html<</select></td>>
 	}
