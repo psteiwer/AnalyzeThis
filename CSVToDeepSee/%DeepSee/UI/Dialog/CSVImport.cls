@@ -27,8 +27,6 @@ Property propertyJSONStreamID As %String;
 
 Property dataJSONStreamID As %String;
 
-Property TEST As %String;
-
 /// This Style block contains page-specific CSS style definitions.
 XData Style
 {
