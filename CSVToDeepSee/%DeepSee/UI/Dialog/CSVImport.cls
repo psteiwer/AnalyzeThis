@@ -353,7 +353,12 @@ ClientMethod updateProgressJSON() [ Language = javascript ]
 {
 	zenPage.getComponentById("progress1").setValue("In Progress...")
 	status=zenPage.GenerateSourceClassJSON()
-	zenPage.getComponentById("progress1").setValue("Completed")
+	if (status!=1 && status!="") {
+		zenPage.getComponentById("progress1").setValue(status)
+		return
+	} else {
+		zenPage.getComponentById("progress1").setValue("Completed")
+	}
 	
 	zenPage.getComponentById("progress2").setValue("In Progress...")
 	status=zenPage.ImportDataJSON()
@@ -471,11 +476,16 @@ Method AddDetails(pFileName As %String, pSourceClass As %String, pCubeName As %S
 
 Method GenerateCubeName() [ ZenMethod ]
 {
-	
-	if $length(..FileName,"\")>$length(..FileName,"/") {
-		set tName=$zstrip($replace($piece($piece(..FileName,"\",*),".",1),"DEEPSEE",""),"*PCW")
+	set file=""
+	If ..INPUTTYPE="LOCAL" {
+		set file=..LOCALFILENAME
 	} else {
-		set tName=$zstrip($replace($piece($piece(..FileName,"/",*),".",1),"DEEPSEE",""),"*PCW")
+		set file=..FileName
+	}
+	if $length(file,"\")>$length(file,"/") {
+		set tName=$zstrip($replace($piece($piece(file,"\",*),".",1),"DEEPSEE",""),"*PCW")
+	} else {
+		set tName=$zstrip($replace($piece($piece(file,"/",*),".",1),"DEEPSEE",""),"*PCW")
 	}
 
  	if ##class(%Dictionary.CompiledClass).%ExistsId(tName) {
@@ -493,7 +503,6 @@ Method GenerateCubeName() [ ZenMethod ]
 	
 	Set ..CubeName=tName
 	Set ..SourceClass="User."_tName
-	&JS<zenPage.getComponentById("CubeName").setValue("#(..CubeName)#")>
 }
 
 Method UpdateCubeName(tName) [ ZenMethod ]
@@ -534,7 +543,6 @@ Method GenerateSourceClassJSON() As %String [ ZenMethod ]
 {
 	set st=$$$OK
 	// Take file from request
-	
 	set st=##class(%DeepSee.UI.Dialog.CSVImport).JSONToClass(..propertyJSONStreamID,..SourceClass)
 	
 	quit $system.Status.GetErrorText(st)
@@ -928,6 +936,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	set file=""
 	If ..INPUTTYPE="LOCAL" {
 		set file=..LOCALFILENAME
+		do ..GenerateCubeName()
 	} else {
 		set file=..FileName
 	}
