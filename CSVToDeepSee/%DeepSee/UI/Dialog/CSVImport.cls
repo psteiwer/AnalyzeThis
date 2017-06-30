@@ -2,6 +2,8 @@
 Class %DeepSee.UI.Dialog.CSVImport Extends %CSP.UI.Portal.Dialog.WizardTemplate [ System = 4 ]
 {
 
+Property INPUTTYPE As %ZEN.Datatype.string(ZENURL = "INPUTTYPE");
+
 /// This is the temporary file name we saved on remote server, only saved when Input Type is LOCAL.
 Property LOCALFILENAME As %ZEN.Datatype.string;
 
@@ -70,6 +72,7 @@ XData Contents [ XMLNamespace = "http://www.intersystems.com/zen" ]
 {
 <page xmlns="http://www.intersystems.com/zen" >
 <html id="header" OnDrawContent="%DrawTitle" />
+<form enctype="multipart/form-data" action="_DeepSee.UI.Dialog.CSVImport.zen">
 <pane paneName="dialogBody" id="body"/>
 <hgroup id="footer" width="100%" cellAlign="right">
 <hgroup id="buttonHolder" cellAlign="right">
@@ -83,11 +86,13 @@ XData Contents [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <spacer width="10" />
 <button id="btnDone" controlClass="commandButton" caption="Done" onclick="zenPage.firePopupAction('okay','hi');" hidden="true" />
 <button id="btnNext" controlClass="commandButtonDisabled" caption="Next" onclick="zenPage.nextPage();" disabled="true"/>
+<submit id="btnSubmit" controlClass="commandButtonDisabled" caption="Next" hidden="true" disabled="true"/>
 <button id="btnFinish" controlClass="commandButtonDisabled" caption="Import" onclick="zenPage.doImportJSON();" disabled="true" hidden="true"/>
 <spacer width="10" />
 <button id="btnCancel" controlClass="commandButton" caption="Cancel" onclick="zenPage.dialogCancel();" />
 </hgroup>
 </hgroup>
+</form>
 </page>
 }
 
@@ -202,11 +207,11 @@ Method UpdateFileName(value) [ Internal, ZenMethod ]
 ClientMethod selectLocalFile() [ Internal, Language = javascript ]
 {
 	var fileName = zen("LocalFile").getValue();
-	zen("btnNext").setDisabled(fileName=="");
+	zen("btnSubmit").setDisabled(fileName=="");
 	if (fileName!="") {
-		zen("btnNext").setProperty('controlClass','commandButton');
+		zen("btnSubmit").setProperty('controlClass','commandButton');
 	} else {
-		zen("btnNext").setProperty('controlClass','commandButtonDisabled');
+		zen("btnSubmit").setProperty('controlClass','commandButtonDisabled');
 	}
 }
 
@@ -228,9 +233,20 @@ ClientMethod doLocationChange(flag) [ Internal, Language = javascript ]
 	if (flag == "LOCAL") {
 		zen("idRemoteFile").setHidden(true);
 		zen("LocalFile").setHidden(false);
+		// for local we cannot allow for Directory
+		// show Submit button
+		zen("btnNext").setHidden(true);
+		zen("btnSubmit").setHidden(false);
 	} else {
 		zen("idRemoteFile").setHidden(false);
 		zen("LocalFile").setHidden(true);
+		zen("btnNext").setHidden(false);
+		zen("btnSubmit").setHidden(true);
+		var FileName = zen("FileName").getValue()
+		if (zen("FileName").getValue() != "") {
+			zen("btnNext").setProperty('disabled',FileName=="");
+			zen("btnNext").setProperty('controlClass', (FileName!="" ? 'commandButton' :'commandButtonDisabled'));			
+		}
 	}
 }
 
@@ -313,6 +329,14 @@ ClientMethod updateState() [ Language = javascript ]
 		btnNext.setProperty('disabled',!this.canGoNext());
 		btnNext.setProperty('controlClass',	(this.canGoNext() ? 'commandButton' :'commandButtonDisabled'));
 	}
+	// special for Import on this page. Hide regular Next and show Submit Next for LOCAL.
+	if (zen("InputType").getValue()=="LOCAL") {
+		btnSubmit.setProperty('disabled',true);
+		btnSubmit.setProperty('controlClass', 'commandButtonDisabled');
+		btnNext.setProperty('hidden',true);
+	} else {
+		btnNext.setProperty('hidden',false);
+	}
 	if (btnFinish) {
 		btnFinish.setProperty('disabled',!this.canFinish());
 		btnFinish.setProperty('hidden',!this.canFinish());
@@ -323,19 +347,6 @@ ClientMethod updateState() [ Language = javascript ]
 		btnGoStats.setProperty('hidden',!this.canStat());
 		btnGoStats.setProperty('controlClass', (this.canStat() ? 'commandButton' :'commandButtonDisabled'));	
 	}
-	
-
-	
-	/*
-	// special for Import on this page. Hide regular Next and show Submit Next for LOCAL.
-	if (zen("InputType").getValue()=="LOCAL") {
-		btnSubmit.setProperty('disabled',true);
-		btnSubmit.setProperty('controlClass', 'commandButtonDisabled');
-		btnNext.setProperty('hidden',true);
-	} else {
-		btnNext.setProperty('hidden',false);
-	}
-	*/
 }
 
 ClientMethod updateProgressJSON() [ Language = javascript ]
@@ -714,6 +725,11 @@ ClientMethod nextPage() [ Language = javascript ]
 	switch(tabNo) {
 	case 1:
 		var FileName = zen("FileName").getValue();
+		var inputtype = "REMOTE"
+		if (this.LOCALFILENAME != "") {
+			filename = this.LOCALFILENAME;
+			inputtype = "LOCAL";
+		}
 		var ok = this.ValidateFile(FileName);
 		if (ok == 0) {
 			this.showMsg($$$Text("File name is empty."),1);	
@@ -820,6 +836,7 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 /// This provides a chance to load the last filetype, etc.
 ClientMethod onstartHandler() [ Internal, Language = javascript ]
 {
+	this.onresizeHandler();
 	// if this is from the submit of the Local file, load the content of the file on tab 2.
 	if (this.INPUTTYPE == "LOCAL") {
 		// set the first tab for LOCAL correctly
@@ -867,7 +884,7 @@ Method %OnAfterCreatePage() As %Status [ Internal ]
 	Set tTCPAddr = $SYSTEM.TCPDevice.PeerAddr(0)
 	Set tClientAddr = $G(%request.CgiEnvs("REMOTE_ADDR"))
 	Set tIsLocal = ((tClientAddr = "127.0.0.1") ! (tClientAddr = "::1")) & ((tTCPAddr = "127.0.0.1") ! (tTCPAddr = "::1"))
-	If 1 {
+	If tIsLocal {
 		Set ..%GetComponentById("InputType").hidden = 1
 		Set ..%GetComponentById("LocalFile").hidden = 1
 	}
@@ -908,7 +925,13 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	quit:pSeed="" tSC
 	
 	// Get JSON from CSV
-	set tSC = ##class(%DeepSee.UI.Dialog.CSVImport).CSVToJSON(..FileName,.properties,.data,..ReadSize,..LineSize,..hasHeaders)
+	set file=""
+	If ..INPUTTYPE="LOCAL" {
+		set file=..LOCALFILENAME
+	} else {
+		set file=..FileName
+	}
+	set tSC = ##class(%DeepSee.UI.Dialog.CSVImport).CSVToJSON(file,.properties,.data,..ReadSize,..LineSize,..hasHeaders)
 	set tempdataJSON=##class(%Stream.FileBinary).%New()
 	do tempdataJSON.CopyFrom(data)
 	do tempdataJSON.%Save()
