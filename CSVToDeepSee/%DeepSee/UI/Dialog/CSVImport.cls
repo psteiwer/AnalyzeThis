@@ -117,7 +117,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <text id="FileName" size="70" label="Enter the path and name of the import file:" onchange="zenPage.UpdateFileName(zenThis.getValue());"/>
 <button caption="Browse..." containerStyle="padding-left:2px;" onclick="zenPage.browseSelect('FileName');"/>
 </hgroup>
-<fileUpload id="LocalFile" name="File" label="Select the path and name of the import file:" size="70" hidden="true" onchange="zenPage.selectLocalFile();"/>
+<fileUpload id="LocalFile" name="LocalFile" label="Select the path and name of the import file:" size="70" hidden="true" onchange="zenPage.UpdateLocalFile(zenThis.getValue());"/>
 
 <checkbox id="chkHeaders" caption="This file has a header row" value="1" onchange="zenPage.UpdateHasHeaders(zenThis.getValue());" captionClass="zenLabel" hint=" (Check box to autmatically assign property names.)"/>
 <checkbox id="chkRecurse" caption="Include subdirectories" captionClass="zenLabel" value="1" hidden="true"/>
@@ -125,15 +125,15 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <vgroup enclosingStyle="padding-top:10px;">
 <label id="LimitLabel" value="Limit the amount of data to read" hint="(Data load will stop after first limit is reached)"/>
 <hgroup>
-<text id="ReadSize" value="50" size="15" label="Read Limit (MB)" onchange="zenPage.UpdateReadSize(zenThis.getValue());"/>
-<text id="LineSize" value="10000" size="15" label="Line Limit" onchange="zenPage.UpdateLineSize(zenThis.getValue());"/>
+<text id="ReadSize" name="ReadSize" value="50" size="15" label="Read Limit (MB)" onchange="zenPage.UpdateReadSize(zenThis.getValue());"/>
+<text id="LineSize" name="LineSize" value="10000" size="15" label="Line Limit" onchange="zenPage.UpdateLineSize(zenThis.getValue());"/>
 </hgroup>
 </vgroup>
 
 <vgroup enclosingStyle="padding-top:10px;">
 <label id="ChangeNameLabel" value="Change the name of the cube"/>
 <hgroup>
-<text id="CubeName" size="100" label="CubeName" value="#(%page.CubeName)#" onchange="zenPage.UpdateCubeName(zenThis.getValue());"/>
+<text id="CubeName" name="CubeName" size="100" label="CubeName" value="#(%page.CubeName)#" onchange="zenPage.UpdateCubeName(zenThis.getValue());"/>
 </hgroup>
 </vgroup>
 </expando>
@@ -202,17 +202,22 @@ Method UpdateHasHeaders(value) [ Internal, ZenMethod ]
 Method UpdateFileName(value) [ Internal, ZenMethod ]
 {
 	set ..FileName=value
+	do ..GenerateCubeName()
 }
 
-ClientMethod selectLocalFile() [ Internal, Language = javascript ]
+Method UpdateLocalFile(value) [ Internal, ZenMethod ]
 {
-	var fileName = zen("LocalFile").getValue();
-	zen("btnSubmit").setDisabled(fileName=="");
-	if (fileName!="") {
-		zen("btnSubmit").setProperty('controlClass','commandButton');
+	set ..LOCALFILENAME=value
+	
+	set button=..%GetComponentById("btnSubmit")
+	set button.disabled=(value="")
+	if value'="" {
+		set button.controlClass="commandButton"
 	} else {
-		zen("btnSubmit").setProperty('controlClass','commandButtonDisabled');
+		set button.controlClass="commandButtonDisabled"
 	}
+	
+	d ..GenerateCubeName()
 }
 
 Method seeDash() [ Internal, ZenMethod ]
@@ -477,7 +482,7 @@ Method AddDetails(pFileName As %String, pSourceClass As %String, pCubeName As %S
 Method GenerateCubeName() [ ZenMethod ]
 {
 	set file=""
-	If ..INPUTTYPE="LOCAL" {
+	If ..%GetValueById("InputType")="LOCAL" {
 		set file=..LOCALFILENAME
 	} else {
 		set file=..FileName
@@ -487,40 +492,14 @@ Method GenerateCubeName() [ ZenMethod ]
 	} else {
 		set tName=$zstrip($replace($piece($piece(file,"/",*),".",1),"DEEPSEE",""),"*PCW")
 	}
-
- 	if ##class(%Dictionary.CompiledClass).%ExistsId(tName) {
-		set st=$classmethod(tName,"%DeleteExtent")
-		quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-		set st=$system.OBJ.Delete(tName,"/displayerror=0 /displaylog=0")
-		quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-	}
-	if ##class(%Dictionary.CompiledClass).%ExistsId(tName_"Cube") {
-		set st=$classmethod(tName_"Cube.Fact","%DeleteExtent")
-		quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-		set st=$system.OBJ.Delete(tName_"Cube","/displayerror=0 /displaylog=0")
-		quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-	}
 	
 	Set ..CubeName=tName
 	Set ..SourceClass="User."_tName
+	d ..%SetValueById("CubeName",tName)
 }
 
 Method UpdateCubeName(tName) [ ZenMethod ]
 {
-	
- 	if ##class(%Dictionary.CompiledClass).%ExistsId(tName) {
-		set st=$classmethod(tName,"%DeleteExtent")
-		quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-		set st=$system.OBJ.Delete(tName,"/displayerror=0 /displaylog=0")
-		quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-	}
-	if ##class(%Dictionary.CompiledClass).%ExistsId(tName_"Cube") {
-		set st=$classmethod(tName_"Cube.Fact","%DeleteExtent")
-		quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-		set st=$system.OBJ.Delete(tName_"Cube","/displayerror=0 /displaylog=0")
-		quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-	}
-	
 	If ($$$UPPER($ZStrip(tName,"<N"))'=$$$UPPER(tName))
 	{
 		&JS<alert("Name cannot start with a number!")
@@ -542,6 +521,11 @@ Method ImportDataJSON() As %String [ ZenMethod ]
 Method GenerateSourceClassJSON() As %String [ ZenMethod ]
 {
 	set st=$$$OK
+	
+	if ..SourceClass="" {
+		d ..GenerateCubeName()
+	}
+	
 	// Take file from request
 	set st=##class(%DeepSee.UI.Dialog.CSVImport).JSONToClass(..propertyJSONStreamID,..SourceClass)
 	
@@ -904,6 +888,21 @@ Method %OnAfterCreatePage() As %Status [ Internal ]
 		Set %page.LOCALFILENAME = $G(%session.Data($Username,"Import","LOCALFileName"))
 		Set ..%GetComponentById("InputType").value = "LOCAL"
 	}
+	If $G(%request.Data("ReadSize",1)) '= "" {
+		Set %page.ReadSize = $G(%request.Data("ReadSize",1))*100000
+		Set ..%GetComponentById("ReadSize").value = $G(%request.Data("ReadSize",1))*100000
+		Set ..ReadSize = $G(%request.Data("ReadSize",1))*100000
+	}
+	If $G(%request.Data("LineSize",1)) '= "" {
+		Set %page.LineSize = $G(%request.Data("LineSize",1))
+		Set ..%GetComponentById("LineSize").value = $G(%request.Data("LineSize",1))
+		Set ..LineSize = $G(%request.Data("LineSize",1))
+	}
+	If $G(%request.Data("CubeName",1)) '= "" {
+		Set %page.CubeName = $G(%request("CubeName",1))
+		Set ..%GetComponentById("CubeName").value = $G(%request.Data("CubeName",1))
+		Set ..CubeName = $G(%request.Data("CubeName",1))
+	}
 	Quit $$$OK
 }
 
@@ -936,7 +935,6 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	set file=""
 	If ..INPUTTYPE="LOCAL" {
 		set file=..LOCALFILENAME
-		do ..GenerateCubeName()
 	} else {
 		set file=..FileName
 	}
@@ -1079,7 +1077,7 @@ ClassMethod ValidateFile(FILE) As %Integer [ Internal, ZenMethod ]
 /// The necessary parameters are passed in URL. The temp file name is saved in %session and to be used in loading content.
 ClassMethod %OnSubmit(pSubmit As %ZEN.Submit) As %Status [ Internal ]
 {
-	Set tStream = pSubmit.%GetStream("File")
+	Set tStream = pSubmit.%GetStream("LocalFile")
 	Set dir = ##class(%File).SubDirectoryName($zu(12),"Temp")
 	#; If temp directory does not exist, create it now
 	If ##class(%File).DirectoryExists(dir) = 0 {
@@ -1090,7 +1088,7 @@ ClassMethod %OnSubmit(pSubmit As %ZEN.Submit) As %Status [ Internal ]
 	If $$$isUNIX Set tDelim = "/"
 	If $$$isVMS Set tDelim = ""
 	#; Give it a name so it won't be deleted automatically
-	Set DirFileName = dir_tDelim_"importfromlocal.stream"
+	Set DirFileName = dir_tDelim_pSubmit.%Data("CubeName")_".stream"
 	Set file = ##class(%Stream.FileBinary).%New()
 	Set tSC = file.LinkToFile(DirFileName)
 	If tStream '= "" {
@@ -1100,6 +1098,9 @@ ClassMethod %OnSubmit(pSubmit As %ZEN.Submit) As %Status [ Internal ]
 		If tSC Set tSC = file.%Save()
 	}
 	Set %response.Context("INPUTTYPE") = "LOCAL"
+	Set %response.Context("LineSize") = pSubmit.%Data("LineSize")
+	Set %response.Context("ReadSize") = pSubmit.%Data("ReadSize")
+	Set %response.Context("CubeName") = pSubmit.%Data("CubeName")
 	//  remember popup info
 	Set %response.Context("$ZEN_POPUP") = 1
 	Set %response.Context("$ZEN_POPUPPARENT") = +$G(%request.Data("$ZEN_POPUPPARENT",1))
