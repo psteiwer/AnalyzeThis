@@ -1126,14 +1126,23 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 	//console.log(body.style)
 }
 
-ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSON, ByRef dataJSON, pMaxSize As %Integer = 0, pMaxLines As %Integer = 0, pHasHeaders As %Boolean) As %Status
+ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSON, ByRef dataJSON, pMaxSize As %Integer = 0, pMaxLines As %Integer = 0, pHasHeaders As %Boolean = 1, pNewLine As %String = {$c(13,10)}) As %Status
 {
 	set stream=##class(%Stream.FileBinary).%New()
 	d stream.LinkToFile(pFileName)
 	set s=stream.Read()
-	set m=##class(%Regex.Matcher).%New(".*\r\n")
+	set pNewLine=$zconvert(pNewLine,"O","JS")
+	set tNewLine="("
+	for i=2:1:$length(pNewLine,"\") {
+		set:i>2 tNewLine=tNewLine_"|([\"_$piece(pNewLine,"\",i-1)_"]"
+		set tNewLine=tNewLine_"[^\"_$piece(pNewLine,"\",i)_"]"
+	}
+	for i=2:1:$length(pNewLine,"\") {
+		set tNewLine=tNewLine_")"
+	}
+	set m=##class(%Regex.Matcher).%New("(?s)"_tNewLine_"*("_pNewLine_")")
 	set m.Text=s
-	set m2=##class(%Regex.Matcher).%New("(""([^""]|(""""))*""(,|\r\n))|(([^,""])*(,|\r\n))")
+	set m2=##class(%Regex.Matcher).%New("(""([^""]|(""""))*""(,|"_pNewLine_"))|(([^,""])*(,|"_pNewLine_"))")
 	set properties = {}
 	set displayarray = []
 	set typearray = []
@@ -1146,7 +1155,6 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	if (pHasHeaders) {
 		if m.Locate() {
 			set line=$e(s,m.Start,m.End-1)
-			//w "Headers: "_line
 			set m2.Text=line
 			set propcount=-1
 			while m2.Locate() {
@@ -1161,7 +1169,6 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 				d intformatarray.%Push("")
 				d includearray.%Push("true")
 				d properties.%Set(prop,propcount)
-				//w "Prop "_propcount_": "_prop,!
 			}
 			d properties.%Set("Display",displayarray)
 			d properties.%Set("Type",typearray)
@@ -1175,9 +1182,8 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	} Else {
 		if m.Locate() {
 			set line=$e(s,m.Start,m.End-1)
-			//w "Headers: "_line
 			set m2.Text=line
-			set propcount=0
+			set propcount=-1
 			while m2.Locate() {
 				set prop="Property"_$i(propcount)
 				d displayarray.%Push(prop)
@@ -1199,6 +1205,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 		}
 	}
 	
+	set totalprops=propcount
 	set done=0
 	set linecount=0
 	try {
@@ -1207,7 +1214,6 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 				set dynamicObject = {}
 				set linecount=$i(linecount)
 				set line=$e(s,m.Start,m.End-1)
-				//w "Line "_linecount_": "_line
 				set m2.Text=line
 				set propcount=-1
 				while m2.Locate() {
@@ -1218,8 +1224,10 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 					//w "Cell: "_val,!
 					d dynamicObject.%Set(properties.Display.%Get(propcount),val)
 				}
-				d dynamicArray.%Push(dynamicObject)
-				set pos=m.End-1
+				if totalprops=propcount {
+					d dynamicArray.%Push(dynamicObject)
+					set pos=m.End-1
+				}
 			}
 			
 			set s=$e(s,pos,*)
@@ -1231,9 +1239,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 					set $zs=$zs*2
 				}
 				set s=s_stream.Read()
-				set m=##class(%Regex.Matcher).%New(".*\r\n")
 				set m.Text=s
-				set m2=##class(%Regex.Matcher).%New("(""([^""]|(""""))*""(,|\r\n))|(([^,""])*(,|\r\n))")
 			}
 		}
 	} catch ex {
