@@ -155,6 +155,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <vgroup>
 <hgroup>
 <vgroup width="250" align="left">
+<label value="Preparing JSON:"/>
 <label value="Generating Source Class:"/>
 <label value="Importing Data:"/>
 <label value="Generating DeepSee Cube:"/>
@@ -162,6 +163,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <label value="Generating Sample Dashboard:"/>
 </vgroup>
 <vgroup width="275" labelPosition="left">
+<label id="progress0" value="Not Yet Started"/>
 <label id="progress1" value="Not Yet Started"/>
 <label id="progress2" value="Not Yet Started"/>
 <label id="progress3" value="Not Yet Started"/>
@@ -278,18 +280,6 @@ ClientMethod doImportJSON() [ Language = javascript ]
 		return
 	}
 	
-	// Update JSON property information with type and include info
-	count=0
-	while (document.getElementById("propName"+count)!=null) {
-		zenPage.updateProperties(count,"Display",document.getElementById("propName"+count).value.replace(/\s+/g, ''))
-		zenPage.updateProperties(count,"Type",document.getElementById("propType"+count).value)
-		zenPage.updateProperties(count,"DateFormat",document.getElementById("dateFormat"+count).value)
-		zenPage.updateProperties(count,"IntFormat",document.getElementById("intFormat"+count).value)
-		zenPage.updateProperties(count,"Include",document.getElementById("includeCol"+count).checked)
-		
-		count+=1
-	}
-	
 	zenPage.nextPage();
 	zen("btnDone").setHidden(false);
 	zenPage.updateState();
@@ -304,7 +294,6 @@ Method updateProperties(pId As %String, pProp As %String, pVal As %String) As %S
 		// This will allow us to get position from either display or logical name
 		d prop.%Set(pVal,pId)
 	}
-	set tempStream=##class(%Stream.FileBinary).%New()
 	d prop.%ToJSON(.tempStream)
 	d tempStream.%Save()
 	set ..propertyJSONStreamID=tempStream.%Id()
@@ -354,12 +343,44 @@ ClientMethod updateState() [ Language = javascript ]
 	}
 }
 
+Method cleanStreams() As %Status [ ZenMethod ]
+{
+	set tSC=$$$OK
+	set tSC=##class(%Stream.FileBinary).%DeleteId(..propertyJSONStreamID)
+	set tSC=##class(%Stream.FileBinary).%DeleteId(..dataJSONStreamID)
+	quit tSC
+}
+
 ClientMethod updateProgressJSON() [ Language = javascript ]
 {
+	zenPage.getComponentById("progress0").setValue("In Progress...")
+	status=zenPage.ConvertCSVToJSON()
+	
+	// Update JSON property information with type and include info
+	count=0
+	while (document.getElementById("propName"+count)!=null) {
+		zenPage.updateProperties(count,"Display",document.getElementById("propName"+count).value.replace(/\s+/g, ''))
+		zenPage.updateProperties(count,"Type",document.getElementById("propType"+count).value)
+		zenPage.updateProperties(count,"DateFormat",document.getElementById("dateFormat"+count).value)
+		zenPage.updateProperties(count,"IntFormat",document.getElementById("intFormat"+count).value)
+		zenPage.updateProperties(count,"Include",document.getElementById("includeCol"+count).checked)
+		
+		count+=1
+	}
+	
+	if (status!=1 && status!="") {
+		zenPage.getComponentById("progress0").setValue(status)
+		zenPage.cleanStreams()
+		return
+	} else {
+		zenPage.getComponentById("progress0").setValue("Completed")
+	}
+	
 	zenPage.getComponentById("progress1").setValue("In Progress...")
 	status=zenPage.GenerateSourceClassJSON()
 	if (status!=1 && status!="") {
 		zenPage.getComponentById("progress1").setValue(status)
+		zenPage.cleanStreams()
 		return
 	} else {
 		zenPage.getComponentById("progress1").setValue("Completed")
@@ -369,6 +390,7 @@ ClientMethod updateProgressJSON() [ Language = javascript ]
 	status=zenPage.ImportDataJSON()
 	if (status!=1 && status!="") {
 		zenPage.getComponentById("progress2").setValue(status)
+		zenPage.cleanStreams()
 		return
 	} else {
 		zenPage.getComponentById("progress2").setValue("Completed")
@@ -377,6 +399,7 @@ ClientMethod updateProgressJSON() [ Language = javascript ]
 	status=zenPage.GenerateCubeJSON()
 	if (status!=1 && status!="") {
 		zenPage.getComponentById("progress3").setValue(status)
+		zenPage.cleanStreams()
 		return
 	} else {
 		zenPage.getComponentById("progress3").setValue("Completed")
@@ -386,6 +409,7 @@ ClientMethod updateProgressJSON() [ Language = javascript ]
 	status=zenPage.BuildCube()
 	if (status!=1 && status!="") {
 		zenPage.getComponentById("progress4").setValue(status)
+		zenPage.cleanStreams()
 		return
 	} else {
 		zenPage.getComponentById("progress4").setValue("Completed")
@@ -399,6 +423,7 @@ ClientMethod updateProgressJSON() [ Language = javascript ]
 	status=zenPage.GenerateDash()
 	if (status!=1 && status!="") {
 		zenPage.getComponentById("progress5").setValue(status)
+		zenPage.cleanStreams()
 		return
 	} else {
 		zenPage.getComponentById("progress5").setValue("Completed")
@@ -413,6 +438,8 @@ ClientMethod updateProgressJSON() [ Language = javascript ]
 		zenPage.getComponentById("btnScoreDash").setProperty('controlClass', (1 ? 'commandButton' :'commandButtonDisabled'));	
 		}	
 	}
+	
+	zenPage.cleanStreams()
 }
 
 Method ScoreCardExists() As %Status [ ZenMethod ]
@@ -516,6 +543,29 @@ Method ImportDataJSON() As %String [ ZenMethod ]
 	set st=##class(%DeepSee.UI.Dialog.CSVImport).ImportJSONData(..propertyJSONStreamID,..dataJSONStreamID,..SourceClass)
 	
 	quit $system.Status.GetErrorText(st)
+}
+
+Method ConvertCSVToJSON() As %String [ ZenMethod ]
+{
+	set tSC=$$$OK
+	
+	If ..INPUTTYPE="LOCAL" {
+		set file=..LOCALFILENAME
+	} else {
+		set file=..FileName
+	}
+	
+	set tSC = ##class(%DeepSee.UI.Dialog.CSVImport).CSVToJSON(file,.properties,.data,..ReadSize,..LineSize,..hasHeaders)
+	set tempdataJSON=##class(%Stream.FileBinary).%New()
+	do tempdataJSON.CopyFrom(data)
+	do tempdataJSON.%Save()
+	set ..dataJSONStreamID=tempdataJSON.%Id()
+	set temppropertyJSON=##class(%Stream.FileBinary).%New()
+	do temppropertyJSON.CopyFrom(properties)
+	do temppropertyJSON.%Save()
+	set ..propertyJSONStreamID=temppropertyJSON.%Id()
+	
+	quit $system.Status.GetErrorText(tSC)
 }
 
 Method GenerateSourceClassJSON() As %String [ ZenMethod ]
@@ -938,20 +988,11 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	} else {
 		set file=..FileName
 	}
-	set tSC = ##class(%DeepSee.UI.Dialog.CSVImport).CSVToJSON(file,.properties,.data,..ReadSize,..LineSize,..hasHeaders)
-	set tempdataJSON=##class(%Stream.FileBinary).%New()
-	do tempdataJSON.CopyFrom(data)
-	do tempdataJSON.%Save()
-	set ..dataJSONStreamID=tempdataJSON.%Id()
-	set temppropertyJSON=##class(%Stream.FileBinary).%New()
-	do temppropertyJSON.CopyFrom(properties)
-	do temppropertyJSON.%Save()
-	set ..propertyJSONStreamID=temppropertyJSON.%Id()
+	set tSC = ##class(%DeepSee.UI.Dialog.CSVImport).CSVToJSON(file,.properties,.data,..ReadSize,10,..hasHeaders)
 	
 	set dataArray=[].%FromJSON(data)
 	set propertyObj={}.%FromJSON(properties)
 	
-	//set tSC=##class(%DeepSee.UI.Dialog.CSVImport).CreateTempFile(..FileName,.stream,.outfilename,..ReadSize,..LineSize)
  	quit:$$$ISERR(tSC) tSC
  	
 	&html<<table border=1>>
