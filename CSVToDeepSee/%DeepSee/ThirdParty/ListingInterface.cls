@@ -1,4 +1,4 @@
-Class DeepSee.ListingInterface Extends %ZEN.Component.page
+Class %DeepSee.ThirdParty.ListingInterface Extends %ZEN.Component.page
 {
 
 Parameter INCLUDEFILES;
@@ -22,7 +22,7 @@ ClassMethod DrawHTML()
 		if((!cont)||(!myindex)) return;
 	    var selR=cont.getSelectedRange();
 	    if (!selR) {
-	    	alert("Требуется выбрать ячейчку для показа детализации");
+	    	alert("Ð¢ÑÐµÐ±ÑÐµÑÑÑ Ð²ÑÐ±ÑÐ°ÑÑ ÑÑÐµÐ¹ÑÐºÑ Ð´Ð»Ñ Ð¿Ð¾ÐºÐ°Ð·Ð° Ð´ÐµÑÐ°Ð»Ð¸Ð·Ð°ÑÐ¸Ð¸");
 	    	return;
 	    }
 	    var isListing = !(jQuery("#listingButton"+myindex).attr("myparam")=="Graph");

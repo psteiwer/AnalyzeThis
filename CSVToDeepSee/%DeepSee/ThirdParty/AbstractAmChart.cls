@@ -1,4 +1,4 @@
-Class DeepSee.AbstractAmChart Extends (%ZEN.Component.component, %ZEN.Component.page, DeepSee.ListingInterface, %ZEN.Component.dataView)
+Class %DeepSee.ThirdParty.AbstractAmChart Extends (%ZEN.Component.component, %ZEN.Component.page, %DeepSee.ThirdParty.ListingInterface, %ZEN.Component.dataView)
 {
 
 Parameter INCLUDEFILES = "style:http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css,style:http://www.trirand.net/themes/ui.jqgrid.css,script:http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js,script:http://code.jquery.com/ui/1.10.3/jquery-ui.js,script:http://www.trirand.net/aspnetmvc/Scripts/trirand/i18n/grid.locale-en.js,script:http://www.trirand.net/js/trirand/jquery.jqGrid.min.js,script:themeswitchertool.js";
@@ -35,8 +35,8 @@ ClassMethod %OnGetPortletSettings(Output pInfo As %List) As %Status
  	set pInfo($I(pInfo)) = $LB("captionsFromSource",1,"%Boolean",$$$Text("Use captions from source","DeepSee"),"")
   	set pInfo($I(pInfo)) = $LB("captions","","%String",$$$Text("Captions","DeepSee"),"")
 	set pInfo($I(pInfo)) = $LB("pager",1,"%Boolean",$$$Text("Enable pager?","DeepSee"),"")
-	set pInfo($I(pInfo)) = $LB("enableListing",0,"%Boolean",$$$Text("Детализация","DeepSee"),"")
-	set pInfo($I(pInfo)) = $LB("hintText","","%String",$$$Text("Текст в подсказке","DeepSee"),"")
+	set pInfo($I(pInfo)) = $LB("enableListing",0,"%Boolean",$$$Text("ÐÐµÑÐ°Ð»Ð¸Ð·Ð°ÑÐ¸Ñ","DeepSee"),"")
+	set pInfo($I(pInfo)) = $LB("hintText","","%String",$$$Text("Ð¢ÐµÐºÑÑ Ð² Ð¿Ð¾Ð´ÑÐºÐ°Ð·ÐºÐµ","DeepSee"),"")
  	
         
     quit $$$OK
@@ -98,7 +98,7 @@ Method %DrawHTML()
 	<div id="wrapper#(..index)#" style="display:none;"><table id="grid#(..index)#" style="width:100%; height:100%;"></table>
 	<div id="pager#(..index)#"></div>
 	</div>
-  	<!--Это решает баг в портлете с запросом несуществующих функций  -->
+  	<!--Ð­ÑÐ¾ ÑÐµÑÐ°ÐµÑ Ð±Ð°Ð³ Ð² Ð¿Ð¾ÑÑÐ»ÐµÑÐµ Ñ Ð·Ð°Ð¿ÑÐ¾ÑÐ¾Ð¼ Ð½ÐµÑÑÑÐµÑÑÐ²ÑÑÑÐ¸Ñ ÑÑÐ½ÐºÑÐ¸Ð¹  -->
    	<script type='text/javascript'>
         SVGAnimatedString.prototype.search = function () {return -1;};
         SVGAnimatedString.prototype.split = function () {return [""]};
@@ -109,7 +109,7 @@ Method %DrawHTML()
     <script src="http://www.amcharts.com/lib/3/pie.js" type="text/javascript"></script>
   
     >
-	d ##class(DeepSee.ListingInterface).DrawHTML()
+	d ##class(%DeepSee.ThirdParty.ListingInterface).DrawHTML()
 }
 
 /// Notification from the containing widget that the page is loaded or the widget is resized.

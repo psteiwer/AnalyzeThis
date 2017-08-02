@@ -656,7 +656,7 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 			{
 				
 				set widget.type="portlet"
-				set widget.subtype="ThirdParty.NVD3timeChart"
+				set widget.subtype="%DeepSee.ThirdParty.NVD3timeChart"
 				Set widget.subtypeClass="portlet"
 				Set mdx=pname
 				
@@ -664,7 +664,7 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 			elseif (wtype="line")
 			{
 				set widget.type="portlet"
-				set widget.subtype="DeepSee.AmSmoothedLineChart"
+				set widget.subtype="%DeepSee.ThirdParty.AmSmoothedLineChart"
 				Set widget.subtypeClass="portlet"	
 				
 				//set widget.type="pivot"
