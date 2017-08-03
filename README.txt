@@ -8,4 +8,4 @@ Provide a CSV file and assign dimensions/measures as necessary. Once ready, clic
 Install Steps:
 -Make CACHELIB r/w
 -Download the files into a folder on your computer
--do $system.OBJ.LoadDir("<Path to the DeepSee folder from previous step>","fck",,1)
+-do $system.OBJ.LoadDir("<Path to the DeepSee folder from previous step>","ck",,1)
