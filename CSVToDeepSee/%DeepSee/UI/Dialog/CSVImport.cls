@@ -114,7 +114,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <label id="Instructions" value="Please ensure the CSV file name starts with a letter"/>
 </hgroup>
 <hgroup id="idRemoteFile" cellVAlign="bottom" enclosingStyle="padding-top:20px;" >
-<text id="FileName" size="70" label="Enter the path and name of the import file:" onchange="zenPage.UpdateFileName(zenThis.getValue());"/>
+<text id="FileName" size="70" label="Enter the path and name of the import file:" onchange="zenPage.UpdateFileName(zenThis.getValue()); zenPage.updateState();"/>
 <button caption="Browse..." containerStyle="padding-left:2px;" onclick="zenPage.browseSelect('FileName');"/>
 </hgroup>
 <fileUpload id="LocalFile" name="LocalFile" label="Select the path and name of the import file:" size="70" hidden="true" onchange="zenPage.UpdateLocalFile(zenThis.getValue());"/>
