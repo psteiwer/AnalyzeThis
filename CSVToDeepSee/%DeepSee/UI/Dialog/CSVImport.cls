@@ -1267,7 +1267,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 				}
 				if totalprops=propcount {
 					d dynamicArray.%Push(dynamicObject)
-					set pos=m.End-1
+					set pos=m.End
 				}
 			}
 			
