@@ -206,7 +206,7 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 				Set tScore=tScore+(100/(n+1))
 				if (tScore>scores(13)) {
 					Set scores(13)=tScore
-					Set names(13)=Levelname_"*"_DimName
+					Set names(13)=DimName_"*"_Levelname
 				}	
 			}
 			
