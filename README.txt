@@ -12,7 +12,9 @@ Install Steps:
   - Make CACHELIB r/w
 3b) To exclude Management Portal UI Link 
   - Skip to step 4
-4a) If including Management Portal UI Link
+4) Open terminal and ZN to desired namespace
+5a) If including Management Portal UI Link
   - do $system.OBJ.LoadDir("<PATH FROM STEP 2>","ck",,1)
-4b) If excluding Management Portal UI Link
+5b) If excluding Management Portal UI Link
   - do $system.OBJ.LoadDir("<PATH FROM STEP 2>/AnalyzeThis/","ck",,1)
+6) Navigate to URL: <server>/<webapp>/AnalyzeThis.UI.CSVImport.cls
