@@ -1,10 +1,10 @@
-Class %DeepSee.Dashboard.AutoPivot Extends %DeepSee.UserLibrary.FolderItem
+Class AnalyzeThis.Dashboard.AutoPivot Extends %DeepSee.UserLibrary.FolderItem
 {
 
 Query FindLevels(pcubeName) As %SQLQuery [ SqlProc ]
 {
  SELECT LevelName
- FROM %DeepSee_Dashboard.MetaData 
+ FROM AnalyzeThis_Dashboard.MetaData 
  WHERE CubeName=:pcubeName
 }
 
@@ -15,16 +15,16 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 		w:pVerbose "No Cube Found"
 		QUIT $$$ERROR("No Cube Found")
 	}
-	Do ##class(%DeepSee.Dashboard.MetaDataAnalyze).EvaluateCube(pcubeName)
+	Do ##class(AnalyzeThis.Dashboard.MetaDataAnalyze).EvaluateCube(pcubeName)
 	Set MetaDataExist=0
-	&sql(select count(*) into :MetaDataExist FROM %DeepSee_Dashboard.MetaData where (CubeName=:pcubeName))
+	&sql(select count(*) into :MetaDataExist FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pcubeName))
 	if (SQLCODE) QUIT
 	if ('MetaDataExist) {
 		w:pVerbose "No Meta Data Found"
 		QUIT $$$ERROR("No Meta Data Found")
 	}
 	
-	Set levels=##class(%ResultSet).%New("%DeepSee.Dashboard.AutoPivot:FindLevels")
+	Set levels=##class(%ResultSet).%New("AnalyzeThis.Dashboard.AutoPivot:FindLevels")
 	Set st=levels.Execute(pcubeName)
 	if ('st) {
 		w:pVerbose "No Levels Found"
@@ -53,7 +53,7 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 			Set card=0, lt="",n=0,sd=0,m=0,wr=0,dt=""
 			&sql(
 				SELECT Cardinality, LevelType, "Null", STDDEV, Mean, WordRecognition, DataType, DimName
-	 			into :card, :lt, :n, :sd, :m, :wr, :dt, :DimName FROM %DeepSee_Dashboard.MetaData
+	 			into :card, :lt, :n, :sd, :m, :wr, :dt, :DimName FROM AnalyzeThis_Dashboard.MetaData
 	 			where (CubeName=:pcubeName AND LevelName=:Levelname)
 	 		)
 			QUIT:(SQLCODE)
@@ -245,10 +245,10 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 	
 	if ((scores(1)>0)&&(scores(2)>0)&&(scores(3)>0)) {
 		Set wtype="bubbleChart"			
-		Set pname= ##class(%DeepSee.Dashboard.AutoPivot).CreatePivotSample(pcubeName, names(1), names(2), names(3), names(8))
+		Set pname= ##class(AnalyzeThis.Dashboard.AutoPivot).CreatePivotSample(pcubeName, names(1), names(2), names(3), names(8))
 		w:pVerbose "Pivot Name="_pname, !
 		if (pname'="") {
-			Set st=##class(%DeepSee.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype, ChartCount)
+			Set st=##class(AnalyzeThis.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype, ChartCount)
 			if (st) {
 				Set ChartCount=ChartCount+1
 			}
@@ -259,10 +259,10 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 	
 	if (scores(4)*scores(5)>0) {
 		Set wtype="barChart"
-		Set pname=##class(%DeepSee.Dashboard.AutoPivot).CreatePivotSample(pcubeName,names(4), names(5))
+		Set pname=##class(AnalyzeThis.Dashboard.AutoPivot).CreatePivotSample(pcubeName,names(4), names(5))
 		w:pVerbose "Pivot Name="_pname, !
 		if (pname'="") {
-			Set st=##class(%DeepSee.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype, ChartCount)
+			Set st=##class(AnalyzeThis.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype, ChartCount)
 			if (st) {
 				Set ChartCount=ChartCount+1
 			}
@@ -274,10 +274,10 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 	if (scores(9)>0) {
 		Set pc="%COUNT*col*Measure"
 		Set wtype="pieChart"
-		Set pname=##class(%DeepSee.Dashboard.AutoPivot).CreatePivotSample(pcubeName, names(9), pc)
+		Set pname=##class(AnalyzeThis.Dashboard.AutoPivot).CreatePivotSample(pcubeName, names(9), pc)
 		w:pVerbose "Pivot Name="_pname, !
 		if (pname'="") {
-			Set st=##class(%DeepSee.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype,ChartCount)
+			Set st=##class(AnalyzeThis.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype,ChartCount)
 			if (st) {
 				Set ChartCount=ChartCount+1
 			}
@@ -334,7 +334,7 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 		Set wtype="time"
 		w:pVerbose "mdx="_pname, !
 		if (pname'="") {
-			Set st=##class(%DeepSee.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype,ChartCount)
+			Set st=##class(AnalyzeThis.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype,ChartCount)
 			if (st) {
 				Set ChartCount=ChartCount+1
 			}
@@ -350,10 +350,10 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 		set metercat=$piece(names(9),"*",1)_"*col*"_$piece(names(9),"*",3,4)
 		
 		Set wtype="speedometer"
-		Set pname=##class(%DeepSee.Dashboard.AutoPivot).CreatePivotSample(pcubeName, metercat, names(16))
+		Set pname=##class(AnalyzeThis.Dashboard.AutoPivot).CreatePivotSample(pcubeName, metercat, names(16))
 		w:pVerbose "Pivot Name="_pname, !
 		if (pname'="") {
-			Set st=##class(%DeepSee.Dashboard.AutoPivot).AddWidget(pcubeName, pname,wtype,ChartCount)
+			Set st=##class(AnalyzeThis.Dashboard.AutoPivot).AddWidget(pcubeName, pname,wtype,ChartCount)
 			If (st) Set ChartCount=ChartCount+1
 		}
 	}
@@ -363,10 +363,10 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 	//scatter plot
 	if (scores(6)*scores(7)*scores(8)>0) {
 		Set wtype="bubbleChart"
-		Set pname=##class(%DeepSee.Dashboard.AutoPivot).CreatePivotSample(pcubeName,names(6), names(7), names(8))
+		Set pname=##class(AnalyzeThis.Dashboard.AutoPivot).CreatePivotSample(pcubeName,names(6), names(7), names(8))
 		w:pVerbose "Pivot Name="_pname, !
 		if (pname'="") {
-			Set st=##class(%DeepSee.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype, ChartCount)
+			Set st=##class(AnalyzeThis.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype, ChartCount)
 			if (st) {
 				Set ChartCount=ChartCount+1
 			}
@@ -374,7 +374,7 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 			if (ChartCount>3) GOTO Filter
 			
 			Set wtype="line"
-			Set st=##class(%DeepSee.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype, ChartCount)
+			Set st=##class(AnalyzeThis.Dashboard.AutoPivot).AddWidget(pcubeName,pname,wtype, ChartCount)
 			if (st) {
 				Set ChartCount=ChartCount+1
 			}
@@ -389,15 +389,15 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 	if (scores(10)>0) || (scores(11)>0) {
 		Set wtype="pivot"
 		if '(scores(10)>0) {
-			Set pname=##class(%DeepSee.Dashboard.AutoPivot).CreatePivotSample(pcubeName, names(11))
+			Set pname=##class(AnalyzeThis.Dashboard.AutoPivot).CreatePivotSample(pcubeName, names(11))
 		} elseif '(scores(11)>0) {
-			Set pname=##class(%DeepSee.Dashboard.AutoPivot).CreatePivotSample(pcubeName, names(10))
+			Set pname=##class(AnalyzeThis.Dashboard.AutoPivot).CreatePivotSample(pcubeName, names(10))
 		} else {
-			Set pname=##class(%DeepSee.Dashboard.AutoPivot).CreatePivotSample(pcubeName, names(10), names(11))
+			Set pname=##class(AnalyzeThis.Dashboard.AutoPivot).CreatePivotSample(pcubeName, names(10), names(11))
 		}
 		w:pVerbose "Pivot Name="_pname, !
 		if (pname'="") {
-			Set st=##class(%DeepSee.Dashboard.AutoPivot).AddWidget(pcubeName, pname, wtype,ChartCount)
+			Set st=##class(AnalyzeThis.Dashboard.AutoPivot).AddWidget(pcubeName, pname, wtype,ChartCount)
 			if (st) {
 				Set ChartCount=ChartCount+1
 			}
@@ -406,9 +406,9 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 	
 	// If we have 1 or 3 widgets, add a listing widget to fill in the blank space
 	if ((ChartCount=1) || (ChartCount=3)) {
-		set pname=##class(%DeepSee.Dashboard.AutoPivot).CreateListingSample(pcubeName)
+		set pname=##class(AnalyzeThis.Dashboard.AutoPivot).CreateListingSample(pcubeName)
 		set wtype="pivot"
-		Set st=##class(%DeepSee.Dashboard.AutoPivot).AddWidget(pcubeName, pname, wtype,ChartCount)
+		Set st=##class(AnalyzeThis.Dashboard.AutoPivot).AddWidget(pcubeName, pname, wtype,ChartCount)
 		if (st) {
 			Set ChartCount=ChartCount+1
 		}
@@ -421,18 +421,18 @@ Filter
 
 	if (scores(13)>0) {
 		w:pVerbose "Adding a "_names(13)_" filter"
-		Do ##class(%DeepSee.Dashboard.AutoPivot).addFilter(names(13),pcubeName)
+		Do ##class(AnalyzeThis.Dashboard.AutoPivot).addFilter(names(13),pcubeName)
 	}
 	
 	//scorecard
 	If ((scores(15)>0)&&(scores(14)>0)) {
 		If (scores(17)>0) {
-			Set pname=##class(%DeepSee.Dashboard.AutoPivot).CreatePivotSample(pcubeName,names(14), names(15),names(17))
-			Set st=##class(%DeepSee.Dashboard.AutoPivot).SampleScoreCard(pcubeName,pname,$piece(names(15),"*",1), $piece(names(17),"*",1),pVerbose)
+			Set pname=##class(AnalyzeThis.Dashboard.AutoPivot).CreatePivotSample(pcubeName,names(14), names(15),names(17))
+			Set st=##class(AnalyzeThis.Dashboard.AutoPivot).SampleScoreCard(pcubeName,pname,$piece(names(15),"*",1), $piece(names(17),"*",1),pVerbose)
 		}
 		If (scores(17)=0) {
-			Set pname=##class(%DeepSee.Dashboard.AutoPivot).CreatePivotSample(pcubeName,names(14), names(15))
-			Set st=##class(%DeepSee.Dashboard.AutoPivot).SampleScoreCard(pcubeName,pname,$piece(names(15),"*",1),,pVerbose)
+			Set pname=##class(AnalyzeThis.Dashboard.AutoPivot).CreatePivotSample(pcubeName,names(14), names(15))
+			Set st=##class(AnalyzeThis.Dashboard.AutoPivot).SampleScoreCard(pcubeName,pname,$piece(names(15),"*",1),,pVerbose)
 		}
 	}
 
@@ -453,11 +453,11 @@ ClassMethod CreateListingSample(pCubeName As %String) As %String
 	}
 
 	//Create new pivot
-  	set tPivot=##class(%DeepSee.Dashboard.Pivot).%New()
+  	set tPivot=##class(AnalyzeThis.Dashboard.Pivot).%New()
 	set tPivot.cubeName=pCubeName
 	set tPivot.name=name
 	set tPivot.folderName="Generated-"_$E(pCubeName,1,15)
-	set tPivot.caption=##class(%DeepSee.Dashboard.AutoPivot).ReformatName(name)
+	set tPivot.caption=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(name)
 	
 	set tPivot.mdx="DRILLTHROUGH SELECT FROM ["_pCubeName_"]"
 	
@@ -490,7 +490,7 @@ ClassMethod CreatePivotSample(pcubeName As %String, pl...) As %String
 	set tPivot.cubeName=pcubeName
 	set tPivot.name=name
 	set tPivot.folderName="Generated-"_$E(pcubeName,1,15)
-	set tPivot.caption=##class(%DeepSee.Dashboard.AutoPivot).ReformatName(name)
+	set tPivot.caption=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(name)
 	
 	For i=1:1:pl {
 		Set axis=$piece(pl(i),"*",2)
@@ -602,7 +602,7 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 				Set card=0, lt="",n=0,sd=0,m=0,wr=0,dt=""
 				&sql(
 				SELECT DimName
-	 			into :DimName FROM %DeepSee_Dashboard.MetaData where (CubeName=:pCubeName AND LevelName=:LevelName))
+	 			into :DimName FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pCubeName AND LevelName=:LevelName))
 				QUIT:(SQLCODE)
 				set widget.type="meter"
 				set widget.subtype=wtype
@@ -625,7 +625,7 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 					Set prop.label=tlbl
 					//
 					&sql(
-					SELECT Maximum, STDDEV, Mean into :max, :std, :avg FROM %DeepSee_Dashboard.MetaData where (CubeName=:pCubeName AND LevelName=:LevelName))
+					SELECT Maximum, STDDEV, Mean into :max, :std, :avg FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pCubeName AND LevelName=:LevelName))
 					if ('SQLCODE)
 					{
 						Set prop.rangeUpper=max
@@ -656,7 +656,7 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 			{
 				
 				set widget.type="portlet"
-				set widget.subtype="%DeepSee.ThirdParty.NVD3timeChart"
+				set widget.subtype="AnalyzeThis.ThirdParty.NVD3timeChart"
 				Set widget.subtypeClass="portlet"
 				Set mdx=pname
 				
@@ -664,14 +664,14 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 			elseif (wtype="line")
 			{
 				set widget.type="portlet"
-				set widget.subtype="%DeepSee.ThirdParty.AmSmoothedLineChart"
+				set widget.subtype="AnalyzeThis.ThirdParty.AmSmoothedLineChart"
 				Set widget.subtypeClass="portlet"	
 				
 				//set widget.type="pivot"
 				//set widget.subtype="lineChart"
 				//Set widget.subtypeClass="lineChart"		
 			}
-			set widget.title=##class(%DeepSee.Dashboard.AutoPivot).ReformatName(pname)
+			set widget.title=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(pname)
 			if (wtype="portlet") set widget.title=wtype
 			set widget.maximized=0
 			Set widget.rowSpanL=5
@@ -802,7 +802,7 @@ ClassMethod SampleScoreCard(pcubeName As %String, pPivotName As %String, pLevel1
 		//Create widget 1
 		Set LevelName=pLevel1
 		&sql(
-		SELECT Maximum, Minimum, STDDEV, Mean into :max, :min, :std, :avg FROM %DeepSee_Dashboard.MetaData where (CubeName=:pcubeName AND LevelName=:LevelName))
+		SELECT Maximum, Minimum, STDDEV, Mean into :max, :min, :std, :avg FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pcubeName AND LevelName=:LevelName))
 		w:pVerbose SQLCODE
 		QUIT:(SQLCODE)
 		set wcreated=0
@@ -864,7 +864,7 @@ ClassMethod SampleScoreCard(pcubeName As %String, pPivotName As %String, pLevel1
 		Set prop5.override="{headerAlign:'center'}"
 		Do widget.dataProperties.Insert(prop5)
 		
-		set widget.title=##class(%DeepSee.Dashboard.AutoPivot).ReformatName(pPivotName)
+		set widget.title=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(pPivotName)
 		do dash.widgets.Insert(widget)
 		
 		if (pLevel2'="")
@@ -872,7 +872,7 @@ ClassMethod SampleScoreCard(pcubeName As %String, pPivotName As %String, pLevel1
 		//Create widget 2
 		Set LevelName=pLevel2
 		&sql(
-		SELECT Maximum, Minimum, STDDEV, Mean into :max, :min, :std, :avg FROM %DeepSee_Dashboard.MetaData where (CubeName=:pcubeName AND LevelName=:LevelName))
+		SELECT Maximum, Minimum, STDDEV, Mean into :max, :min, :std, :avg FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pcubeName AND LevelName=:LevelName))
 		QUIT:(SQLCODE)
 		set wcreated=0
 		kill widget
@@ -936,7 +936,7 @@ ClassMethod SampleScoreCard(pcubeName As %String, pPivotName As %String, pLevel1
 		}
 		Do widget.dataProperties.Insert(prop5)
 		
-		set widget.title=##class(%DeepSee.Dashboard.AutoPivot).ReformatName(pPivotName)
+		set widget.title=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(pPivotName)
 		do dash.widgets.Insert(widget)
 		}
 		
@@ -952,7 +952,7 @@ Storage Default
 <Data name="Properties">
 <Attribute>Properties</Attribute>
 <Structure>subnode</Structure>
-<Subscript>"%DeepSee.Dashboard.AutoPivot.Properties"</Subscript>
+<Subscript>"AnalyzeThis.Dashboard.AutoPivot.Properties"</Subscript>
 </Data>
 <Type>%Library.CacheStorage</Type>
 }

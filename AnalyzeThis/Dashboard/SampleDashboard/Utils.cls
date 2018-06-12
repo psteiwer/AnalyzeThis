@@ -1,15 +1,15 @@
 Include %DeepSee
 
-Class %DeepSee.Dashboard.SampleDashboard.Utils Extends %Persistent
+Class AnalyzeThis.Dashboard.SampleDashboard.Utils Extends %Persistent
 {
 
 ClassMethod DeleteMetaData(pCubeName As %String) As %Status
 {
  Set exist=""
- &sql(SELECT %ID INTO :exist FROM %DeepSee_Dashboard.MetaData WHERE (CubeName=:pCubeName))
+ &sql(SELECT %ID INTO :exist FROM AnalyzeThis_Dashboard.MetaData WHERE (CubeName=:pCubeName))
  if ((SQLCODE = 0)&&(exist'="")) 
  {
-	&sql(DELETE FROM %DeepSee_Dashboard.MetaData WHERE (CubeName=:pCubeName))
+	&sql(DELETE FROM AnalyzeThis_Dashboard.MetaData WHERE (CubeName=:pCubeName))
  }
  quit $$$OK
 }
@@ -26,7 +26,7 @@ ClassMethod Delete(pName As %String) As %String
 	set tSourceClass=$$$DeepSeeMetaGLVN("cubes",tCubeName,"sourceClass")
 	
 	//Delete pivots associated with the cube
-	Do ##class(%DeepSee.UI.CSVImport).GetPivotList(.pivots,,pName)
+	Do ##class(AnalyzeThis.UI.CSVImport).GetPivotList(.pivots,,pName)
 	Set i=1
 	While $DATA(pivots(i))
 	{
@@ -57,7 +57,7 @@ ClassMethod Delete(pName As %String) As %String
 	}
 	
 	//Delete MetaDataAnalysis associated with cube
-	set tSC=##class(%DeepSee.Dashboard.SampleDashboard.Utils).DeleteMetaData(pName)
+	set tSC=##class(AnalyzeThis.Dashboard.SampleDashboard.Utils).DeleteMetaData(pName)
 	If $$$ISERR(tSC) {
 		Set tMsg= $System.Status.GetErrorText(tSC)
 		Quit tMsg
@@ -96,11 +96,11 @@ Storage Default
 <Value>%%CLASSNAME</Value>
 </Value>
 </Data>
-<DataLocation>^%DeepSee.Dashboard.S886B.UtilsD</DataLocation>
+<DataLocation>^AnalyzeThis.Dashboard.S886B.UtilsD</DataLocation>
 <DefaultData>UtilsDefaultData</DefaultData>
-<IdLocation>^%DeepSee.Dashboard.S886B.UtilsD</IdLocation>
-<IndexLocation>^%DeepSee.Dashboard.S886B.UtilsI</IndexLocation>
-<StreamLocation>^%DeepSee.Dashboard.S886B.UtilsS</StreamLocation>
+<IdLocation>^AnalyzeThis.Dashboard.S886B.UtilsD</IdLocation>
+<IndexLocation>^AnalyzeThis.Dashboard.S886B.UtilsI</IndexLocation>
+<StreamLocation>^AnalyzeThis.Dashboard.S886B.UtilsS</StreamLocation>
 <Type>%Library.CacheStorage</Type>
 }
 

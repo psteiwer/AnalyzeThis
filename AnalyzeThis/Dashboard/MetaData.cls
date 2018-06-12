@@ -1,4 +1,4 @@
-Class %DeepSee.Dashboard.MetaData Extends (%Persistent, %DeepSee.Utils)
+Class AnalyzeThis.Dashboard.MetaData Extends (%Persistent, %DeepSee.Utils)
 {
 
 Property CubeName As %String(MAXLEN = 500, TRUNCATE = 0) [ Required ];
@@ -29,10 +29,10 @@ Property Minimum As %Decimal;
 ClassMethod Delete(pCubeName As %String) As %Status
 {
  Set exist=""
- &sql(SELECT %ID INTO :exist FROM %DeepSee_Dashboard.MetaData WHERE (CubeName=:pCubeName))
+ &sql(SELECT %ID INTO :exist FROM AnalyzeThis_Dashboard.MetaData WHERE (CubeName=:pCubeName))
  if ((SQLCODE = 0)&&(exist'="")) 
  {
-	&sql(DELETE FROM %DeepSee_Dashboard.MetaData WHERE (CubeName=:pCubeName))
+	&sql(DELETE FROM AnalyzeThis_Dashboard.MetaData WHERE (CubeName=:pCubeName))
  }
  quit $$$OK
 }
@@ -80,11 +80,11 @@ Storage Default
 <Value>Minimum</Value>
 </Value>
 </Data>
-<DataLocation>^%DeepSee.Dashboard.MetaDataD</DataLocation>
+<DataLocation>^AnalyzeThis.Dashboard.MetaDataD</DataLocation>
 <DefaultData>MetaDataDefaultData</DefaultData>
-<IdLocation>^%DeepSee.Dashboard.MetaDataD</IdLocation>
-<IndexLocation>^%DeepSee.Dashboard.MetaDataI</IndexLocation>
-<StreamLocation>^%DeepSee.Dashboard.MetaDataS</StreamLocation>
+<IdLocation>^AnalyzeThis.Dashboard.MetaDataD</IdLocation>
+<IndexLocation>^AnalyzeThis.Dashboard.MetaDataI</IndexLocation>
+<StreamLocation>^AnalyzeThis.Dashboard.MetaDataS</StreamLocation>
 <Type>%Library.CacheStorage</Type>
 }
 

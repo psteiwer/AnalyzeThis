@@ -1,5 +1,5 @@
 /// Created using the page template: Default
-Class %DeepSee.UI.Dialog.CSVImport.showInfo Extends %CSP.UI.Portal.Dialog.WizardTemplate [ System = 4 ]
+Class AnalyzeThis.UI.Dialog.CSVImport.showInfo Extends %CSP.UI.Portal.Dialog.WizardTemplate [ System = 4 ]
 {
 
 Property CubeName As %String(ZENURL = "cubeName");
@@ -117,7 +117,7 @@ Method GetPivotList(pSeed As %String) As %Status [ ZenMethod ]
 							If (tItem.%CheckResource()) {
 								set i=i+1
 								set tName=tItem.fullName
-								Set tTitle=##class(%DeepSee.Dashboard.AutoPivot).ReformatName(tName)
+								Set tTitle=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(tName)
 								Set html=html_"<li>"_$piece(tTitle,"/",2)_"</li>"
 							}
 						}

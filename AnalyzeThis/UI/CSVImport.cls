@@ -2,7 +2,7 @@ Include %DeepSee
 
 /// DeepSee CSV Import page.
 /// This page lets you import data from a CSV file into DeepSee.
-Class %DeepSee.UI.CSVImport Extends %DeepSee.UI.standardPage [ System = 4 ]
+Class AnalyzeThis.UI.CSVImport Extends %DeepSee.UI.standardPage [ System = 4 ]
 {
 
 /// Displayed name of this page.
@@ -192,7 +192,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <tablePane id="table"
     cellSpacing="2"
 	fixedHeaders="false"	
-	queryClass="%DeepSee.UI.CSVImport"
+	queryClass="AnalyzeThis.UI.CSVImport"
 	queryName="GetImportedCubes"
 	useSnapshot="true"
 	showQuery="false"
@@ -219,13 +219,13 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 /// This should be implemented in a subclass.
 Method %OnGetTitle() As %String [ Internal ]
 {
-	Quit $$$Text("CSV Import","%DeepSee")
+	Quit $$$Text("CSV Import","AnalyzeThis")
 }
 
 /// Get the (localized) name of the page.
 Method %OnGetPageName() As %String [ Internal ]
 {
-	Quit $$$Text("CSV Import","%DeepSee")
+	Quit $$$Text("CSV Import","AnalyzeThis")
 }
 
 /// Get the product name for the page.
@@ -348,7 +348,7 @@ ClientMethod showInfo(pCubeName) [ Language = javascript ]
 	
 	zenPage.launchPopupWindow('_DeepSee.UI.Dialog.CSVImport.showInfo.cls','CSVImport','status,resizable=yes,width=900,height=700',parms);
 
-	//d ##class(%DeepSee.UI.Dialog.CSVImport.showInfo).drawStats(pCubeName)
+	//d ##class(AnalyzeThis.UI.Dialog.CSVImport.showInfo).drawStats(pCubeName)
 }
 
 /// Create a new cube.
@@ -390,7 +390,7 @@ ClientMethod deleteCube() [ Language = javascript ]
 /// Delete a term list.
 Method Delete(pName As %String) As %String [ ZenMethod ]
 {
-	Set tMsg=##class(%DeepSee.Dashboard.SampleDashboard.Utils).Delete(pName)
+	Set tMsg=##class(AnalyzeThis.Dashboard.SampleDashboard.Utils).Delete(pName)
 	
 	Quit tMsg
 }

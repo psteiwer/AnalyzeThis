@@ -1,5 +1,5 @@
 /// Created using the page template: Default
-Class %DeepSee.UI.Dialog.CSVImport Extends %CSP.UI.Portal.Dialog.WizardTemplate [ System = 4 ]
+Class AnalyzeThis.UI.Dialog.CSVImport Extends %CSP.UI.Portal.Dialog.WizardTemplate [ System = 4 ]
 {
 
 Property INPUTTYPE As %ZEN.Datatype.string(ZENURL = "INPUTTYPE");
@@ -459,7 +459,7 @@ ClientMethod drawStats() [ Language = javascript ]
 Method GenerateDash() As %Status [ ZenMethod ]
 {
 	Set st=$$$OK
-	do ##class(%DeepSee.Dashboard.AutoPivot).GenerateSampleDashboards(..CubeName)
+	do ##class(AnalyzeThis.Dashboard.AutoPivot).GenerateSampleDashboards(..CubeName)
 	Set dashName="Generated/Samples for "_..CubeName_".dashboard"
 	Set st=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 	quit st
@@ -540,7 +540,7 @@ Method ImportDataJSON() As %String [ ZenMethod ]
 {
 	set st=$$$OK
 	
-	set st=##class(%DeepSee.UI.Dialog.CSVImport).ImportJSONData(..propertyJSONStreamID,..dataJSONStreamID,..SourceClass)
+	set st=##class(AnalyzeThis.UI.Dialog.CSVImport).ImportJSONData(..propertyJSONStreamID,..dataJSONStreamID,..SourceClass)
 	
 	quit $system.Status.GetErrorText(st)
 }
@@ -555,7 +555,7 @@ Method ConvertCSVToJSON() As %String [ ZenMethod ]
 		set file=..FileName
 	}
 	
-	set tSC = ##class(%DeepSee.UI.Dialog.CSVImport).CSVToJSON(file,.properties,.data,..ReadSize,..LineSize,..hasHeaders)
+	set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.properties,.data,..ReadSize,..LineSize,..hasHeaders)
 	set tempdataJSON=##class(%Stream.FileBinary).%New()
 	do tempdataJSON.CopyFrom(data)
 	do tempdataJSON.%Save()
@@ -577,7 +577,7 @@ Method GenerateSourceClassJSON() As %String [ ZenMethod ]
 	}
 	
 	// Take file from request
-	set st=##class(%DeepSee.UI.Dialog.CSVImport).JSONToClass(..propertyJSONStreamID,..SourceClass)
+	set st=##class(AnalyzeThis.UI.Dialog.CSVImport).JSONToClass(..propertyJSONStreamID,..SourceClass)
 	
 	quit $system.Status.GetErrorText(st)
 }
@@ -988,7 +988,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	} else {
 		set file=..FileName
 	}
-	set tSC = ##class(%DeepSee.UI.Dialog.CSVImport).CSVToJSON(file,.properties,.data,..ReadSize,10,..hasHeaders)
+	set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.properties,.data,..ReadSize,10,..hasHeaders)
 	
 	set dataArray=[].%FromJSON(data)
 	set propertyObj={}.%FromJSON(properties)
@@ -1285,7 +1285,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 		}
 	} catch ex {
 		// Reached max len, pop one item from array
-		//d ##class(%DeepSee.UI.Dialog.CSVImport).MakeArraySafe(.dynamicArray)
+		//d ##class(AnalyzeThis.UI.Dialog.CSVImport).MakeArraySafe(.dynamicArray)
 		d $system.Status.DisplayError(ex.AsStatus())
 	}
 	

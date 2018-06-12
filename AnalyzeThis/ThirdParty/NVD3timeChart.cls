@@ -1,4 +1,4 @@
-Class %DeepSee.ThirdParty.NVD3timeChart Extends (%DeepSee.Component.Portlet.abstractPortlet, %ZEN.Component.page)
+Class AnalyzeThis.ThirdParty.NVD3timeChart Extends (%DeepSee.Component.Portlet.abstractPortlet, %ZEN.Component.page)
 {
 
 Method %DrawHTML()

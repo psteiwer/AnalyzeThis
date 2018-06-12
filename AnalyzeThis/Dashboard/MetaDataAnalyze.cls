@@ -1,4 +1,4 @@
-Class %DeepSee.Dashboard.MetaDataAnalyze Extends %DeepSee.Utils
+Class AnalyzeThis.Dashboard.MetaDataAnalyze Extends %DeepSee.Utils
 {
 
 ClassMethod EvaluateCube(pCube As %String) As %Status
@@ -15,7 +15,7 @@ ClassMethod EvaluateCube(pCube As %String) As %Status
 		}
 		
 		//Delete Existing MetaData for the Cube
-		DO ##class(%DeepSee.Dashboard.MetaData).Delete(tCube)
+		DO ##class(AnalyzeThis.Dashboard.MetaData).Delete(tCube)
 		
 		Set tSC = ..%GetCubeLevels(tCube,.tLevels,1,1)
 		If $$$ISERR(tSC) Quit
@@ -27,7 +27,7 @@ ClassMethod EvaluateCube(pCube As %String) As %Status
 			Set n = $O(tLevels(""))
 			While (n'="") {
 				kill tMeta
-				Set tMeta= ##class(%DeepSee.Dashboard.MetaData).%New()
+				Set tMeta= ##class(AnalyzeThis.Dashboard.MetaData).%New()
 				Set tMeta.CubeName=tCube
 				Set tMDXnull="", tMDXavg="", tMDXstd=""
 				set tSpec=""
@@ -166,7 +166,7 @@ ClassMethod EvaluateCube(pCube As %String) As %Status
 				if (tType="%Library.Date") {
 					Kill propName,sql,statement,st,rs
 					Set propName="%"_prop.Name_"%"
-					Set sql="UPDATE %DeepSee_Dashboard.MetaData (DataType) VALUES ('Date') WHERE LevelName LIKE ?"
+					Set sql="UPDATE AnalyzeThis_Dashboard.MetaData (DataType) VALUES ('Date') WHERE LevelName LIKE ?"
 					Set statement=##class(%SQL.Statement).%New("deffered")
 					Set st=statement.%Prepare(sql)
 					if (st) {
@@ -176,7 +176,7 @@ ClassMethod EvaluateCube(pCube As %String) As %Status
 				if (($$$UPPER(prop.Name)[$$$UPPER("year"))&&(tType'="%Library.Date")) {
 					Kill propName,sql,statement,st,rs
 					Set propName="%"_prop.Name_"%"
-					Set sql="UPDATE %DeepSee_Dashboard.MetaData (DataType) VALUES ('Year') WHERE LevelName LIKE ?"
+					Set sql="UPDATE AnalyzeThis_Dashboard.MetaData (DataType) VALUES ('Year') WHERE LevelName LIKE ?"
 					Set statement=##class(%SQL.Statement).%New("deffered")
 					Set st=statement.%Prepare(sql)
 					if (st) {
@@ -204,11 +204,11 @@ Storage Default
 <Value>%%CLASSNAME</Value>
 </Value>
 </Data>
-<DataLocation>^%DeepSee.D3E8F.MetaDataAna4B6DD</DataLocation>
+<DataLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DD</DataLocation>
 <DefaultData>MetaDataAnalyzeDefaultData</DefaultData>
-<IdLocation>^%DeepSee.D3E8F.MetaDataAna4B6DD</IdLocation>
-<IndexLocation>^%DeepSee.D3E8F.MetaDataAna4B6DI</IndexLocation>
-<StreamLocation>^%DeepSee.D3E8F.MetaDataAna4B6DS</StreamLocation>
+<IdLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DD</IdLocation>
+<IndexLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DI</IndexLocation>
+<StreamLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DS</StreamLocation>
 <Type>%Library.CacheStorage</Type>
 }
 

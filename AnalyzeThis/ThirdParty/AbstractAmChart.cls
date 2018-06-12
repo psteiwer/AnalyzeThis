@@ -1,4 +1,4 @@
-Class %DeepSee.ThirdParty.AbstractAmChart Extends (%ZEN.Component.component, %ZEN.Component.page, %DeepSee.ThirdParty.ListingInterface, %ZEN.Component.dataView)
+Class AnalyzeThis.ThirdParty.AbstractAmChart Extends (%ZEN.Component.component, %ZEN.Component.page, AnalyzeThis.ThirdParty.ListingInterface, %ZEN.Component.dataView)
 {
 
 Parameter INCLUDEFILES = "style:http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css,style:http://www.trirand.net/themes/ui.jqgrid.css,script:http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js,script:http://code.jquery.com/ui/1.10.3/jquery-ui.js,script:http://www.trirand.net/aspnetmvc/Scripts/trirand/i18n/grid.locale-en.js,script:http://www.trirand.net/js/trirand/jquery.jqGrid.min.js,script:themeswitchertool.js";
@@ -109,7 +109,7 @@ Method %DrawHTML()
     <script src="http://www.amcharts.com/lib/3/pie.js" type="text/javascript"></script>
   
     >
-	d ##class(%DeepSee.ThirdParty.ListingInterface).DrawHTML()
+	d ##class(AnalyzeThis.ThirdParty.ListingInterface).DrawHTML()
 }
 
 /// Notification from the containing widget that the page is loaded or the widget is resized.

@@ -1,4 +1,4 @@
-Class %DeepSee.ThirdParty.AmSmoothedLineChart Extends (AbstractAmChart, %DeepSee.Component.Portlet.abstractPortlet)
+Class AnalyzeThis.ThirdParty.AmSmoothedLineChart Extends (AbstractAmChart, %DeepSee.Component.Portlet.abstractPortlet)
 {
 
 ClassMethod %OnGetPortletName() As %String

@@ -1,4 +1,4 @@
-Class %DeepSee.ThirdParty.ListingInterface Extends %ZEN.Component.page
+Class AnalyzeThis.ThirdParty.ListingInterface Extends %ZEN.Component.page
 {
 
 Parameter INCLUDEFILES;
