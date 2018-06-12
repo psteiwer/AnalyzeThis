@@ -1,4 +1,4 @@
-# CSVToDeepSee
+# AnalyzeThis
 Easily transform a CSV file into a personalized preview of DeepSee
 
 Once classes are installed, a new option will be found in the System Management Portal under DeepSee -> Tools. This new option is "Import CSV Data".
