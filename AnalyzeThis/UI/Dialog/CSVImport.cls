@@ -72,7 +72,7 @@ XData Contents [ XMLNamespace = "http://www.intersystems.com/zen" ]
 {
 <page xmlns="http://www.intersystems.com/zen" >
 <html id="header" OnDrawContent="%DrawTitle" />
-<form enctype="multipart/form-data" action="_DeepSee.UI.Dialog.CSVImport.zen">
+<form enctype="multipart/form-data" action="AnalyzeThis.UI.Dialog.CSVImport.zen">
 <pane paneName="dialogBody" id="body"/>
 <hgroup id="footer" width="100%" cellAlign="right">
 <hgroup id="buttonHolder" cellAlign="right">

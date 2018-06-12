@@ -265,14 +265,14 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 	switch(popupName) {
 	case 'switchNamespace':
 		var homeurl = zenLink("/csp/sys/%25CSP.Portal.Home.zen");
-		var url = zenPage.GetNewURL(value,"_DeepSee.UI.CSVImport.zen");
+		var url = zenPage.GetNewURL(value,"AnalyzeThis.UI.CSVImport.zen");
 		if (url == "" || value == "%SYS") url = homeurl;
 		self.document.location = url;
 		break;
 	case 'CSVImport':
 		if (action=="okay") {
 			try {
-				self.document.location = zenLink('_DeepSee.UI.CSVImport.cls');
+				self.document.location = zenLink('AnalyzeThis.UI.CSVImport.cls');
 			}
 			catch(ex) {
 			}
@@ -332,7 +332,7 @@ ClientMethod newCube() [ Internal, Language = javascript ]
 			MODE:"models",
 	};
 	
-	zenLaunchPopupWindow('_DeepSee.UI.Dialog.CSVImport.cls','CSVImport','status,resizable=yes,width=900,height=700',parms);
+	zenLaunchPopupWindow('AnalyzeThis.UI.Dialog.CSVImport.cls','CSVImport','status,resizable=yes,width=900,height=700',parms);
 }
 
 /// View info about cube.
@@ -346,7 +346,7 @@ ClientMethod showInfo(pCubeName) [ Language = javascript ]
 	var parms = new Object();
 	parms.cubeName=pCubeName;
 	
-	zenPage.launchPopupWindow('_DeepSee.UI.Dialog.CSVImport.showInfo.cls','CSVImport','status,resizable=yes,width=900,height=700',parms);
+	zenPage.launchPopupWindow('AnalyzeThis.UI.Dialog.CSVImport.showInfo.cls','CSVImport','status,resizable=yes,width=900,height=700',parms);
 
 	//d ##class(AnalyzeThis.UI.Dialog.CSVImport.showInfo).drawStats(pCubeName)
 }
@@ -365,7 +365,7 @@ ClientMethod openCube() [ Language = javascript ]
 				CUBE:zenPage.getComponentById("table").getValue(),
 		};
 		
-		zenLaunchPopupWindow('_DeepSee.UI.Dialog.CSVImportOpen.cls','CSVImportOpen','status,scrollbars,resizable=yes,width=900,height=700',parms);
+		zenLaunchPopupWindow('AnalyzeThis.UI.Dialog.CSVImportOpen.cls','CSVImportOpen','status,scrollbars,resizable=yes,width=900,height=700',parms);
 	} else {
 		alert("Please select a cube below");
 	}
@@ -379,7 +379,7 @@ ClientMethod deleteCube() [ Language = javascript ]
 			zenPage.setRibbonMessage('Deleting '+zenPage.getComponentById("table").getValue()+'...');
 			this.Delete(zenPage.getComponentById("table").getValue())
 			try {
-				self.document.location = zenLink('_DeepSee.UI.CSVImport.cls');
+				self.document.location = zenLink('AnalyzeThis.UI.CSVImport.cls');
 			}
 			catch(ex) {
 			}

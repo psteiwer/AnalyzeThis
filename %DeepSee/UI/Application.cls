@@ -464,7 +464,7 @@ ClassMethod GetDeepSeeArray(Output pData) As %Status
 
 		// PFS CSV Data Import
 		set tText = $$$Text("Import CSV Data")
-		set pData(n,$i(n2)) = $lb($$$Text("Import CSV Data"),tText,..Link("_DeepSee.UI.CSVImport.zen"),0,..Link("deepsee/spreadsheet_48.gif"),tText)
+		set pData(n,$i(n2)) = $lb($$$Text("Import CSV Data"),tText,..Link("AnalyzeThis.UI.CSVImport.zen"),0,..Link("deepsee/spreadsheet_48.gif"),tText)
 
 
 	// ====== ADMIN SUB-MENU
