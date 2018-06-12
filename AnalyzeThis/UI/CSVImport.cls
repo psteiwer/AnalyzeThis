@@ -202,7 +202,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	valueColumn="CubeName"
 	
 	>
-<column colName="CubeName" header="DeepSee Cube Name" />
+<column colName="CubeName" header="Cube Name" />
 <column colName="Analyzer" link="#(%query.Application)#_DeepSee.UI.Analyzer.zen?CUBE=#(%query.CubeName)#"/>
 <column colName="Architect" link="#(%query.Application)#_DeepSee.UI.Architect.zen?CUBE=#(%query.CubeName)#"/>
 <column colName="Dashboard" link="#(%query.Application)#_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=Generated/Samples%20for%20#(%query.CubeName)#.dashboard"/>
