@@ -85,7 +85,7 @@ Storage Default
 <IdLocation>^AnalyzeThis.Dashboard.MetaDataD</IdLocation>
 <IndexLocation>^AnalyzeThis.Dashboard.MetaDataI</IndexLocation>
 <StreamLocation>^AnalyzeThis.Dashboard.MetaDataS</StreamLocation>
-<Type>%Library.CacheStorage</Type>
+<Type>%Storage.Persistent</Type>
 }
 
 }

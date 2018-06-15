@@ -101,7 +101,7 @@ Storage Default
 <IdLocation>^AnalyzeThis.Dashboard.S886B.UtilsD</IdLocation>
 <IndexLocation>^AnalyzeThis.Dashboard.S886B.UtilsI</IndexLocation>
 <StreamLocation>^AnalyzeThis.Dashboard.S886B.UtilsS</StreamLocation>
-<Type>%Library.CacheStorage</Type>
+<Type>%Storage.Persistent</Type>
 }
 
 }

@@ -954,7 +954,7 @@ Storage Default
 <Structure>subnode</Structure>
 <Subscript>"AnalyzeThis.Dashboard.AutoPivot.Properties"</Subscript>
 </Data>
-<Type>%Library.CacheStorage</Type>
+<Type>%Storage.Persistent</Type>
 }
 
 }

@@ -209,7 +209,7 @@ Storage Default
 <IdLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DD</IdLocation>
 <IndexLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DI</IndexLocation>
 <StreamLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DS</StreamLocation>
-<Type>%Library.CacheStorage</Type>
+<Type>%Storage.Persistent</Type>
 }
 
 }
