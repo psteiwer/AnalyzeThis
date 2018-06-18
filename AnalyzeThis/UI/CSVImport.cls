@@ -390,7 +390,12 @@ ClientMethod deleteCube() [ Language = javascript ]
 /// Delete a cube.
 Method Delete(pName As %String) As %String [ ZenMethod ]
 {
-	Set tMsg=##class(AnalyzeThis.Dashboard.SampleDashboard.Utils).DeleteAll(pName)
+	Set tMsg = "Cube Deleted."
+	
+	Set tSC=##class(AnalyzeThis.Dashboard.SampleDashboard.Utils).DeleteAll(pName)
+	If $$$ISERR(tSC) {
+		Set tMsg = $System.Status.GetErrorText(tSC)
+	}
 	
 	Quit tMsg
 }

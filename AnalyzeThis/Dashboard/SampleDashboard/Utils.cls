@@ -3,10 +3,8 @@ Include %DeepSee
 Class AnalyzeThis.Dashboard.SampleDashboard.Utils
 {
 /// Delete all data and classes for a specific cube.
-ClassMethod DeleteAll(pName As %String) As %String
+ClassMethod DeleteAll(pName As %String) As %Status
 {
-	Set tMsg = "Cube deleted."
-	
 	If ('##class(%DeepSee.Utils).%CubeExists(pName)) {
 		Quit $$$ERROR($$$GeneralError,"Please enter a valid cube name")
 	}
@@ -28,31 +26,26 @@ ClassMethod DeleteAll(pName As %String) As %String
 	
 	set tSC=$classmethod(tCubeFactClass,"%DeleteExtent")
 	If $$$ISERR(tSC) {
-		Set tMsg = $System.Status.GetErrorText(tSC)
-		Quit tMsg
+		Quit tSC
 	}
 	set tSC=$system.OBJ.Delete(tCubeClass,"/displayerror=0 /displaylog=0")
 	If $$$ISERR(tSC) {
-		Set tMsg = $System.Status.GetErrorText(tSC)
-		Quit tMsg
+		Quit tSC
 	}
 	
 	set tSC=$classmethod(tSourceClass,"%DeleteExtent")
 	If $$$ISERR(tSC) {
-		Set tMsg = $System.Status.GetErrorText(tSC)
-		Quit tMsg
+		Quit tSC
 	}
 	set tSC=$system.OBJ.Delete(tSourceClass,"/displayerror=0 /displaylog=0")
 	If $$$ISERR(tSC) {
-		Set tMsg = $System.Status.GetErrorText(tSC)
-		Quit tMsg
+		Quit tSC
 	}
 	
 	//Delete MetaDataAnalysis associated with cube
 	set tSC=##class(AnalyzeThis.Dashboard.MetaData).Delete(pName)
 	If $$$ISERR(tSC) {
-		Set tMsg= $System.Status.GetErrorText(tSC)
-		Quit tMsg
+		Quit tSC
 	}
 	
 	//Delete Dashboards associated with the cube
@@ -66,15 +59,17 @@ ClassMethod DeleteAll(pName As %String) As %String
 		If (dash) {
 			Set tSC=##class(%DeepSee.Dashboard.Utils).%DeleteDashboard(dashName)
 			If $$$ISERR(tSC) {
-				Set tMsg = $System.Status.GetErrorText(tSC)
-				Quit tMsg
+				Quit
 			}
 		}
+	}
+	If $$$ISERR(tSC) {
+		Quit tSC
 	}
 
 	k ^DeepSee.ImportCSV(tSourceClass,pName)
 	
-	Quit tMsg
+	Quit tSC
 }
 
 }
