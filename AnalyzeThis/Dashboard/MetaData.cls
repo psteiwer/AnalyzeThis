@@ -25,7 +25,7 @@ Property Maximum As %Decimal;
 
 Property Minimum As %Decimal;
 
-/// Insert method using embedded SQL
+/// Delete method using embedded SQL
 ClassMethod Delete(pCubeName As %String) As %Status
 {
  Set exist=""

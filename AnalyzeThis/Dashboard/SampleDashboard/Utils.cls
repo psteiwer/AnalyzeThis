@@ -2,18 +2,6 @@ Include %DeepSee
 
 Class AnalyzeThis.Dashboard.SampleDashboard.Utils
 {
-
-ClassMethod DeleteMetaData(pCubeName As %String) As %Status
-{
- Set exist=""
- &sql(SELECT %ID INTO :exist FROM AnalyzeThis_Dashboard.MetaData WHERE (CubeName=:pCubeName))
- if ((SQLCODE = 0)&&(exist'="")) 
- {
-	&sql(DELETE FROM AnalyzeThis_Dashboard.MetaData WHERE (CubeName=:pCubeName))
- }
- quit $$$OK
-}
-
 /// Delete all data and classes for a specific cube.
 ClassMethod DeleteAll(pName As %String) As %String
 {
@@ -61,7 +49,7 @@ ClassMethod DeleteAll(pName As %String) As %String
 	}
 	
 	//Delete MetaDataAnalysis associated with cube
-	set tSC=##class(AnalyzeThis.Dashboard.SampleDashboard.Utils).DeleteMetaData(pName)
+	set tSC=##class(AnalyzeThis.Dashboard.MetaData).Delete(pName)
 	If $$$ISERR(tSC) {
 		Set tMsg= $System.Status.GetErrorText(tSC)
 		Quit tMsg
