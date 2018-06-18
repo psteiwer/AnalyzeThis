@@ -18,6 +18,10 @@ ClassMethod DeleteMetaData(pCubeName As %String) As %Status
 ClassMethod Delete(pName As %String) As %String
 {
 	Set tMsg = "Cube deleted."
+	
+	If ('##class(%DeepSee.Utils).%CubeExists(pName)) {
+		Quit $$$ERROR($$$GeneralError,"Please enter a valid cube name")
+	}
 
 	set tCubeName=$$$UPPER(pName)
 	
