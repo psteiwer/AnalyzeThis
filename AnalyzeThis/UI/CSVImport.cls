@@ -392,7 +392,7 @@ Method Delete(pName As %String) As %String [ ZenMethod ]
 {
 	Set tMsg = "Cube Deleted."
 	
-	Set tSC=##class(AnalyzeThis.Dashboard.SampleDashboard.Utils).DeleteAll(pName)
+	Set tSC=##class(AnalyzeThis.Dashboard.Utils).DeleteAll(pName)
 	If $$$ISERR(tSC) {
 		Set tMsg = $System.Status.GetErrorText(tSC)
 	}

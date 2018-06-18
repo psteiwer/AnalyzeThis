@@ -1,6 +1,6 @@
 Include %DeepSee
 
-Class AnalyzeThis.Dashboard.SampleDashboard.Utils
+Class AnalyzeThis.Dashboard.Utils
 {
 /// Delete all data and classes for a specific cube.
 ClassMethod DeleteAll(pName As %String) As %Status
