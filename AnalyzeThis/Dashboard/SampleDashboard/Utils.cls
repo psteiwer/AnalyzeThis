@@ -55,24 +55,20 @@ ClassMethod DeleteAll(pName As %String) As %String
 		Quit tMsg
 	}
 	
-	//Delete Dashboards assoicated with the cube
-	set dashName="Generated/Samples for "_pName_".dashboard"
-	Set dash=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
-	If (dash) {
-		Set tSC=##class(%DeepSee.Dashboard.Utils).%DeleteDashboard(dashName)
-		If $$$ISERR(tSC) {
-			Set tMsg = $System.Status.GetErrorText(tSC)
-			Quit tMsg
-		}
-	}
+	//Delete Dashboards associated with the cube
+	Set dashboards(1) = "Generated/Samples for "_pName_".dashboard"
+	Set dashboards(2) = "Generated/Sample ScoreCard for "_pName_".dashboard"
 	
-	set dashName="Generated/Sample ScoreCard for "_pName_".dashboard"
-	Set dash=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
-	If (dash) {
-		Set tSC=##class(%DeepSee.Dashboard.Utils).%DeleteDashboard(dashName)
-		If $$$ISERR(tSC) {
+	Set dashIdx = $O(dashboards(""))
+	While dashIdx '= "" {
+		set dashName=dashboards(dashIdx)
+		Set dash=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
+		If (dash) {
+			Set tSC=##class(%DeepSee.Dashboard.Utils).%DeleteDashboard(dashName)
+			If $$$ISERR(tSC) {
 				Set tMsg = $System.Status.GetErrorText(tSC)
 				Quit tMsg
+			}
 		}
 	}
 
