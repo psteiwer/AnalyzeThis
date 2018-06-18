@@ -19,7 +19,7 @@ ClassMethod DeleteAll(pName As %String) As %Status
 	Do ##class(AnalyzeThis.UI.CSVImport).GetPivotList(.pivots,,pName)
 	Set pivot = $O(pivots(""))
 	While pivot '= "" {
-		Do ##class(%DeepSee.UserLibrary.Utils).%DeleteFolderItem(pivots(i))
+		Do ##class(%DeepSee.UserLibrary.Utils).%DeleteFolderItem(pivots(pivot))
 		Set pivot = $O(pivots(pivot))
 	}
 	
