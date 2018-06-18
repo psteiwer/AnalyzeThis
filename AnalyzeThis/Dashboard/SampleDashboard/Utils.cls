@@ -1,6 +1,6 @@
 Include %DeepSee
 
-Class AnalyzeThis.Dashboard.SampleDashboard.Utils Extends %Persistent
+Class AnalyzeThis.Dashboard.SampleDashboard.Utils
 {
 
 ClassMethod DeleteMetaData(pCubeName As %String) As %Status
@@ -87,21 +87,6 @@ ClassMethod Delete(pName As %String) As %String
 	k ^DeepSee.ImportCSV(tSourceClass,pName)
 	
 	Quit tMsg
-}
-
-Storage Default
-{
-<Data name="UtilsDefaultData">
-<Value name="1">
-<Value>%%CLASSNAME</Value>
-</Value>
-</Data>
-<DataLocation>^AnalyzeThis.Dashboard.S886B.UtilsD</DataLocation>
-<DefaultData>UtilsDefaultData</DefaultData>
-<IdLocation>^AnalyzeThis.Dashboard.S886B.UtilsD</IdLocation>
-<IndexLocation>^AnalyzeThis.Dashboard.S886B.UtilsI</IndexLocation>
-<StreamLocation>^AnalyzeThis.Dashboard.S886B.UtilsS</StreamLocation>
-<Type>%Storage.Persistent</Type>
 }
 
 }
