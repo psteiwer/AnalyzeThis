@@ -14,8 +14,8 @@ ClassMethod DeleteMetaData(pCubeName As %String) As %Status
  quit $$$OK
 }
 
-/// Delete a term list.
-ClassMethod Delete(pName As %String) As %String
+/// Delete all data and classes for a specific cube.
+ClassMethod DeleteAll(pName As %String) As %String
 {
 	Set tMsg = "Cube deleted."
 	

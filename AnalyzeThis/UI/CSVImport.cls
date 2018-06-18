@@ -387,10 +387,10 @@ ClientMethod deleteCube() [ Language = javascript ]
 	}
 }
 
-/// Delete a term list.
+/// Delete a cube.
 Method Delete(pName As %String) As %String [ ZenMethod ]
 {
-	Set tMsg=##class(AnalyzeThis.Dashboard.SampleDashboard.Utils).Delete(pName)
+	Set tMsg=##class(AnalyzeThis.Dashboard.SampleDashboard.Utils).DeleteAll(pName)
 	
 	Quit tMsg
 }
