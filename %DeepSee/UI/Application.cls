@@ -1,3 +1,5 @@
+Include %products
+
 /// Zen application class for pages within the DeepSee portal.
 /// 
 Class %DeepSee.UI.Application Extends %ZEN.Portal.Application [ System = 4 ]
@@ -338,34 +340,36 @@ ClassMethod GetDeepSeeArray(Output pData) As %Status
 {
 	Set tNoHTML5 = 1
 	If (%page.cssLevel>=3) Set tNoHTML5 = 0
+	Set tProductName = $$$PRODUCT1
 	
 	//Set pMetaData = $LB("name","title","link","disabled","icon","description")
-	Set lblNoHTML5 = $$$TextHTML("DeepSee Visual Reporting requires the use of an HTML5 compliant browser.")
+	Set lblNoHTML5 = $$$FormatText($$$Text("%1 Visual Reporting requires the use of an HTML5 compliant browser."), tProductName)
 	Set lblNoPriv = $$$TextHTML("You do not have privilege to view this page.")	
 	Set tUse = $$CheckArchitectViewAccess^%qdsUtils()
 	Set tDisabled = 'tUse
-	Set tText = $$$TextHTML("Create and modify DeepSee data models")
+	Set tText = $$$FormatText($$$Text("Create and modify %1 data models"),tProductName)
 	Set tLinkTitle = $Case(tDisabled,0:tText,:lblNoPriv)
 	Set pData($I(n)) = $LB($$$Text("Architect"),tLinkTitle,..Link("_DeepSee.UI.Architect.zen"),tDisabled,..Link("portal/architect_48.gif"),tText)
 	
 	Set tUse = $$CheckAnalyzerViewAccess^%qdsUtils()
 	Set tDisabled = 'tUse
-	Set tText = $$$TextHTML("Create and modify DeepSee pivot tables based on DeepSee data models")
+	Set tText = $$$FormatText($$$Text("Create and modify %1 pivot tables based on %1 data models"),tProductName,tProductName)
 	Set tLinkTitle = $Case(tDisabled,0:tText,:lblNoPriv)	
 	Set pData($I(n)) = $LB($$$Text("Analyzer"),tLinkTitle,..Link("_DeepSee.UI.Analyzer.zen"),tDisabled,..Link("portal/comparison_chart_48.gif"),tText)
 	
 	Set tUse = $System.Security.Check("%DeepSee_Portal","USE")||
 				$System.Security.Check("%DeepSee_PortalEdit","USE")
 	Set tDisabled = 'tUse
-	Set tText = $$$TextHTML("View the DeepSee User Portal")
+	Set tText = $$$FormatText($$$Text("View the %1 User Portal"), tProductName)
 	Set tLinkTitle = $Case(tDisabled,0:tText,:lblNoPriv)
 	Set pData($I(n)) = $LB($$$Text("User Portal"),tLinkTitle,..Link("_DeepSee.UserPortal.Home.zen"),tDisabled,..Link("portal/clients_48.gif"),tText)
 	
 	
 	// ====== VISUAL REPORTING SUB-MENU
+	/*
 	Set tUse = $$CheckReportExecuteAccess^%qdsUtils()
 	Set tDisabled = 'tUse
-	Set tText = $$$Text("Create and modify DeepSee Visual Reporting objects")
+	Set tText = $$$FormatText($$$Text("Create and modify %1 Visual Reporting objects"), tProductName)
 	Set tLinkTitle = $Case(tDisabled,0:tText,:lblNoPriv)
 	Set pData($I(n)) = $LB($$$Text("Visual Reporting"),tLinkTitle,,tDisabled,..Link("portal/icon_deepseeReports.png"),tText)
  
@@ -403,39 +407,42 @@ ClassMethod GetDeepSeeArray(Output pData) As %Status
 		Set tLinkTitle = $Case(tDisabled,0:tText,:lblNoPriv)
 		Set tLinkTitle = $Case(tNoHTML5,0:tLinkTitle,:lblNoHTML5)
 		If ('tDisabled) Set tDisabled = tNoHTML5
-		Set pData(n,$I(n2)) = $LB($$$Text("Report Builder"),tLinkTitle,,tDisabled,..Link("portal/icon_deepseeReports.png"),tText)
+		//Set pData(n,$I(n2)) = $LB($$$Text("Report Builder"),tLinkTitle,,tDisabled,..Link("portal/icon_deepseeReports.png"),tText)
 
-			Set n3 = 0
+			//Set n3 = 0
 			Set tText = $$$Text("Design and edit tabular reports")
 			Set tLinkTitle = $Case(tDisabled,0:tText,:lblNoPriv)
-			Set pData(n,n2,$I(n3)) = $LB($$$Text("Line Item Report Builder"),tLinkTitle,..Link("_DeepSee.Report.UI.BuildLIDR.zen"),tDisabled,..Link("portal/lidrReport.png"),tText)
+			Set pData(n,$I(n2)) = $LB($$$Text("Report Builder"),tLinkTitle,..Link("_DeepSee.Report.UI.BuildLIDR.zen"),tDisabled,..Link("portal/lidrReport.png"),tText)
 
 		Set tUse = $$CheckReportExecuteAccess^%qdsUtils()
 		Set tDisabled = 'tUse
 		Set tText = $$$Text("Execute an existing report")
 		Set tLinkTitle = $Case(tDisabled,0:tText,:lblNoPriv)
  		Set pData(n,$I(n2)) = $LB($$$Text("Run Reports"),tText,..Link("_DeepSee.Report.UI.ExecuteReport.zen"),,..Link("portal/report_48.gif"),tText)
- 
- 
+ 	*/
+ 	
+ 	// ====== Text Analytics menu
+	Set tSC = ##class(%CSP.UI.Portal.Application).GetNLPArray(.n, .pData)
+
  	// ====== TOOLS SUB-MENU
-	Set tText = $$$Text("Various DeepSee Tools")
+	Set tText = $$$FormatText($$$Text("Various %1 Tools"), tProductName)
 	Set pData($I(n)) = $LB($$$Text("Tools"),tText,,,..Link("portal/eye_chart_info_48.gif"),tText)
 		Set n2 = 0
 		
 		Set tUse = $System.Security.Check("%DeepSee_Admin","USE")||			// DTB287 - Add security check
 		 			$System.Security.Check("%Development","USE")
 		Set tDisabled = 'tUse
-		Set tText = $$$Text("Execute ad hoc MDX queries against DeepSee models")
-		Set pData(n,$I(n2)) = $LB($$$Text("Query Tool"),tText,..Link("_DeepSee.UI.MDXQuery.zen"),tDisabled,..Link("portal/sql_query_48.gif"),tText)
+		Set tText = $$$FormatText($$$Text("Execute ad hoc MDX queries against %1 models"), tProductName)
+		Set pData(n,$I(n2)) = $LB($$$Text("MDX Query Tool"),tText,..Link("_DeepSee.UI.MDXQuery.zen"),tDisabled,..Link("portal/sql_query_48.gif"),tText)
 
 		Set tUse = $System.Security.Check("%DeepSee_PortalEdit","USE")		// DTB287 - Add security check
 		Set tDisabled = 'tUse
-		Set tText = $$$Text("Create and modify DeepSee Term Lists")
+		Set tText = $$$FormatText($$$Text("Create and modify %1 Term Lists"), tProductName)
 		Set pData(n,$I(n2)) = $LB($$$Text("Term List Manager"),tText,..Link("_DeepSee.UI.TermListManager.zen"),tDisabled,..Link("deepsee/summary_48.gif"),tText)
 
 		// DTB084 - Add Listing Group Manager
 		Set tUse = $$CheckListingGroupViewAccess^%qdsUtils()
-		Set tText = $$$Text("Create and modify DeepSee Listing Groups")
+		Set tText = $$$Text("Create and modify Analytics Listing Groups")
 		Set tDisabled = 'tUse
 		Set tLinkTitle = $Case(tDisabled,0:tText,:lblNoPriv)
 		Set pData(n,$I(n2)) = $LB($$$Text("Listing Group Manager"),tLinkTitle,..Link("_DeepSee.UI.ListingGroupManager.zen"),tDisabled,..Link("deepsee/summary_48.gif"),tText)
@@ -443,14 +450,14 @@ ClassMethod GetDeepSeeArray(Output pData) As %Status
 		If $System.Version.GetMajor() >= 2011 {
 			Set tUse = $System.Security.Check("%DeepSee_PortalEdit","USE")	// DTB287 - Add security check
 			Set tDisabled = 'tUse
-			Set tText = $$$Text("Create and modify DeepSee Quality Measures")
+			Set tText = $$$FormatText($$$Text("Create and modify %1 Quality Measures"), tProductName)
 			Set pData(n,$I(n2)) = $LB($$$Text("Quality Measures"),tText,..Link("_DeepSee.UI.QualityMeasures.zen"),tDisabled,..Link("portal/logo_design_48.gif"),tText)
 		}
 
 		If $System.Version.GetMajor() >= 2011 {
 			Set tUse = $System.Security.Check("%DeepSee_PortalEdit","USE")	// DTB287 - Add security check
 			Set tDisabled = 'tUse
-			Set tText = $$$Text("Create and modify DeepSee Worksheets")
+			Set tText = $$$FormatText($$$Text("Create and modify %1 Worksheets"), tProductName)
 			Set pData(n,$I(n2)) = $LB($$$Text("Worksheet Builder"),tText,..Link("_DeepSee.UI.WorksheetBuilder.zen"),tDisabled,..Link("deepsee/spreadsheet_48.gif"),tText)
 		}
 		
@@ -461,38 +468,38 @@ ClassMethod GetDeepSeeArray(Output pData) As %Status
 		// BDB383 - Expose PMML Model Tester in DeepSee tools
 		set tText = $$$Text("Test predictive models expressed as PMML")
 		set pData(n,$i(n2)) = $lb($$$Text("PMML Model Tester"),tText,..Link("_DeepSee.PMML.UI.ModelTester.zen"),0,..Link("deepsee/ds2_beaker_44.png"),tText)
-
+		
 		// PFS CSV Data Import
 		set tText = $$$Text("Import CSV Data")
 		set pData(n,$i(n2)) = $lb($$$Text("Import CSV Data"),tText,..Link("AnalyzeThis.UI.CSVImport.zen"),0,..Link("deepsee/spreadsheet_48.gif"),tText)
-
 
 	// ====== ADMIN SUB-MENU
 	Set tText = $$$Text("Administrative Tools")
 	Set pData($I(n)) = $LB($$$Text("Admin"),tText,,,..Link("portal/admin_config_48.gif"),tText)
 		Set n2 = 0
-		Set tText = $$$Text("View DeepSee log files")
-		Set pData(n,$I(n2)) = $LB($$$Text("DeepSee Logs"),tText,..Link("_DeepSee.UI.LogViewer.zen"),,..Link("portal/folder_48.gif"),tText)
+		Set tText = $$$FormatText($$$Text("View %1 log files"), tProductName)
+		Set pData(n,$I(n2)) = $LB($$$Text("Logs"),tText,..Link("_DeepSee.UI.LogViewer.zen"),,..Link("portal/folder_48.gif"),tText)
 
-		Set tText = $$$Text("Manage the content of DeepSee folders")
+		Set tText = $$$FormatText($$$Text("Manage the content of %1 folders"), tProductName)
 		Set pData(n,$I(n2)) = $LB($$$Text("Folder Manager"),tText,..Link("_DeepSee.UI.FolderManager.zen"),,..Link("portal/folder_48.gif"),tText)
 	
 		Set tUse = $System.Security.Check("%DeepSee_Admin","USE")
 		Set tDisabled = 'tUse
-		Set tText = $$$TextHTML("View or modify DeepSee settings for this namespace")
+		Set tText = $$$FormatText($$$Text("View or modify %1 settings for this namespace"), tProductName)
 		Set tLinkTitle = $Case(tDisabled,0:tText,:lblNoPriv)
 		Set pData(n,$I(n2)) = $LB($$$Text("Settings"),tLinkTitle,..Link("_DeepSee.UI.Settings.zen"),tDisabled,..Link("portal/gear_48.gif"),tText)
 		
 		// DTB004 - Move Cube Management to submenu of DeepSee Admin
 		Set tUse = $System.Security.Check("%DeepSee_Admin","USE")
 		Set tDisabled = 'tUse
-		Set tText = $$$Text("Cube Management")
-		Set pData(n,$I(n2)) = $LB(tText,tText,,tDisabled,..Link("portal/admin_config_48.gif"),tText)
+		//Set tText = $$$Text("Cube Management")
+		//Set pData(n,$I(n2)) = $LB(tText,tText,,tDisabled,..Link("portal/admin_config_48.gif"),tText)
 		
-		Set n3=0
+		//Set n3=0
 		Set tText = $$$Text("Register and schedule cubes to be automatically built and synchronized.")
-		Set pData(n,n2,$I(n3)) = $LB($$$Text("Cube Registry"),tText,..Link("_DeepSee.UI.CubeRegistry.zen"),,..Link("deepsee/ds_chart_treemap.png"),tText)
-	
+		//Set pData(n,n2,$I(n3)) = $LB($$$Text("Cube Registry"),tText,..Link("_DeepSee.UI.CubeRegistry.zen"),,..Link("deepsee/ds_chart_treemap.png"),tText)
+		Set pData(n,$I(n2)) = $LB($$$Text("Registry"),tText,..Link("_DeepSee.UI.CubeRegistry.zen"),,..Link("deepsee/ds_chart_treemap.png"),tText)
+
 	Quit $$$OK
 }
 
