@@ -17,11 +17,10 @@ ClassMethod DeleteAll(pName As %String) As %Status
 	
 	//Delete pivots associated with the cube
 	Do ##class(AnalyzeThis.UI.CSVImport).GetPivotList(.pivots,,pName)
-	Set i=1
-	While $DATA(pivots(i))
-	{
+	Set pivot = $O(pivots(""))
+	While pivot '= "" {
 		Do ##class(%DeepSee.UserLibrary.Utils).%DeleteFolderItem(pivots(i))
-		Set i=i+1
+		Set pivot = $O(pivots(pivot))
 	}
 	
 	set tSC=$classmethod(tCubeFactClass,"%DeleteExtent")
