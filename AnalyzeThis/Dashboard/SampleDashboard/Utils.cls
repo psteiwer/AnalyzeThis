@@ -61,6 +61,8 @@ ClassMethod DeleteAll(pName As %String) As %Status
 				Quit
 			}
 		}
+		
+		Set dashIdx = $O(dashboards(dashIdx))
 	}
 	If $$$ISERR(tSC) {
 		Quit tSC
