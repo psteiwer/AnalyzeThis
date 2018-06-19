@@ -14,4 +14,4 @@ Install Steps:
 5. Load files
     * If opted into step 3 - do $system.OBJ.LoadDir("<PATH FROM STEP 2>","ck",,1)
     * Else - do $system.OBJ.LoadDir("<PATH FROM STEP 2>/AnalyzeThis/","ck",,1)
-6. Navigate to URL: <server>/<webapp>/AnalyzeThis.UI.CSVImport.cls
+6. Navigate to URL: `<server>/<webapp>/AnalyzeThis.UI.CSVImport.cls`
