@@ -453,7 +453,7 @@ ClassMethod CreateListingSample(pCubeName As %String) As %String
 	}
 
 	//Create new pivot
-  	set tPivot=##class(AnalyzeThis.Dashboard.Pivot).%New()
+  	set tPivot=##class(%DeepSee.Dashboard.Pivot).%New()
 	set tPivot.cubeName=pCubeName
 	set tPivot.name=name
 	set tPivot.folderName="Generated-"_$E(pCubeName,1,15)
