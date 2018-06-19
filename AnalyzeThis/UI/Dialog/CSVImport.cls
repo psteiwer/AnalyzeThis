@@ -74,7 +74,7 @@ XData Contents [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <html id="header" OnDrawContent="%DrawTitle" />
 <form enctype="multipart/form-data" action="AnalyzeThis.UI.Dialog.CSVImport.zen">
 <pane paneName="dialogBody" id="body"/>
-<hgroup id="footer" width="100%" cellAlign="right">
+<hgroup id="footer" width="99%" cellAlign="right">
 <hgroup id="buttonHolder" cellAlign="right">
 <button id="btnBack" controlClass="commandButtonDisabled" caption="Back" onclick="zenPage.previousPage();" disabled="true"/>
 <spacer width="10" />
@@ -1159,12 +1159,8 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 	body=document.getElementById("body")
 	body.offsetHeight=body.parentNode.offsetHeight+'px'
 	body.style.height=body.parentNode.offsetHeight+'px'
-	body.offsetWidth=(zenBody.offsetWidth-15)+'px'
-	body.style.width=(zenBody.offsetWidth-15)+'px'
-	console.log(zenBody.offsetWidth)
-	console.log(body.offsetWidth)
-	console.log(body.style.width)
-	//console.log(body.style)
+	body.offsetWidth=(zenbody.offsetWidth-20)+'px'
+	body.style.width=(zenbody.offsetWidth-20)+'px'
 }
 
 ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSON, ByRef dataJSON, pMaxSize As %Integer = 0, pMaxLines As %Integer = 0, pHasHeaders As %Boolean = 1, pNewLine As %String = {$c(13,10)}) As %Status
