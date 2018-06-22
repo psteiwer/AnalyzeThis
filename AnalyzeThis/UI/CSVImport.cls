@@ -4,6 +4,7 @@ Include %DeepSee
 /// This page lets you import data from a CSV file into DeepSee.
 Class AnalyzeThis.UI.CSVImport Extends %DeepSee.UI.standardPage [ System = 4 ]
 {
+Parameter Version = 1;
 
 /// Displayed name of this page.
 Parameter PAGENAME = "CSV Import";
@@ -453,15 +454,14 @@ ClassMethod GetImportedCubesExecute(ByRef qHandle As %Binary) As %Status
 {
 	Set tSC = $$$OK
 	kill ^||DeepSee.CSVImportExecute
-	set index=$o(^DeepSee.ImportCSV(""))
-	while index'="" {
-		Set CubeName=$o(^DeepSee.ImportCSV(index,""))
+	set CubeName=$o(^DeepSee.ImportCSV(""))
+	while CubeName'="" {
 		Set dashName="Generated/Samples for "_CubeName_".dashboard"
 		Set dash=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 		Set scoreCardName="Generated/Sample ScoreCard for "_CubeName_".dashboard"
 		Set scoreCard=##class(%DeepSee.Dashboard.Utils).%DashboardExists(scoreCardName)
 		set ^||DeepSee.CSVImportExecute($i(count))=$lb(CubeName,"Analyzer","Architect",$case(dash, 0:"", 1:"Dashboard"),$case(scoreCard, 0:"", 1:"ScoreCard"),"Info",$system.CSP.GetPortalApp($NAMESPACE,$replace($this,"%","_")_".zen"),"info")
-		set index=$o(^DeepSee.ImportCSV(index))
+		set CubeName=$o(^DeepSee.ImportCSV(CubeName))
 	}
     Set qHandle = $LB("")
     Quit tSC
@@ -486,6 +486,11 @@ ClassMethod GetImportedCubesClose(ByRef qHandle As %Binary) As %Status [ Interna
 {
     Set qHandle = ""
     Quit $$$OK
+}
+
+ClassMethod AddDetails(pCubeName As %String)
+{
+	set ^DeepSee.ImportCSV(pCubeName, ..#Version)=1
 }
 
 }

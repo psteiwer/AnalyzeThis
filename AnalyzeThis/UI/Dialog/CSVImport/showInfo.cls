@@ -80,7 +80,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 
 Method GetVersion(pSeed As %String) As %Status [ ZenMethod ]
 {
-	Set version=$o(^DeepSee.ImportCSV("User."_..CubeName,..CubeName,""))
+	Set version=$o(^DeepSee.ImportCSV(..CubeName,""))
 	&html<<font size='3' color='green'><p> This Cube was created with wizard version number: #(version)# </p></font>>
 	quit $$$OK
 }

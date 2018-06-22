@@ -1,6 +1,7 @@
 /// Created using the page template: Default
-Class AnalyzeThis.UI.Dialog.CSVImport Extends %CSP.UI.Portal.Dialog.WizardTemplate [ System = 4 ]
+Class AnalyzeThis.UI.Dialog.CSVImport Extends %ZEN.Dialog.standardDialog [ System = 4 ]
 {
+Parameter Version = 1;
 
 Property INPUTTYPE As %ZEN.Datatype.string(ZENURL = "INPUTTYPE");
 
@@ -23,11 +24,12 @@ Property SourceClass As %String;
 
 Property CubeName As %String;
 
-Property Version [ Final, InitialExpression = 1 ];
+Property propertyJSONStreamID As %ZEN.Datatype.string;
 
-Property propertyJSONStreamID As %String;
+Property dataJSONStreamID As %ZEN.Datatype.string;
 
-Property dataJSONStreamID As %String;
+/// Id used to track progress.
+Property trackingId As %ZEN.Datatype.string;
 
 /// This Style block contains page-specific CSS style definitions.
 XData Style
@@ -70,7 +72,8 @@ table.ContentTable td { padding-left:2px; padding-right:2px; font-size: 11px; }
 
 XData Contents [ XMLNamespace = "http://www.intersystems.com/zen" ]
 {
-<page xmlns="http://www.intersystems.com/zen" >
+<page xmlns="http://www.intersystems.com/zen"
+	title="#(%page.dialogTitle)#" >
 <html id="header" OnDrawContent="%DrawTitle" />
 <form enctype="multipart/form-data" action="AnalyzeThis.UI.Dialog.CSVImport.zen">
 <pane paneName="dialogBody" id="body"/>
@@ -151,27 +154,8 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <!-- Third Page -->
 <tab id="tab3" enclosingStyle="padding-top:20px;" cellStyle="padding-bottom:10px;">
 <html OnDrawContent="DrawPageTitle" seed="3"/>
-<html id="htmlContent3" onrefresh="zenPage.updateProgressJSON();"/>
-<vgroup>
-<hgroup>
-<vgroup width="250" align="left">
-<label value="Preparing JSON:"/>
-<label value="Generating Source Class:"/>
-<label value="Importing Data:"/>
-<label value="Generating DeepSee Cube:"/>
-<label value="Populating DeepSee Cube:"/>
-<label value="Generating Sample Dashboard:"/>
-</vgroup>
-<vgroup width="275" labelPosition="left">
-<label id="progress0" value="Not Yet Started"/>
-<label id="progress1" value="Not Yet Started"/>
-<label id="progress2" value="Not Yet Started"/>
-<label id="progress3" value="Not Yet Started"/>
-<label id="progress4" value="Not Yet Started"/>
-<label id="progress5" value="Not Yet Started"/>
-</vgroup>
-</hgroup>
-</vgroup>
+<html id="htmlContent3" onrefresh="zenPage.updateProgress();"/>
+<timer id="timer" ontimeout="zenPage.updateStatus();"/>
 </tab>
 
 <!-- Fourth Page -->
@@ -285,21 +269,6 @@ ClientMethod doImportJSON() [ Language = javascript ]
 	zenPage.updateState();
 }
 
-Method updateProperties(pId As %String, pProp As %String, pVal As %String) As %Status [ ZenMethod ]
-{
-	set tempStream=##class(%Stream.FileBinary).%OpenId(..propertyJSONStreamID)
-	set prop={}.%FromJSON(tempStream)
-	set st=$property(prop,pProp).%Set(pId,pVal)
-	if pProp="Display" {
-		// This will allow us to get position from either display or logical name
-		d prop.%Set(pVal,pId)
-	}
-	d prop.%ToJSON(.tempStream)
-	d tempStream.%Save()
-	set ..propertyJSONStreamID=tempStream.%Id()
-	quit st
-}
-
 /// Update the state of the template buttons.
 /// Subclasses should call this method when they need to 
 /// update the state of the footer buttons.
@@ -343,103 +312,118 @@ ClientMethod updateState() [ Language = javascript ]
 	}
 }
 
-Method cleanStreams() As %Status [ ZenMethod ]
+ClientMethod updateProgress() [ Language = javascript]
 {
-	set tSC=$$$OK
-	set tSC=##class(%Stream.FileBinary).%DeleteId(..propertyJSONStreamID)
-	set tSC=##class(%Stream.FileBinary).%DeleteId(..dataJSONStreamID)
-	quit tSC
+	this.trackingId = this.GenerateAll(this.FileName,this.ReadSize,this.LineSize,this.hasHeaders, this.propertyJSONStreamID, this.dataJSONStreamID);
+	if (this.trackingId!='') {
+		zen('timer').timeout = 500;
+		zen('timer').startTimer();
+	}
 }
 
-ClientMethod updateProgressJSON() [ Language = javascript ]
+/// Update the status area.
+ClientMethod updateStatus() [ Language = javascript ]
 {
-	zenPage.getComponentById("progress0").setValue("In Progress...")
-	status=zenPage.ConvertCSVToJSON()
+	var status = this.CheckStatus(this.trackingId);
+	var html = zen('htmlContent3');
+	if (status != '') {
+		html.setContent(status);
+		zen('timer').timeout = 250;
+		zen('timer').startTimer();
+	}
+	else {
+		this.trackingId = '';
+		//zen('btnOK').setDisabled(false);
+		// when build finished, set focus on OK button so [Enter] key will exit easily.
+		//zen("btnCancel").setProperty("caption",$$$Text("Done"));
+		//zen("btnCancel").focus();
+	}
+	return;
+}
+
+/// Get the current status of the background task.
+ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
+{
+	Set tOutput = ""
+	Set tIsComplete = 0
+	Set tIsErr = 0
+
+	merge tTracking = ^AnalyzeThis.GenerateTracking(pTrackingId)
 	
-	// Update JSON property information with type and include info
-	count=0
-	while (document.getElementById("propName"+count)!=null) {
-		zenPage.updateProperties(count,"Display",document.getElementById("propName"+count).value.replace(/\s+/g, ''))
-		zenPage.updateProperties(count,"Type",document.getElementById("propType"+count).value)
-		zenPage.updateProperties(count,"DateFormat",document.getElementById("dateFormat"+count).value)
-		zenPage.updateProperties(count,"IntFormat",document.getElementById("intFormat"+count).value)
-		zenPage.updateProperties(count,"Include",document.getElementById("includeCol"+count).checked)
+	Set currStep = $O(tTracking(""),-1)
+	If currStep="" Quit tOutput
+	For tStep=1:1:currStep {
 		
-		count+=1
+		Set tPhase = $Case(tStep,
+							1:"Preparing JSON",
+							2:"Generating Source Class",
+							3:"Importing Data",
+							4:"Generating Cube",
+							5:"Populating Cube",
+							:"Generating Sample Dashboard")
+		
+		Set tStatus = tTracking(tStep)
+		
+		If tStatus="Working..." {
+			// Leave message as "Working..."
+		} ElseIf $$$ISERR(tStatus) {
+			Set tStatus = $System.Status.GetErrorText(tStatus)
+			Set tIsErr=1
+		} Else {
+			Set tStatus = "Complete"
+			If tStep=6 {
+				Set tIsComplete=1
+			}
+		}
+		
+		Set tOutput = tOutput _ "<tr style="""_$S(tIsErr:"color:#da4848;",1:"")_""">"
+		Set tOutput = tOutput _ "<td>"_tPhase_"</td>"
+		Set tOutput = tOutput _ "<td>"_tStatus_"</td>"
+		Set tOutput = tOutput _ "</tr>"
+	}
+	For tStep=currStep+1:1:6 {
+		//Set tOutput = tOutput _ "<tr style="""_$S(tErr'="":"color:#da4848;",tIsActive:"font-weight:bold;",1:"background:#E0E0F0;")_""">"
+		Set tOutput = tOutput _ "<tr>"
+		
+		Set tPhase = $Case(tStep,
+							1:"Preparing JSON",
+							2:"Generating Source Class",
+							3:"Importing Data",
+							4:"Generating Cube",
+							5:"Populating Cube",
+							:"Generating Sample Dashboard")
+		
+		Set tOutput = tOutput _ "<td>"_tPhase_"</td>"
+		Set tOutput = tOutput _ "<td>Not Yet Started</td>"
+		Set tOutput = tOutput _ "</tr>"
 	}
 	
-	if (status!=1 && status!="") {
-		zenPage.getComponentById("progress0").setValue(status)
-		zenPage.cleanStreams()
-		return
-	} else {
-		zenPage.getComponentById("progress0").setValue("Completed")
+	If (tOutput'="") {
+		Set tOutput = "<div>"_$$$Text("Status")_ "</div><table class=""statusTable"" cellspacing=""0"" width=""100%"">" _ tOutput _ "</table>"
 	}
+
+	If (tIsComplete || tIsErr) {
+		Kill ^AnalyzeThis.GenerateTracking(pTrackingId)
+	}
+	Quit tOutput
+}
+
+/// Start the build cube process in the background.
+/// Return the tracking id.
+ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
+{
+	Set tTrackingId = ""
+	Set tJobTimeOut = 10
 	
-	zenPage.getComponentById("progress1").setValue("In Progress...")
-	status=zenPage.GenerateSourceClassJSON()
-	if (status!=1 && status!="") {
-		zenPage.getComponentById("progress1").setValue(status)
-		zenPage.cleanStreams()
-		return
-	} else {
-		zenPage.getComponentById("progress1").setValue("Completed")
+	Job ##class(AnalyzeThis.Generator).GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJSONStreamId, pDataJSONStreamId)::tJobTimeOut
+	If '$Test {
+		&js<alert('Unable to start background job.');>
+		Set tTrackingId = ""
 	}
-	
-	zenPage.getComponentById("progress2").setValue("In Progress...")
-	status=zenPage.ImportDataJSON()
-	if (status!=1 && status!="") {
-		zenPage.getComponentById("progress2").setValue(status)
-		zenPage.cleanStreams()
-		return
-	} else {
-		zenPage.getComponentById("progress2").setValue("Completed")
+	Else {
+		Set tTrackingId = $ZChild
 	}
-	zenPage.getComponentById("progress3").setValue("In Progress...")
-	status=zenPage.GenerateCubeJSON()
-	if (status!=1 && status!="") {
-		zenPage.getComponentById("progress3").setValue(status)
-		zenPage.cleanStreams()
-		return
-	} else {
-		zenPage.getComponentById("progress3").setValue("Completed")
-	}
-	
-	zenPage.getComponentById("progress4").setValue("In Progress...")
-	status=zenPage.BuildCube()
-	if (status!=1 && status!="") {
-		zenPage.getComponentById("progress4").setValue(status)
-		zenPage.cleanStreams()
-		return
-	} else {
-		zenPage.getComponentById("progress4").setValue("Completed")
-		zenPage.getComponentById("btnGoStats").setProperty('disabled',0);
-		zenPage.getComponentById("btnGoStats").setProperty('hidden',0);
-		zenPage.getComponentById("btnGoStats").setProperty('controlClass', (1 ? 'commandButton' :'commandButtonDisabled'));	
-		zenPage.AddDetails(zen('FileName').getValue())
-	}
-	
-	zenPage.getComponentById("progress5").setValue("In Progress...")
-	status=zenPage.GenerateDash()
-	if (status!=1 && status!="") {
-		zenPage.getComponentById("progress5").setValue(status)
-		zenPage.cleanStreams()
-		return
-	} else {
-		zenPage.getComponentById("progress5").setValue("Completed")
-		zenPage.getComponentById("btnGoDash").setProperty('disabled',0);
-		zenPage.getComponentById("btnGoDash").setProperty('hidden',0);
-		zenPage.getComponentById("btnGoDash").setProperty('controlClass', (1 ? 'commandButton' :'commandButtonDisabled'));	
-		status=zenPage.ScoreCardExists()
-		if (status!=1 && status !=""){
-		} else {
-		zenPage.getComponentById("btnScoreDash").setProperty('disabled',0);
-		zenPage.getComponentById("btnScoreDash").setProperty('hidden',0);
-		zenPage.getComponentById("btnScoreDash").setProperty('controlClass', (1 ? 'commandButton' :'commandButtonDisabled'));	
-		}	
-	}
-	
-	zenPage.cleanStreams()
+	Quit tTrackingId
 }
 
 Method ScoreCardExists() As %Status [ ZenMethod ]
@@ -454,15 +438,6 @@ ClientMethod drawStats() [ Language = javascript ]
 	document.getElementById("statsTable").innerHTML="<p>Generating Stats...</p>"
 	document.getElementById("statsTable").innerHTML=zenPage.GetStats()
 	zenPage.updateState();
-}
-
-Method GenerateDash() As %Status [ ZenMethod ]
-{
-	Set st=$$$OK
-	do ##class(AnalyzeThis.Dashboard.AutoPivot).GenerateSampleDashboards(..CubeName)
-	Set dashName="Generated/Samples for "_..CubeName_".dashboard"
-	Set st=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
-	quit st
 }
 
 Method GetStats() As %String [ ZenMethod ]
@@ -501,10 +476,6 @@ Method GetStats() As %String [ ZenMethod ]
 	quit html
 }
 
-Method AddDetails(pFileName As %String, pSourceClass As %String, pCubeName As %String) [ ZenMethod ]
-{
-	set ^DeepSee.ImportCSV(..SourceClass,..CubeName, ..Version)=pFileName
-}
 
 Method GenerateCubeName() [ ZenMethod ]
 {
@@ -534,115 +505,6 @@ Method UpdateCubeName(tName) [ ZenMethod ]
 	}
 	Set ..CubeName=tName
 	Set ..SourceClass="User."_tName
-}
-
-Method ImportDataJSON() As %String [ ZenMethod ]
-{
-	set st=$$$OK
-	
-	set st=##class(AnalyzeThis.UI.Dialog.CSVImport).ImportJSONData(..propertyJSONStreamID,..dataJSONStreamID,..SourceClass)
-	
-	quit $system.Status.GetErrorText(st)
-}
-
-Method ConvertCSVToJSON() As %String [ ZenMethod ]
-{
-	set tSC=$$$OK
-	
-	If ..INPUTTYPE="LOCAL" {
-		set file=..LOCALFILENAME
-	} else {
-		set file=..FileName
-	}
-	
-	set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.properties,.data,..ReadSize,..LineSize,..hasHeaders)
-	set tempdataJSON=##class(%Stream.FileBinary).%New()
-	do tempdataJSON.CopyFrom(data)
-	do tempdataJSON.%Save()
-	set ..dataJSONStreamID=tempdataJSON.%Id()
-	set temppropertyJSON=##class(%Stream.FileBinary).%New()
-	do temppropertyJSON.CopyFrom(properties)
-	do temppropertyJSON.%Save()
-	set ..propertyJSONStreamID=temppropertyJSON.%Id()
-	
-	quit $system.Status.GetErrorText(tSC)
-}
-
-Method GenerateSourceClassJSON() As %String [ ZenMethod ]
-{
-	set st=$$$OK
-	
-	if ..SourceClass="" {
-		d ..GenerateCubeName()
-	}
-	
-	if ##class(%Dictionary.ClassDefinition).%ExistsId(..SourceClass) {
-		// If the source class exists, delete all
-		set tSC=##class(AnalyzeThis.Dashboard.Utils).DeleteAll($piece(..SourceClass,".",*))
-	}
-	
-	// Take file from request
-	set st=##class(AnalyzeThis.UI.Dialog.CSVImport).JSONToClass(..propertyJSONStreamID,..SourceClass)
-	
-	quit $system.Status.GetErrorText(st)
-}
-
-Method GenerateCubeJSON() As %String [ ZenMethod ]
-{
-	set tSourceClass=..SourceClass
-	set tCubeName=$piece(tSourceClass,".",*)
-	set tCubeClass=tSourceClass_"Cube"
-	//Generate DeepSee Cube
-	//set st=##class(%DeepSee.WizardUtils).%GenerateCubeDefinition("User."_tSourceClass_".Record",tCubeName,tCubeClass)
-	set st=##class(%DeepSee.WizardUtils).%GenerateCubeDefinition(tSourceClass,tCubeName,tCubeClass)
-	quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-	
-	//Compile new cube class
-	set st=$System.OBJ.Compile(tCubeClass,"fck /displayerror=0 /displaylog=0")
-	set:'$$$ISERR(st) ..CubeName=tCubeName
-	quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-	
-	set tempStream=##class(%Stream.FileBinary).%OpenId(..propertyJSONStreamID)
-	set propertyObj={}.%FromJSON(tempStream)
-	
-	//Disable items as needed
-	set model=$zobjclassmethod(tCubeClass,"%GetModel")
-	for i=1:1:model.dimensions.Count() {
-		set tempPos=propertyObj.%Get(model.dimensions.GetAt(i).name)
-		if propertyObj.Include.%Get(tempPos)'="true" {
-			set model.dimensions.GetAt(i).disabled=1
-		}
-	}
-	for i=1:1:model.measures.Count() {
-		if propertyObj.Include.%Get(propertyObj.%Get(model.measures.GetAt(i).name))'="true" {
-			set model.measures.GetAt(i).disabled=1
-		}
-		// make measures searchable
-		set model.measures.GetAt(i).searchable=1
-		set prop=##class(%Dictionary.PropertyDefinition).%OpenId(tSourceClass_"||"_model.measures.GetAt(i).sourceProperty)
-		if $isobject(prop) {
-			if prop.Type="%Library.Currency" {
-					set currency=##class(%SYS.NLS.Locale).%New()
-					set model.measures.GetAt(i).formatString=currency.Currency_"#.##;-"_currency.Currency_"#.##;;;"
-			}
-		}
-	}
-	set st=##class(%DeepSee.Utils).%SaveCubeDefinition(tCubeClass,,model.description,model)
-	quit:$$$ISERR(st) $system.Status.GetErrorText(st)
-	
-	
-	set st=$System.OBJ.Compile(tCubeClass,"fck /displayerror=0 /displaylog=0")
-	quit $system.Status.GetErrorText(st)
-}
-
-Method BuildCube() As %String [ ZenMethod ]
-{
-	set st=$$$OK
-	//Build DeepSee Cube
-	//Ignoring Build Errors
-	d ##class(%DeepSee.Utils).%BuildCube(..CubeName,,0)
-	
-	quit $system.Status.GetErrorText(st)
 }
 
 /// This method is fired up after onDrawContent is finished. Hide progress message and display error if exists.
@@ -766,7 +628,6 @@ ClientMethod hasMultiplePages() [ Language = javascript ]
 /// Go to the next page of the template (if there is one).<br>
 ClientMethod nextPage() [ Language = javascript ]
 {
-	this.resetMsg();
 	var tabGroup = zen('tabGroup');
 	var tabNo = tabGroup.getCurrTabNo();
 	switch(tabNo) {
@@ -822,7 +683,6 @@ ClientMethod nextPage() [ Language = javascript ]
 /// This is implemented by subclasses.
 ClientMethod previousPage() [ Language = javascript ]
 {
-	//this.resetMsg();	
 	var tabGroup = zen('tabGroup');
 	var tabNo = tabGroup.getCurrTabNo();
 	switch(tabNo) {
@@ -830,7 +690,6 @@ ClientMethod previousPage() [ Language = javascript ]
 		break;
 	case 2:
 		tabGroup.showPreviousTab();
-		this.resetMsg();
 		zenPage.updateState();
 		if (zen("InputType").getValue()=="LOCAL") {
 			zen('btnNext').setProperty('hidden',true);
@@ -993,10 +852,16 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	} else {
 		set file=..FileName
 	}
-	set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.properties,.data,..ReadSize,10,..hasHeaders)
+	set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,..ReadSize,10,..hasHeaders)
 	
-	set dataArray=[].%FromJSON(data)
+	Set ..propertyJSONStreamID=propertiesJSONStreamId
+	Set ..dataJSONStreamID=dataJSONStreamId
+	
+	Set properties=##class(%Stream.FileBinary).%OpenId(propertiesJSONStreamId)
 	set propertyObj={}.%FromJSON(properties)
+	
+	Set data=##class(%Stream.FileBinary).%OpenId(dataJSONStreamId)
+	set dataArray=[].%FromJSON(data)
 	
  	quit:$$$ISERR(tSC) tSC
  	
@@ -1005,11 +870,11 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	set iter=propertyObj.Display.%GetIterator()
 	while iter.%GetNext(.key,.val) {
 		set format=0
-		&html<<td align="center" style="vertical-align:top;">Include? <input type="checkbox" name="includeCol#(key)#" id="includeCol#(key)#" checked></br><select id="propType#(key)#" onchange="zenPage.swapFormat('#(key)#',value)">>
+		&html<<td align="center" style="vertical-align:top;">Include? <input type="checkbox" name="includeCol#(key)#" id="includeCol#(key)#" onchange="zenPage.updateProp('#(key)#','Include',value,'#(propertiesJSONStreamId)#');" checked></br><select id="propType#(key)#" onchange="zenPage.swapFormat('#(key)#',value); zenPage.updateProp('#(key)#','Type',value,'#(propertiesJSONStreamId)#');">>
 			&html<<option value="%String" selected="selected">Dimension</option>>
 			&html<<option value="%Integer">Measure</option>>
 			&html<<option value="%Date">Date</option>>
-		&html<</select></br><select id="dateFormat#(key)#" style="display:none;"/>>
+		&html<</select></br><select id="dateFormat#(key)#" style="display:none;" onchange="zenPage.updateProp('#(key)#','DateFormat',value,'#(propertiesJSONStreamId)#');"/>>
 			&html<<option value="1" #($select(format=1:"selected='selected'",1:""))#>MM/DD/[YY]YY</option>>
 			&html<<option value="2">DD Mmm [YY]YY</option>>
 			&html<<option value="3" #($select(format=3:"selected='selected'",1:""))#>YYYY-MM-DD</option>>
@@ -1032,7 +897,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 			&html<<option value="19">[D]D [M]M YYYY</option>>
 			&html<<option value="20">[D]D Mmmmm YYYY</option>>
 			&html<<option value="21">[D]D [M]M YYYY</option>>*/
-			&html<</select><select id="intFormat#(key)#" style="display:none;"/>>
+			&html<</select><select id="intFormat#(key)#" style="display:none;" onchange="zenPage.updateProp('#(key)#','IntFormat',value,'#(propertiesJSONStreamId)#');"/>>
 			&html<<option value="%Integer" selected="selected">Integer</option>>
 			&html<<option value="%Double">Double</option>>
 			&html<<option value="%Library.Currency">Currency</option>>
@@ -1042,7 +907,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	&html<<tr>>
 	set iter=propertyObj.Display.%GetIterator()
 	while iter.%GetNext(.key,.val) {
-		&html<<th><input type="text" id="propName#(key)#" maxlength="31" value="#(val)#"></input></th>>
+		&html<<th><input type="text" id="propName#(key)#" maxlength="31" value="#(val)#" onchange="zenPage.updateProp('#(key)#','Display',value,'#(propertiesJSONStreamId)#');"></input></th>>
 	}
 	&html<</tr>>
 	set iter=dataArray.%GetIterator()
@@ -1070,6 +935,17 @@ ClientMethod swapFormat(propID, value) [ Internal, Language = javascript ]
 		document.getElementById("dateFormat"+propID).style.display="none"
 		document.getElementById("intFormat"+propID).style.display="none"
 	}
+}
+
+Method updateProp(key, which, value, stream) [ ZenMethod ]
+{
+	set propertyJSON=##class(%Stream.FileBinary).%OpenId(stream)
+	set propertyObj={}.%FromJSON(propertyJSON)
+	
+	d propertyObj.%Get(which).%Set(key,value)
+	
+	d propertyObj.%ToJSON(.propertyJSON)
+	d propertyJSON.%Save()
 }
 
 ClassMethod FindType(value) As %String
@@ -1168,7 +1044,7 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 	body.style.width=(zenbody.offsetWidth-20)+'px'
 }
 
-ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSON, ByRef dataJSON, pMaxSize As %Integer = 0, pMaxLines As %Integer = 0, pHasHeaders As %Boolean = 1, pNewLine As %String = {$c(13,10)}) As %Status
+ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSONStreamId, ByRef dataJSONStreamId, pMaxSize As %Integer = 0, pMaxLines As %Integer = 0, pHasHeaders As %Boolean = 1, pNewLine As %String = {$c(13,10)}) As %Status
 {
 	set stream=##class(%Stream.FileBinary).%New()
 	d stream.LinkToFile(pFileName)
@@ -1290,10 +1166,15 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 		d $system.Status.DisplayError(ex.AsStatus())
 	}
 	
-	set dataJSON=##class(%Stream.FileBinary).%New()
-	set propertyJSON=##class(%Stream.FileBinary).%New()
-	d dynamicArray.%ToJSON(.dataJSON)
-	d properties.%ToJSON(.propertyJSON)
+	set dataJSONStream=##class(%Stream.FileBinary).%New()
+	d dynamicArray.%ToJSON(.dataJSONStream)
+	d dataJSONStream.%Save()
+	set dataJSONStreamId = dataJSONStream.%Id()
+	
+	set propertyJSONStream=##class(%Stream.FileBinary).%New()
+	d properties.%ToJSON(.propertyJSONStream)
+	d propertyJSONStream.%Save()
+	set propertyJSONStreamId = propertyJSONStream.%Id()
 	
 	q $$$OK
 }
