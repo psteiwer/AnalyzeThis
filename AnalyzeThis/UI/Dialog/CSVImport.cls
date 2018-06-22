@@ -576,6 +576,11 @@ Method GenerateSourceClassJSON() As %String [ ZenMethod ]
 		d ..GenerateCubeName()
 	}
 	
+	if ##class(%Dictionary.ClassDefinition).%ExistsId(..SourceClass) {
+		// If the source class exists, delete all
+		set tSC=##class(AnalyzeThis.Dashboard.Utils).DeleteAll($piece(..SourceClass,".",*))
+	}
+	
 	// Take file from request
 	set st=##class(AnalyzeThis.UI.Dialog.CSVImport).JSONToClass(..propertyJSONStreamID,..SourceClass)
 	
