@@ -870,7 +870,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	set iter=propertyObj.Display.%GetIterator()
 	while iter.%GetNext(.key,.val) {
 		set format=0
-		&html<<td align="center" style="vertical-align:top;">Include? <input type="checkbox" name="includeCol#(key)#" id="includeCol#(key)#" onchange="zenPage.updateProp('#(key)#','Include',value,'#(propertiesJSONStreamId)#');" checked></br><select id="propType#(key)#" onchange="zenPage.swapFormat('#(key)#',value); zenPage.updateProp('#(key)#','Type',value,'#(propertiesJSONStreamId)#');">>
+		&html<<td align="center" style="vertical-align:top;">Include? <input type="checkbox" name="includeCol#(key)#" id="includeCol#(key)#" onchange="zenPage.updateProp('#(key)#','Include',this.checked,'#(propertiesJSONStreamId)#');" checked></br><select id="propType#(key)#" onchange="zenPage.swapFormat('#(key)#',value); zenPage.updateProp('#(key)#','Type',value,'#(propertiesJSONStreamId)#');">>
 			&html<<option value="%String" selected="selected">Dimension</option>>
 			&html<<option value="%Integer">Measure</option>>
 			&html<<option value="%Date">Date</option>>
