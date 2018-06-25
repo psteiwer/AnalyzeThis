@@ -1,6 +1,7 @@
 Class AnalyzeThis.Generator
 {
 
+/// This method will go through the entire generation process. Takes in a CSV file
 ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJSONStreamId, pDataJSONStreamId) As %Status
 {
 	try {
@@ -59,6 +60,7 @@ ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJ
 	quit tSC
 }
 
+/// Given a file name, output the resulting cube name
 ClassMethod GenerateCubeName(pFileName) As %String
 {
 	if $length(pFileName,"\")>$length(pFileName,"/") {
@@ -70,6 +72,7 @@ ClassMethod GenerateCubeName(pFileName) As %String
 	quit tName
 }
 
+/// Given a cube name and Property Stream ID, generate a source class
 ClassMethod GenerateSourceClass(pCubeName, pPropertyJSONStreamId) As %Status
 {
 	set tSC=$$$OK
@@ -82,8 +85,7 @@ ClassMethod GenerateSourceClass(pCubeName, pPropertyJSONStreamId) As %Status
 	quit tSC
 }
 
-
-
+/// Given a Property Stream ID and a Class Name, generate a Class with the given properties and name
 ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %Status
 {
 	//Use propertiesJSON to build class
@@ -152,6 +154,7 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 	quit tSC
 }
 
+/// Given a Property Stream ID, Data Stream ID, and a CubeName - populate the source class with data from the stream
 ClassMethod ImportJSONData(propertyJSONStreamId As %String, dataJSONStreamId As %String, pCubeName As %String, pCleanFirst As %Boolean = 1) As %Status
 {
 	set tSC=$$$OK
@@ -180,7 +183,7 @@ ClassMethod ImportJSONData(propertyJSONStreamId As %String, dataJSONStreamId As 
 	quit tSC
 }
 
-
+/// Given a Cube name and a Property Stream ID, generate a cube
 ClassMethod GenerateCube(pCubeName, pPropertyJSONStreamId) As %Status
 {
 	set tSourceClass="User."_pCubeName
@@ -229,6 +232,7 @@ ClassMethod GenerateCube(pCubeName, pPropertyJSONStreamId) As %Status
 	quit st
 }
 
+/// Given a cube name, generate a Dashboard
 ClassMethod GenerateDash(pCubeName) As %Status
 {
 	Set st=$$$OK

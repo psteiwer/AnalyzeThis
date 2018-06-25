@@ -170,27 +170,32 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 </pane>
 }
 
+/// Update the ReadSize property
 Method UpdateReadSize(value) [ Internal, ZenMethod ]
 {
 	set ..ReadSize=value*100000
 }
 
+/// Update the LineSize property
 Method UpdateLineSize(value) [ Internal, ZenMethod ]
 {
 	set ..LineSize=value
 }
 
+/// Update the hasHeaders property
 Method UpdateHasHeaders(value) [ Internal, ZenMethod ]
 {
 	set ..hasHeaders=value
 }
 
+/// Update the FileName property
 Method UpdateFileName(value) [ Internal, ZenMethod ]
 {
 	set ..FileName=value
 	do ..GenerateCubeName()
 }
 
+/// Update the LOCALFILENAME property
 Method UpdateLocalFile(value) [ Internal, ZenMethod ]
 {
 	set ..LOCALFILENAME=value
@@ -206,12 +211,14 @@ Method UpdateLocalFile(value) [ Internal, ZenMethod ]
 	d ..GenerateCubeName()
 }
 
+/// Fire popup action to navigate to dashboard
 Method seeDash() [ Internal, ZenMethod ]
 {
 	Set pcube=..CubeName
 	&JS<zenPage.firePopupAction('dash','#(pcube)#');>
 }
 
+/// Fire popup action to navigate to scorecard
 Method seeScoreCard() [ Internal, ZenMethod ]
 {
 	Set pcube=..CubeName
@@ -305,6 +312,7 @@ ClientMethod updateState() [ Language = javascript ]
 	}
 }
 
+/// Kicks off GenerateAll and starts the update timer
 ClientMethod updateProgress() [ Language = javascript]
 {
 	this.trackingId = this.GenerateAll(this.FileName,this.ReadSize,this.LineSize,this.hasHeaders, this.propertyJSONStreamID, this.dataJSONStreamID);
@@ -430,6 +438,7 @@ ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJ
 	Quit tTrackingId
 }
 
+/// Using the current cube name, check if a scorecard was generated for this cube
 Method ScoreCardExists() As %Status [ ZenMethod ]
 {
 	Set dashName="Generated/Sample ScoreCard for "_..CubeName_".dashboard"
@@ -437,6 +446,7 @@ Method ScoreCardExists() As %Status [ ZenMethod ]
 	QUIT st
 }
 
+/// Display cube stats in the status area
 ClientMethod drawStats() [ Language = javascript ]
 {
 	document.getElementById("statsTable").innerHTML="<p>Generating Stats...</p>"
@@ -444,6 +454,7 @@ ClientMethod drawStats() [ Language = javascript ]
 	zenPage.updateState();
 }
 
+/// Generate stats display
 Method GetStats() As %String [ ZenMethod ]
 {
 	set st=$$$OK
@@ -480,7 +491,7 @@ Method GetStats() As %String [ ZenMethod ]
 	quit html
 }
 
-
+/// Using file properties, create the cube name
 Method GenerateCubeName() [ ZenMethod ]
 {
 	set file=""
@@ -500,6 +511,7 @@ Method GenerateCubeName() [ ZenMethod ]
 	d ..%SetValueById("CubeName",tName)
 }
 
+/// Validates and updates the cube name property
 Method UpdateCubeName(tName) [ ZenMethod ]
 {
 	If ($$$UPPER($ZStrip(tName,"<N"))'=$$$UPPER(tName))
@@ -925,6 +937,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	Quit tSC
 }
 
+/// Changes formatting options based on the type
 ClientMethod swapFormat(propID, value) [ Internal, Language = javascript ]
 {
 	if (value=='%Date') {
@@ -939,6 +952,7 @@ ClientMethod swapFormat(propID, value) [ Internal, Language = javascript ]
 	}
 }
 
+/// As changes are made to the properties, update the JSON stream
 Method updateProp(key, which, value, stream) [ ZenMethod ]
 {
 	set propertyJSON=##class(%Stream.FileBinary).%OpenId(stream)
@@ -950,6 +964,7 @@ Method updateProp(key, which, value, stream) [ ZenMethod ]
 	d propertyJSON.%Save()
 }
 
+/// Given a value, find the best guess of type
 ClassMethod FindType(value) As %String
 {
 	set type="String"
@@ -1046,6 +1061,7 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 	body.style.width=(zenbody.offsetWidth-20)+'px'
 }
 
+/// Takes a CSV file and returns two stream IDs containing relating to a JSON object for the Properties and a JSON object for the Data
 ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSONStreamId, ByRef dataJSONStreamId, pMaxSize As %Integer = 0, pMaxLines As %Integer = 0, pHasHeaders As %Boolean = 1, pNewLine As %String = {$c(13,10)}) As %Status
 {
 	set stream=##class(%Stream.FileBinary).%New()
@@ -1180,100 +1196,4 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	
 	q $$$OK
 }
-
-ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %Status
-{
-	//Use propertiesJSON to build class
-	//Populate with dataJSON
-	if ##class(%Dictionary.ClassDefinition).%ExistsId(pClassName) {
-		set tSC=##class(%Dictionary.ClassDefinition).%DeleteId(pClassName)
-	}
-	Set class=##class(%Dictionary.ClassDefinition).%New()
-	Set class.Name=pClassName
-	Set class.Super="%Persistent"
-	Set tempStream=##class(%Stream.FileBinary).%OpenId(propertiesJSON)
-	Set dynamicProperties={}.%FromJSON(tempStream)
-	Set iter=dynamicProperties.Display.%GetIterator()
-	while iter.%GetNext(.key,.value) {
-		Set prop=##class(%Dictionary.PropertyDefinition).%New()
-		Set prop.Name=value
-		Set prop.Type=dynamicProperties.Type.%Get(key)
-		If prop.Type="%String" {
-			d prop.Parameters.SetAt("","MAXLEN")
-		} ElseIf prop.Type="%Integer" {
-			set intformat=dynamicProperties.IntFormat.%Get(key)
-			set prop.Type=intformat
-			
-			if intformat="%Library.Currency" {
-				// Add setter method to strip currency signs if included
-				set method=##class(%Dictionary.MethodDefinition).%New(class.Name_"||"_prop.Name_"Set")
-				set method.Name=prop.Name_"Set"
-				set method.FormalSpec = "pVal"
-				Set method.ReturnType = "%Status"
-				
-				Do method.Implementation.WriteLine(" try { set pVal=$zstrip(pVal,""*P"",,"".,"") }")
-				Do method.Implementation.WriteLine(" catch ex {  }")
-				Do method.Implementation.WriteLine(" set i%"_prop.Name_"=pVal")
-				Do method.Implementation.WriteLine(" quit $$$OK")
-
-				Do class.Methods.Insert(method)
-
-			}
-		} ElseIf prop.Type="%Date" {
-			set tempFormat=dynamicProperties.DateFormat.%Get(key)
-			if tempFormat=5 {
-				//Cast back as string until we support partial dates
-				set prop.Type="%String"
-			} else {
-				//Create setter method to translate to $h
-				set method=##class(%Dictionary.MethodDefinition).%New(class.Name_"||"_prop.Name_"Set")
-				set method.Name=prop.Name_"Set"
-				set method.FormalSpec = "pVal"
-				Set method.ReturnType = "%Status"
-				
-				Do method.Implementation.WriteLine(" try { set pVal=$zdh(pVal,"_tempFormat_") }")
-				Do method.Implementation.WriteLine(" catch ex {  }")
-				Do method.Implementation.WriteLine(" set i%"_prop.Name_"=pVal")
-				Do method.Implementation.WriteLine(" quit $$$OK")
-
-				Do class.Methods.Insert(method)
-			}
-		}
-		//if dynamicProperties.Include.%Get(key)="true" {
-		d class.Properties.Insert(prop)
-		//}
-	}
-	set tSC=class.%Save()
-	set tSC=$system.OBJ.Compile(pClassName,"fck /displayerror=0 /displaylog=0")
-	
-	quit tSC
-}
-
-ClassMethod ImportJSONData(propertyJSONStreamId As %String, dataJSONStreamId As %String, pClassName As %String, pCleanFirst As %Boolean = 1) As %Status
-{
-	set tSC=$$$OK
-	
-	if pCleanFirst {
-		set tSC=$classmethod(pClassName,"%DeleteExtent")
-	}
-	
-	set dataJSON=##class(%Stream.FileBinary).%OpenId(dataJSONStreamId)
-	set propertyJSON=##class(%Stream.FileBinary).%OpenId(propertyJSONStreamId)
-	set dataArray=[].%FromJSON(dataJSON)
-	set propertyObj={}.%FromJSON(propertyJSON)
-	Set iterArray=dataArray.%GetIterator()
-	while iterArray.%GetNext(.key,.val) {
-		set obj=$classmethod(pClassName,"%New")
-		set iterObj=dataArray.%Get(key).%GetIterator()
-		while iterObj.%GetNext(.key2,.val2) {
-			//set:propertyObj.Include.%Get(propertyObj.%Get(key2))="true" $property(obj,propertyObj.Display.%Get(propertyObj.%Get(key2)))=val2
-			set $property(obj,propertyObj.Display.%Get(propertyObj.%Get(key2)))=val2
-		}
-		set tSC= obj.%Save()
-		w tSC
-	}
-	
-	quit tSC
-}
-
 }
