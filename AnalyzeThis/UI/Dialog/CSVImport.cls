@@ -339,6 +339,11 @@ ClientMethod updateStatus() [ Language = javascript ]
 			zen("btnGoDash").setProperty('disabled',0);
 			zen("btnGoDash").setProperty('hidden',0);
 			zen("btnGoDash").setProperty('controlClass','commandButton');	
+			
+			// If the dashboard was generated, we know it is safe to proceed to stats tab
+			zen("btnGoStats").setProperty('disabled',!this.canStat());
+			zen("btnGoStats").setProperty('hidden',!this.canStat());
+			zen("btnGoStats").setProperty('controlClass', (this.canStat() ? 'commandButton' :'commandButtonDisabled'));
 		}
 		
 		if (zenPage.ScoreCardExists()) {
@@ -346,10 +351,6 @@ ClientMethod updateStatus() [ Language = javascript ]
 			zen("btnScoreDash").setProperty('hidden',0);
 			zen("btnScoreDash").setProperty('controlClass','commandButton');
 		}	
-		
-		zen("btnGoStats").setProperty('disabled',!this.canStat());
-		zen("btnGoStats").setProperty('hidden',!this.canStat());
-		zen("btnGoStats").setProperty('controlClass', (this.canStat() ? 'commandButton' :'commandButtonDisabled'));
 	}
 	return;
 }
