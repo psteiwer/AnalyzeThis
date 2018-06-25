@@ -335,10 +335,11 @@ ClientMethod updateStatus() [ Language = javascript ]
 	else {
 		this.trackingId = '';
 		
-		//Should check status before doing this
-		zen("btnGoDash").setProperty('disabled',0);
-		zen("btnGoDash").setProperty('hidden',0);
-		zen("btnGoDash").setProperty('controlClass','commandButton');	
+		if (zenPage.DashboardExists()) {
+			zen("btnGoDash").setProperty('disabled',0);
+			zen("btnGoDash").setProperty('hidden',0);
+			zen("btnGoDash").setProperty('controlClass','commandButton');	
+		}
 		
 		if (zenPage.ScoreCardExists()) {
 			zen("btnScoreDash").setProperty('disabled',0);
@@ -436,6 +437,14 @@ ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJ
 		Set tTrackingId = $ZChild
 	}
 	Quit tTrackingId
+}
+
+/// Using the current cube name, check if a dashboard was generated for this cube
+Method DashboardExists() As %Status [ ZenMethod ]
+{
+	Set dashName="Generated/Samples for "_..CubeName_".dashboard"
+	Set st=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
+	QUIT st
 }
 
 /// Using the current cube name, check if a scorecard was generated for this cube
