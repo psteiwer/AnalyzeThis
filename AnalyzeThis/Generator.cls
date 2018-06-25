@@ -63,11 +63,7 @@ ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJ
 /// Given a file name, output the resulting cube name
 ClassMethod GenerateCubeName(pFileName) As %String
 {
-	if $length(pFileName,"\")>$length(pFileName,"/") {
-		set tName=$zstrip($replace($piece($piece(pFileName,"\",*),".",1),"DEEPSEE",""),"*PCW")
-	} else {
-		set tName=$zstrip($replace($piece($piece(pFileName,"/",*),".",1),"DEEPSEE",""),"*PCW")
-	}
+	set tName=$zstrip($replace($piece(##class(%File).GetFilename(pFileName),".",1),"DEEPSEE",""),"*PCW")
 	
 	quit tName
 }
