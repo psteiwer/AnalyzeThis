@@ -507,7 +507,7 @@ Method GenerateCubeName() [ ZenMethod ]
 	}
 	
 	Set ..CubeName=tName
-	Set ..SourceClass="User."_tName
+	Set ..SourceClass="AnalyzeThis.Generated."_tName
 	d ..%SetValueById("CubeName",tName)
 }
 
@@ -520,7 +520,7 @@ Method UpdateCubeName(tName) [ ZenMethod ]
 		zenPage.getComponentById("CubeName").setValue("#(..CubeName)#")>
 	}
 	Set ..CubeName=tName
-	Set ..SourceClass="User."_tName
+	Set ..SourceClass="AnalyzeThis.Generated."_tName
 }
 
 /// This method is fired up after onDrawContent is finished. Hide progress message and display error if exists.

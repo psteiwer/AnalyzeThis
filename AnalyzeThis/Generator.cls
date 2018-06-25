@@ -76,7 +76,7 @@ ClassMethod GenerateSourceClass(pCubeName, pPropertyJSONStreamId) As %Status
 	set tSC=##class(AnalyzeThis.Dashboard.Utils).DeleteAll(pCubeName)
 	
 	// Take file from request
-	set tSC=##class(AnalyzeThis.Generator).JSONToClass(pPropertyJSONStreamId,"User."_pCubeName)
+	set tSC=##class(AnalyzeThis.Generator).JSONToClass(pPropertyJSONStreamId,"AnalyzeThis.Generated."_pCubeName)
 	
 	quit tSC
 }
@@ -155,7 +155,7 @@ ClassMethod ImportJSONData(propertyJSONStreamId As %String, dataJSONStreamId As 
 {
 	set tSC=$$$OK
 	
-	set tClassName="User."_pCubeName
+	set tClassName="AnalyzeThis.Generated."_pCubeName
 	
 	if pCleanFirst {
 		set tSC=$classmethod(tClassName,"%DeleteExtent")
@@ -182,12 +182,12 @@ ClassMethod ImportJSONData(propertyJSONStreamId As %String, dataJSONStreamId As 
 /// Given a Cube name and a Property Stream ID, generate a cube
 ClassMethod GenerateCube(pCubeName, pPropertyJSONStreamId) As %Status
 {
-	set tSourceClass="User."_pCubeName
+	set tSourceClass="AnalyzeThis.Generated."_pCubeName
 	set tCubeClass=tSourceClass_"Cube"
 	set tCubeName=pCubeName
 	
 	//Generate DeepSee Cube
-	//set st=##class(%DeepSee.WizardUtils).%GenerateCubeDefinition("User."_tSourceClass_".Record",tCubeName,tCubeClass)
+	//set st=##class(%DeepSee.WizardUtils).%GenerateCubeDefinition("AnalyzeThis.Generated."_tSourceClass_".Record",tCubeName,tCubeClass)
 	set st=##class(%DeepSee.WizardUtils).%GenerateCubeDefinition(tSourceClass,tCubeName,tCubeClass)
 	if $$$ISERR(st) quit st
 	
