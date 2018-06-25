@@ -79,7 +79,7 @@ XData Contents [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <pane paneName="dialogBody" id="body"/>
 <hgroup id="footer" width="99%" cellAlign="right">
 <hgroup id="buttonHolder" cellAlign="right">
-<button id="btnBack" controlClass="commandButtonDisabled" caption="Back" onclick="zenPage.previousPage();" disabled="true"/>
+<button id="btnBack" controlClass="commandButtonDisabled" caption="Back" onclick="zenPage.previousPage();" disabled="true" hidden="true"/>
 <spacer width="10" />
 <button id="btnGoDash" controlClass="commandButtonDisabled" caption="Sample Dashboard" onclick="zenPage.seeDash();" disabled="true" hidden="true"/>
 <spacer width="10" />
@@ -266,6 +266,7 @@ ClientMethod doImportJSON() [ Language = javascript ]
 	
 	zenPage.nextPage();
 	zen("btnDone").setHidden(false);
+	zen("btnCancel").setHidden(true);
 	zenPage.updateState();
 }
 
@@ -282,8 +283,8 @@ ClientMethod updateState() [ Language = javascript ]
 	var btnSubmit = zen('btnSubmit');
 	var multi = this.hasMultiplePages();
 
-	if (btnBack) {
-		btnBack.setProperty('hidden',!this.canGoBack);
+	if (0) {
+		btnBack.setProperty('hidden',!this.canGoBack());
 		btnBack.setProperty('disabled',!this.canGoBack());
 		btnBack.setProperty('controlClass',	(this.canGoBack() ? 'commandButton' :'commandButtonDisabled'));
 	}
@@ -296,19 +297,11 @@ ClientMethod updateState() [ Language = javascript ]
 	if (zen("InputType").getValue()=="LOCAL") {
 		btnSubmit.setProperty('disabled',true);
 		btnSubmit.setProperty('controlClass', 'commandButtonDisabled');
-		btnNext.setProperty('hidden',true);
-	} else {
-		btnNext.setProperty('hidden',false);
 	}
 	if (btnFinish) {
 		btnFinish.setProperty('disabled',!this.canFinish());
 		btnFinish.setProperty('hidden',!this.canFinish());
 		btnFinish.setProperty('controlClass', (this.canFinish() ? 'commandButton' :'commandButtonDisabled'));	
-	}
-	if (btnGoStats) {
-		btnGoStats.setProperty('disabled',this.canStat());
-		btnGoStats.setProperty('hidden',!this.canStat());
-		btnGoStats.setProperty('controlClass', (this.canStat() ? 'commandButton' :'commandButtonDisabled'));	
 	}
 }
 
@@ -333,10 +326,21 @@ ClientMethod updateStatus() [ Language = javascript ]
 	}
 	else {
 		this.trackingId = '';
-		//zen('btnOK').setDisabled(false);
-		// when build finished, set focus on OK button so [Enter] key will exit easily.
-		//zen("btnCancel").setProperty("caption",$$$Text("Done"));
-		//zen("btnCancel").focus();
+		
+		//Should check status before doing this
+		zen("btnGoDash").setProperty('disabled',0);
+		zen("btnGoDash").setProperty('hidden',0);
+		zen("btnGoDash").setProperty('controlClass','commandButton');	
+		
+		if (zenPage.ScoreCardExists()) {
+			zen("btnScoreDash").setProperty('disabled',0);
+			zen("btnScoreDash").setProperty('hidden',0);
+			zen("btnScoreDash").setProperty('controlClass','commandButton');
+		}	
+		
+		zen("btnGoStats").setProperty('disabled',!this.canStat());
+		zen("btnGoStats").setProperty('hidden',!this.canStat());
+		zen("btnGoStats").setProperty('controlClass', (this.canStat() ? 'commandButton' :'commandButtonDisabled'));
 	}
 	return;
 }
@@ -613,9 +617,7 @@ ClientMethod canFinish() [ Language = javascript ]
 		break;
 	case 4:
 		break;
-	}	
-	zen("btnCancel").setHidden(true);
-	zen("btnCancel").setDisabled(true);	
+	}
 	
 	return flag;
 }
