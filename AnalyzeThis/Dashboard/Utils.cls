@@ -68,7 +68,7 @@ ClassMethod DeleteAll(pName As %String) As %Status
 		Quit tSC
 	}
 
-	k ^DeepSee.ImportCSV(pName)
+	k ^AnalyzeThis.ImportCSV(pName)
 	
 	Quit tSC
 }

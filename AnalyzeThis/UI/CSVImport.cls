@@ -453,14 +453,14 @@ Query GetImportedCubes() As %Query(ROWSPEC = "CubeName,Analyzer,Architect,Dashbo
 ClassMethod GetImportedCubesExecute(ByRef qHandle As %Binary) As %Status
 {
 	Set tSC = $$$OK
-	kill ^||DeepSee.CSVImportExecute
+	kill ^||AnalyzeThis.CSVImportExecute
 	set CubeName=$o(^DeepSee.ImportCSV(""))
 	while CubeName'="" {
 		Set dashName="Generated/Samples for "_CubeName_".dashboard"
 		Set dash=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 		Set scoreCardName="Generated/Sample ScoreCard for "_CubeName_".dashboard"
 		Set scoreCard=##class(%DeepSee.Dashboard.Utils).%DashboardExists(scoreCardName)
-		set ^||DeepSee.CSVImportExecute($i(count))=$lb(CubeName,"Analyzer","Architect",$case(dash, 0:"", 1:"Dashboard"),$case(scoreCard, 0:"", 1:"ScoreCard"),"Info",$system.CSP.GetPortalApp($NAMESPACE,$replace($this,"%","_")_".zen"),"info")
+		set ^||AnalyzeThis.CSVImportExecute($i(count))=$lb(CubeName,"Analyzer","Architect",$case(dash, 0:"", 1:"Dashboard"),$case(scoreCard, 0:"", 1:"ScoreCard"),"Info",$system.CSP.GetPortalApp($NAMESPACE,$replace($this,"%","_")_".zen"),"info")
 		set CubeName=$o(^DeepSee.ImportCSV(CubeName))
 	}
     Set qHandle = $LB("")
@@ -470,13 +470,13 @@ ClassMethod GetImportedCubesExecute(ByRef qHandle As %Binary) As %Status
 ClassMethod GetImportedCubesFetch(ByRef qHandle As %Binary, ByRef Row As %List, ByRef AtEnd As %Integer = 0) As %Status
 {
 	set index=$list(qHandle,1)
-	set index=$o(^||DeepSee.CSVImportExecute(index))
+	set index=$o(^||AnalyzeThis.CSVImportExecute(index))
     If index="" {
         Set Row = ""
         Set AtEnd = 1
     }
     Else {
-        Set Row = ^||DeepSee.CSVImportExecute(index)
+        Set Row = ^||AnalyzeThis.CSVImportExecute(index)
     }
     Set qHandle = $LB(index)
     Quit $$$OK
@@ -490,7 +490,7 @@ ClassMethod GetImportedCubesClose(ByRef qHandle As %Binary) As %Status [ Interna
 
 ClassMethod AddDetails(pCubeName As %String)
 {
-	set ^DeepSee.ImportCSV(pCubeName, ..#Version)=1
+	set ^AnalyzeThis.ImportCSV(pCubeName, ..#Version)=1
 }
 
 }
