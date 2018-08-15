@@ -8,6 +8,15 @@ ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJ
 		// Preparing JSON
 		Set ^AnalyzeThis.GenerateTracking($j,1)="Working..."
 		set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(pFileName,.tPropertyJSONStreamId,.tDataJSONStreamId,pReadSize,pLineSize,pHasHeaders)
+		// Probably should provide a way to clean these instead of deleting them here
+		if pPropertyJSONStreamId'="" {
+			// Delete this stream if pPropertyJSONStreamId is populated, it may have updates
+			do ##class(%Stream.FileBinary).%DeleteId(tPropertyJSONStreamId)
+		}
+		if pDataJSONStreamId'="" {
+			// This may contain "preview mode" data. Delete it
+			do ##class(%Stream.FileBinary).%DeleteId(pDataJSONStreamId)
+		}
 		Set tPropertyJSONStreamId=pPropertyJSONStreamId
 		Set ^AnalyzeThis.GenerateTracking($j,1)=tSC
 		if $$$ISERR(tSC) $$$ThrowStatus(tSC)
