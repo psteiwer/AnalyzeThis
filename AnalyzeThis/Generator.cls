@@ -171,7 +171,7 @@ ClassMethod ImportJSONData(propertyJSONStreamId As %String, dataJSONStreamId As 
 		set iterObj=dataArray.%Get(key).%GetIterator()
 		while iterObj.%GetNext(.key2,.val2) {
 			//set:propertyObj.Include.%Get(propertyObj.%Get(key2))="true" $property(obj,propertyObj.Display.%Get(propertyObj.%Get(key2)))=val2
-			set $property(obj,propertyObj.Display.%Get(propertyObj.%Get(key2)))=val2
+			set $property(obj,propertyObj.Display.%Get(propertyObj.Properties.%Get(key2)))=val2
 		}
 		set tSC= obj.%Save()
 	}
@@ -201,13 +201,13 @@ ClassMethod GenerateCube(pCubeName, pPropertyJSONStreamId) As %Status
 	//Disable items as needed
 	set model=$zobjclassmethod(tCubeClass,"%GetModel")
 	for i=1:1:model.dimensions.Count() {
-		set tempPos=propertyObj.%Get(model.dimensions.GetAt(i).name)
+		set tempPos=propertyObj.Properties.%Get(model.dimensions.GetAt(i).name)
 		if propertyObj.Include.%Get(tempPos)'="true" {
 			set model.dimensions.GetAt(i).disabled=1
 		}
 	}
 	for i=1:1:model.measures.Count() {
-		if propertyObj.Include.%Get(propertyObj.%Get(model.measures.GetAt(i).name))'="true" {
+		if propertyObj.Include.%Get(propertyObj.Properties.%Get(model.measures.GetAt(i).name))'="true" {
 			set model.measures.GetAt(i).disabled=1
 		}
 		// make measures searchable

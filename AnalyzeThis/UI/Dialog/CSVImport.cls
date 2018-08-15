@@ -968,6 +968,12 @@ Method updateProp(key, which, value, stream) [ ZenMethod ]
 	set propertyJSON=##class(%Stream.FileBinary).%OpenId(stream)
 	set propertyObj={}.%FromJSON(propertyJSON)
 	
+	if which="Display" {
+		set temppos=propertyObj.%Get("Properties").%Get(propertyObj.%Get(which).%Get(key))
+		d propertyObj.%Get("Properties").%Remove(propertyObj.%Get(which).%Get(key))
+		d propertyObj.%Get("Properties").%Set(value,temppos)
+	}
+	
 	d propertyObj.%Get(which).%Set(key,value)
 	
 	d propertyObj.%ToJSON(.propertyJSON)
@@ -1090,6 +1096,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	set m.Text=s
 	set m2=##class(%Regex.Matcher).%New("(""([^""]|(""""))*""(,|"_pNewLine_"))|(([^,""])*(,|"_pNewLine_"))")
 	set properties = {}
+	set propposition = {}
 	set displayarray = []
 	set typearray = []
 	set dateformatarray = []
@@ -1114,8 +1121,9 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 				d dateformatarray.%Push("")
 				d intformatarray.%Push("")
 				d includearray.%Push("true")
-				d properties.%Set(prop,propcount)
+				d propposition.%Set(prop,propcount)
 			}
+			d properties.%Set("Properties",propposition)
 			d properties.%Set("Display",displayarray)
 			d properties.%Set("Type",typearray)
 			d properties.%Set("DateFormat",dateformatarray)
@@ -1137,8 +1145,9 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 				d dateformatarray.%Push("")
 				d intformatarray.%Push("")
 				d includearray.%Push("true")
-				d properties.%Set(prop,propcount)
+				d propposition.%Set(prop,propcount)
 			}
+			d properties.%Set("Properties",propposition)
 			d properties.%Set("Display",displayarray)
 			d properties.%Set("Type",typearray)
 			d properties.%Set("DateFormat",dateformatarray)
