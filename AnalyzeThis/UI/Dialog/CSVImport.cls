@@ -315,7 +315,7 @@ ClientMethod updateState() [ Language = javascript ]
 /// Kicks off GenerateAll and starts the update timer
 ClientMethod updateProgress() [ Language = javascript]
 {
-	this.trackingId = this.GenerateAll(this.FileName,this.ReadSize,this.LineSize,this.hasHeaders, this.propertyJSONStreamID, this.dataJSONStreamID);
+	this.trackingId = this.GenerateAll(this.FileName,this.ReadSize,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
 	if (this.trackingId!='') {
 		zen('timer').timeout = 500;
 		zen('timer').startTimer();
@@ -424,12 +424,12 @@ ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
 
 /// Start the build cube process in the background.
 /// Return the tracking id.
-ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
+ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
 {
 	Set tTrackingId = ""
 	Set tJobTimeOut = 10
 	
-	Job ##class(AnalyzeThis.Generator).GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJSONStreamId, pDataJSONStreamId)::tJobTimeOut
+	Job ##class(AnalyzeThis.Generator).GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId)::tJobTimeOut
 	If '$Test {
 		&js<alert('Unable to start background job.');>
 		Set tTrackingId = ""

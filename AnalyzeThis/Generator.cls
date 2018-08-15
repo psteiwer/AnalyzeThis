@@ -2,7 +2,7 @@ Class AnalyzeThis.Generator
 {
 
 /// This method will go through the entire generation process. Takes in a CSV file
-ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJSONStreamId, pDataJSONStreamId) As %Status
+ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %Status
 {
 	try {
 		// Preparing JSON
@@ -21,7 +21,7 @@ ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pPropertyJ
 		Set ^AnalyzeThis.GenerateTracking($j,1)=tSC
 		if $$$ISERR(tSC) $$$ThrowStatus(tSC)
 		
-		set tCubeName=##class(AnalyzeThis.Generator).GenerateCubeName(pFileName)
+		set tCubeName=$select($G(pCubeName)'="":pCubeName,1:##class(AnalyzeThis.Generator).GenerateCubeName(pFileName))
 		
 		// Generating Source Class
 		Set ^AnalyzeThis.GenerateTracking($j,2)="Working..."
