@@ -968,12 +968,6 @@ Method updateProp(key, which, value, stream) [ ZenMethod ]
 	set propertyJSON=##class(%Stream.FileBinary).%OpenId(stream)
 	set propertyObj={}.%FromJSON(propertyJSON)
 	
-	if which="Display" {
-		set temppos=propertyObj.%Get("Properties").%Get(propertyObj.%Get(which).%Get(key))
-		d propertyObj.%Get("Properties").%Remove(propertyObj.%Get(which).%Get(key))
-		d propertyObj.%Get("Properties").%Set(value,temppos)
-	}
-	
 	d propertyObj.%Get(which).%Set(key,value)
 	
 	d propertyObj.%ToJSON(.propertyJSON)
