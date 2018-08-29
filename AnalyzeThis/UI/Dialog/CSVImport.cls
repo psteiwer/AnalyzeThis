@@ -893,6 +893,9 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	&html<<tr>>
 	set iter=propertyObj.Display.%GetIterator()
 	while iter.%GetNext(.key,.val) {
+		if propertyObj.Ignore.%Get(key) {
+			continue
+		}
 		set format=0
 		&html<<td align="center" style="vertical-align:top;">Include? <input type="checkbox" name="includeCol#(key)#" id="includeCol#(key)#" onchange="zenPage.updateProp('#(key)#','Include',this.checked,'#(propertiesJSONStreamId)#');" checked></br><select id="propType#(key)#" onchange="zenPage.swapFormat('#(key)#',value); zenPage.updateProp('#(key)#','Type',value,'#(propertiesJSONStreamId)#');">>
 			&html<<option value="%String" selected="selected">Dimension</option>>
@@ -931,11 +934,17 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	&html<<tr>>
 	set iter=propertyObj.Display.%GetIterator()
 	while iter.%GetNext(.key,.val) {
+		if propertyObj.Ignore.%Get(key) {
+			continue
+		}
 		&html<<th><input type="text" id="propName#(key)#" maxlength="31" value="#(val)#" onchange="zenPage.updateProp('#(key)#','Display',value,'#(propertiesJSONStreamId)#');"></input></th>>
 	}
 	&html<</tr>>
 	set iter=dataArray.%GetIterator()
 	while ((iter.%GetNext(.key,.val)) && (key<10)) {
+		if propertyObj.Ignore.%Get(key) {
+			continue
+		}
 		&html<<tr>>
 		set iter2=val.%GetIterator()
 		while iter2.%GetNext(.key2,.val2) {
@@ -1096,6 +1105,8 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	set dateformatarray = []
 	set includearray = []
 	set intformatarray = []
+	// ignorearray is an array that says if a column has an empty header
+	set ignorearray = []
 	set dynamicArray = []
 	set pos=0
 	
@@ -1115,6 +1126,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 				d dateformatarray.%Push("")
 				d intformatarray.%Push("")
 				d includearray.%Push("true")
+				d ignorearray.%Push(prop="")
 				d propposition.%Set(prop,propcount)
 			}
 			d properties.%Set("Properties",propposition)
@@ -1123,6 +1135,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 			d properties.%Set("DateFormat",dateformatarray)
 			d properties.%Set("IntFormat",intformatarray)
 			d properties.%Set("Include",includearray)
+			d properties.%Set("Ignore",ignorearray)
 			set pos=m.End-1
 		} Else {
 			// Headers too long, pick different file
@@ -1165,15 +1178,26 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 				set line=$e(s,m.Start,m.End-1)
 				set m2.Text=line
 				set propcount=-1
+				set ignore=0
 				while m2.Locate() {
 					set propcount=$i(propcount)
 					set val=$zstrip($zstrip($e(line,m2.Start,m2.End-1),">",","),">C")
+					if ignorearray.%Get(propcount) {
+						if val'="" {
+							// If this row has data, stop processing the row
+							set ignore=1
+							quit
+						} else {
+							// If this row does not have data for this column, we can continue processing other columns
+							continue
+						}
+					}
 					set:$e(val,1)="""" val=$e(val,2,*)
 					set:$e(val,*)="""" val=$e(val,1,*-1)
 					//w "Cell: "_val,!
 					d dynamicObject.%Set(properties.Display.%Get(propcount),val)
 				}
-				if totalprops=propcount {
+				if (totalprops=propcount) && ('ignore) {
 					d dynamicArray.%Push(dynamicObject)
 					set pos=m.End
 				}

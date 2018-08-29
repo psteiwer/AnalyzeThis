@@ -105,6 +105,9 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 	Set dynamicProperties={}.%FromJSON(tempStream)
 	Set iter=dynamicProperties.Display.%GetIterator()
 	while iter.%GetNext(.key,.value) {
+		if dynamicProperties.Ignore.%Get(key) {
+			continue
+		}
 		Set prop=##class(%Dictionary.PropertyDefinition).%New()
 		Set prop.Name=value
 		Set prop.Type=dynamicProperties.Type.%Get(key)
