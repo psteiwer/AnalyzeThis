@@ -132,7 +132,7 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 				Do class.Methods.Insert(method)
 
 			}
-		} ElseIf prop.Type="%Date" {
+		} ElseIf ((prop.Type="%Date") || (prop.Type="%TimeStamp")) {
 			set tempFormat=dynamicProperties.DateFormat.%Get(key)
 			if tempFormat=5 {
 				//Cast back as string until we support partial dates
@@ -144,7 +144,13 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 				set method.FormalSpec = "pVal"
 				Set method.ReturnType = "%Status"
 				
-				Do method.Implementation.WriteLine(" try { set pVal=$zdh(pVal,"_tempFormat_") }")
+				if (prop.Type="%Date") {
+					Do method.Implementation.WriteLine(" try { set pVal=$zdh(pVal,"_tempFormat_") }")
+				} Else {
+					// This is a %TimeStamp type, convert to %Date since %DeepSee.WizardUtils does not handle %TimeStamp
+					set prop.Type="%Date"
+					Do method.Implementation.WriteLine(" try { set pVal=+$zdth(pVal,"_tempFormat_") }")
+				}
 				Do method.Implementation.WriteLine(" catch ex {  }")
 				Do method.Implementation.WriteLine(" set i%"_prop.Name_"=pVal")
 				Do method.Implementation.WriteLine(" quit $$$OK")

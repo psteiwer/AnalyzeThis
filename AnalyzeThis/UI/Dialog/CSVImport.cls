@@ -901,6 +901,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 			&html<<option value="%String" selected="selected">Dimension</option>>
 			&html<<option value="%Integer">Measure</option>>
 			&html<<option value="%Date">Date</option>>
+			&html<<option value="%TimeStamp">TimeStamp</option>>
 		&html<</select></br><select id="dateFormat#(key)#" style="display:none;" onchange="zenPage.updateProp('#(key)#','DateFormat',value,'#(propertiesJSONStreamId)#');"/>>
 			&html<<option value="1" #($select(format=1:"selected='selected'",1:""))#>MM/DD/[YY]YY</option>>
 			&html<<option value="2">DD Mmm [YY]YY</option>>
@@ -959,7 +960,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 /// Changes formatting options based on the type
 ClientMethod swapFormat(propID, value) [ Internal, Language = javascript ]
 {
-	if (value=='%Date') {
+	if ((value=='%Date') || (value=='%TimeStamp'))  {
 		document.getElementById("dateFormat"+propID).style.display=""
 		document.getElementById("intFormat"+propID).style.display="none"
 	} else if (value=='%Integer') {
