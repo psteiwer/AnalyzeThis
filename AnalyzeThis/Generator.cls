@@ -6,7 +6,7 @@ ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJ
 {
 	try {
 		// Preparing JSON
-		Set ^AnalyzeThis.GenerateTracking($j,1)="Working..."
+		Do ..UpdateTracking(1,"Working...")
 		set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(pFileName,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize,pHasHeaders)
 		// Probably should provide a way to clean these instead of deleting them here
 		if pPropertyJSONStreamId'="" {
@@ -18,42 +18,42 @@ ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJ
 			do ##class(%Stream.FileBinary).%DeleteId(pDataJSONStreamId)
 		}
 		Set tPropertyJSONStreamId=pPropertyJSONStreamId
-		Set ^AnalyzeThis.GenerateTracking($j,1)=tSC
+		Do ..UpdateTracking(1,tSC)
 		if $$$ISERR(tSC) $$$ThrowStatus(tSC)
 		
 		set tCubeName=$select($G(pCubeName)'="":pCubeName,1:##class(AnalyzeThis.Generator).GenerateCubeName(pFileName))
 		
 		// Generating Source Class
-		Set ^AnalyzeThis.GenerateTracking($j,2)="Working..."
+		Do ..UpdateTracking(2,"Working...")
 		set tSC=##class(AnalyzeThis.Generator).GenerateSourceClass(tCubeName,tPropertyJSONStreamId)
-		Set ^AnalyzeThis.GenerateTracking($j,2)=tSC
+		Do ..UpdateTracking(2,tSC)
 		if $$$ISERR(tSC) $$$ThrowStatus(tSC)
 		
 		// Importing Data
-		Set ^AnalyzeThis.GenerateTracking($j,3)="Working..."
+		Do ..UpdateTracking(3,"Working...")
 		set tSC=##class(AnalyzeThis.Generator).ImportJSONData(tPropertyJSONStreamId, tDataJSONStreamId, tCubeName)
-		Set ^AnalyzeThis.GenerateTracking($j,3)=tSC
+		Do ..UpdateTracking(3,tSC)
 		if $$$ISERR(tSC) $$$ThrowStatus(tSC)
 		
 		// Generating Cube
-		Set ^AnalyzeThis.GenerateTracking($j,4)="Working..."
+		Do ..UpdateTracking(4,"Working...")
 		set tSC=##class(AnalyzeThis.Generator).GenerateCube(tCubeName,tPropertyJSONStreamId)
-		Set ^AnalyzeThis.GenerateTracking($j,4)=tSC
+		Do ..UpdateTracking(4,tSC)
 		if $$$ISERR(tSC) $$$ThrowStatus(tSC)
 		
 		
 		// Populating Cube
-		Set ^AnalyzeThis.GenerateTracking($j,5)="Working..."
+		Do ..UpdateTracking(5,"Working...")
 		set tSC=##class(%DeepSee.Utils).%BuildCube(tCubeName,,0)
-		Set ^AnalyzeThis.GenerateTracking($j,5)=tSC
+		Do ..UpdateTracking(5,tSC)
 		if $$$ISERR(tSC) $$$ThrowStatus(tSC)
 		
 		// Generating Sample Dashboard
 		Do ##class(AnalyzeThis.UI.CSVImport).AddDetails(tCubeName)
 		
-		Set ^AnalyzeThis.GenerateTracking($j,6)="Working..."
+		Do ..UpdateTracking(6,"Working...")
 		set tSC=##class(AnalyzeThis.Generator).GenerateDash(tCubeName)
-		Set ^AnalyzeThis.GenerateTracking($j,6)=tSC
+		Do ..UpdateTracking(6,tSC)
 		if $$$ISERR(tSC) $$$ThrowStatus(tSC)
 	} catch ex {
 		set tSC=ex.AsStatus()
@@ -67,6 +67,11 @@ ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJ
 		do ##class(%Stream.FileBinary).%DeleteId(tDataJSONStreamId)
 	}
 	quit tSC
+}
+
+ClassMethod UpdateTracking(pStep, pMsg) {
+	Set ^AnalyzeThis.GenerateTracking($j,pStep)=pMsg
+	Quit
 }
 
 /// Given a file name, output the resulting cube name
