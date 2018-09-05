@@ -8,10 +8,6 @@ Property INPUTTYPE As %ZEN.Datatype.string(ZENURL = "INPUTTYPE");
 /// This is the temporary file name we saved on remote server, only saved when Input Type is LOCAL.
 Property LOCALFILENAME As %ZEN.Datatype.string;
 
-/// If greater than this size and user is importing Sequential file (%GO) then show content 
-/// will not be available.
-Parameter CheckMaxSize = 10000000;
-
 Property ReadSize As %Integer [ InitialExpression = 50000000 ];
 
 Property LineSize As %Integer [ InitialExpression = 10000 ];
