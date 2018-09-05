@@ -8,10 +8,7 @@ Provide a CSV file and assign dimensions/measures as necessary. Once ready, clic
 Install Steps:
 1. Use the Download ZIP option for this project
 2. Extract the files and copy path
-3. (Optional) To include Management Portal UI Link 
-    * Make CACHELIB r/w
-4. Open terminal and ZN to desired namespace
-5. Load files
-    * If opted into step 3 - do $system.OBJ.LoadDir("<PATH FROM STEP 2>","ck",,1)
-    * Else - do $system.OBJ.LoadDir("<PATH FROM STEP 2>/AnalyzeThis/","ck",,1)
-6. Navigate to URL: `<server>/<webapp>/AnalyzeThis.UI.CSVImport.cls`
+3. Open terminal and ZN to desired namespace
+4. Load files
+    * do $system.OBJ.LoadDir("<PATH FROM STEP 2>","ck",,1)
+5. Navigate to User Portal, find "Analyze This" Link
