@@ -8,8 +8,6 @@ Property INPUTTYPE As %ZEN.Datatype.string(ZENURL = "INPUTTYPE");
 /// This is the temporary file name we saved on remote server, only saved when Input Type is LOCAL.
 Property LOCALFILENAME As %ZEN.Datatype.string;
 
-Property ReadSize As %Integer [ InitialExpression = 50000000 ];
-
 Property LineSize As %Integer [ InitialExpression = 10000 ];
 
 Property hasHeaders As %ZEN.Datatype.string [ InitialExpression = 1 ];
@@ -122,9 +120,8 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <checkbox id="chkRecurse" caption="Include subdirectories" captionClass="zenLabel" value="1" hidden="true"/>
 <expando caption="Advanced" animate="true" expanded="false">
 <vgroup enclosingStyle="padding-top:10px;">
-<label id="LimitLabel" value="Limit the amount of data to read" hint="(Data load will stop after first limit is reached)"/>
+<label id="LimitLabel" value="Limit the amount of data to read" hint="(Data load will stop after limit is reached)"/>
 <hgroup>
-<text id="ReadSize" name="ReadSize" value="50" size="15" label="Read Limit (MB)" onchange="zenPage.UpdateReadSize(zenThis.getValue());"/>
 <text id="LineSize" name="LineSize" value="10000" size="15" label="Line Limit" onchange="zenPage.UpdateLineSize(zenThis.getValue());"/>
 </hgroup>
 </vgroup>
@@ -164,12 +161,6 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 </tab>
 </tabGroup>
 </pane>
-}
-
-/// Update the ReadSize property
-Method UpdateReadSize(value) [ Internal, ZenMethod ]
-{
-	set ..ReadSize=value*100000
 }
 
 /// Update the LineSize property
@@ -311,7 +302,7 @@ ClientMethod updateState() [ Language = javascript ]
 /// Kicks off GenerateAll and starts the update timer
 ClientMethod updateProgress() [ Language = javascript]
 {
-	this.trackingId = this.GenerateAll(this.FileName,this.ReadSize,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
+	this.trackingId = this.GenerateAll(this.FileName,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
 	if (this.trackingId!='') {
 		zen('timer').timeout = 500;
 		zen('timer').startTimer();
@@ -420,12 +411,12 @@ ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
 
 /// Start the build cube process in the background.
 /// Return the tracking id.
-ClassMethod GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
+ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
 {
 	Set tTrackingId = ""
 	Set tJobTimeOut = 10
 	
-	Job ##class(AnalyzeThis.Generator).GenerateAll(pFileName, pReadSize, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId)::tJobTimeOut
+	Job ##class(AnalyzeThis.Generator).GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId)::tJobTimeOut
 	If '$Test {
 		&js<alert('Unable to start background job.');>
 		Set tTrackingId = ""
@@ -822,11 +813,6 @@ Method %OnAfterCreatePage() As %Status [ Internal ]
 		Set %page.LOCALFILENAME = $G(%session.Data($Username,"Import","LOCALFileName"))
 		Set ..%GetComponentById("InputType").value = "LOCAL"
 	}
-	If $G(%request.Data("ReadSize",1)) '= "" {
-		Set %page.ReadSize = $G(%request.Data("ReadSize",1))*100000
-		Set ..%GetComponentById("ReadSize").value = $G(%request.Data("ReadSize",1))*100000
-		Set ..ReadSize = $G(%request.Data("ReadSize",1))*100000
-	}
 	If $G(%request.Data("LineSize",1)) '= "" {
 		Set %page.LineSize = $G(%request.Data("LineSize",1))
 		Set ..%GetComponentById("LineSize").value = $G(%request.Data("LineSize",1))
@@ -872,7 +858,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	} else {
 		set file=..FileName
 	}
-	set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,..ReadSize,10,..hasHeaders)
+	set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,10,..hasHeaders)
 	
 	Set ..propertyJSONStreamID=propertiesJSONStreamId
 	Set ..dataJSONStreamID=dataJSONStreamId
@@ -1054,7 +1040,6 @@ ClassMethod %OnSubmit(pSubmit As %ZEN.Submit) As %Status [ Internal ]
 	}
 	Set %response.Context("INPUTTYPE") = "LOCAL"
 	Set %response.Context("LineSize") = pSubmit.%Data("LineSize")
-	Set %response.Context("ReadSize") = pSubmit.%Data("ReadSize")
 	Set %response.Context("CubeName") = pSubmit.%Data("CubeName")
 	//  remember popup info
 	Set %response.Context("$ZEN_POPUP") = 1
@@ -1078,7 +1063,7 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 }
 
 /// Takes a CSV file and returns two stream IDs containing relating to a JSON object for the Properties and a JSON object for the Data
-ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSONStreamId, ByRef dataJSONStreamId, pMaxSize As %Integer = 0, pMaxLines As %Integer = 0, pHasHeaders As %Boolean = 1, pNewLine As %String = {$c(13,10)}) As %Status
+ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSONStreamId, ByRef dataJSONStreamId, pMaxLines As %Integer = 0, pHasHeaders As %Boolean = 1, pNewLine As %String = {$c(13,10)}) As %Status
 {
 	set stream=##class(%Stream.FileBinary).%New()
 	d stream.LinkToFile(pFileName)
