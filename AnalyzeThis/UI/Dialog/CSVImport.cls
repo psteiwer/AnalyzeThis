@@ -1069,17 +1069,9 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	d stream.LinkToFile(pFileName)
 	set s=stream.Read()
 	set pNewLine=$zconvert(pNewLine,"O","JS")
-	set tNewLine="("
-	for i=2:1:$length(pNewLine,"\") {
-		set:i>2 tNewLine=tNewLine_"|([\"_$piece(pNewLine,"\",i-1)_"]"
-		set tNewLine=tNewLine_"[^\"_$piece(pNewLine,"\",i)_"]"
-	}
-	for i=2:1:$length(pNewLine,"\") {
-		set tNewLine=tNewLine_")"
-	}
-	set m=##class(%Regex.Matcher).%New("(?s)"_tNewLine_"*("_pNewLine_")")
+	set m=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexLine(pNewLine))
 	set m.Text=s
-	set m2=##class(%Regex.Matcher).%New("(""([^""]|(""""))*""(,|"_pNewLine_"))|(([^,""])*(,|"_pNewLine_"))")
+	set m2=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexProp(pNewLine))
 	set properties = {}
 	set propposition = {}
 	set displayarray = []
