@@ -104,4 +104,23 @@ Method TestCRbasic()
 	do $$$AssertEquals(st,0,"EOF, Regex Matched = "_st)
 }
 
+Method TestPunctuation()
+{
+	set match=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexLine("\r\n"))
+	set text="this! has$ punctuation . (),""testing,"_$c(13,10)_"test"",""so, does, this! @!#$ (  )"",""testing,"_$c(13,10)_"test"""_$c(13,10)
+	set match.Text=text
+	
+	set st=match.Locate()
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	do $$$AssertEquals(match.Start,1,"Line 1 Start = 1, was "_match.Start)
+	do $$$AssertEquals(match.End,92,"Line 1 End = 92, was "_match.End)
+	set expected="this! has$ punctuation . () ,""testing,"_$c(13,10)_"test"",""so, does, this! @!#$ (  )"",""testing,"_$c(13,10)_"test"""_$c(13,10)
+	do $$$AssertEquals($e(text,match.Start,match.End-1),expected,expected_" = "_$e(text,match.Start,match.End-1))
+	
+	set st=match.Locate()
+	do $$$AssertEquals(st,0,"EOF, Regex Matched = "_st)
+}
+
+
+
 }
