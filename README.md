@@ -13,4 +13,5 @@ Provide a CSV file and assign dimensions/measures as necessary. Once ready, clic
 3. Open terminal and ZN to desired namespace
 4. Load files
     * do $system.OBJ.LoadDir("<PATH FROM STEP 2>","ck",,1)
-5. Navigate to User Portal, find "Analyze This" Link
+5. From the Management Portal, navigate to DeepSee/Analytics->User Portal
+   * Find "Analyze This" Link
