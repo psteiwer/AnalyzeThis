@@ -1,4 +1,4 @@
-Class UnitTests.TestRegex Extends %UnitTest.TestCase
+Class UnitTests.TestRegexLine Extends %UnitTest.TestCase
 {
 
 Method TestCRLFbasic()
