@@ -1068,6 +1068,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	set stream=##class(%Stream.FileBinary).%New()
 	d stream.LinkToFile(pFileName)
 	set s=stream.Read()
+	set s=$replace(s,$c(13)_$c(10),"\r\n")
 	set pNewLine=$zconvert(pNewLine,"O","JS")
 	set m=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexLine(pNewLine))
 	set m.Text=s
@@ -1085,13 +1086,12 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	set pos=0
 	
 	if (pHasHeaders) {
-		if m.Locate() {
-			set line=$e(s,m.Start,m.End-1)
+		if ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line) {
 			set m2.Text=line
 			set propcount=-1
-			while m2.Locate() {
+			while ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.prop,0) {
 				set propcount=$i(propcount)
-				set prop=$zstrip($zstrip($e(line,m2.Start,m2.End-1),">",","),">C")
+				set prop=$zstrip($zstrip(prop,">",","),">C")
 				set:$e(prop,1)="""" prop=$e(prop,2,*)
 				set:$e(prop,*)="""" prop=$e(prop,1,*-1)
 				set prop=$zstrip(prop,"*P")
@@ -1115,11 +1115,10 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 			// Headers too long, pick different file
 		}
 	} Else {
-		if m.Locate() {
-			set line=$e(s,m.Start,m.End-1)
+		if ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line) {
 			set m2.Text=line
 			set propcount=-1
-			while m2.Locate() {
+			while ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.prop,0) {
 				set prop="Property"_$i(propcount)
 				d displayarray.%Push(prop)
 				d typearray.%Push("%String")
@@ -1146,16 +1145,15 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	set linecount=0
 	try {
 		while ('done)&&((pMaxLines=0)||(linecount<pMaxLines)) {
-			while m.Locate()&&((pMaxLines=0)||(linecount<pMaxLines)) {
+			while ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line)&&((pMaxLines=0)||(linecount<pMaxLines)) {
 				set dynamicObject = {}
 				set linecount=$i(linecount)
-				set line=$e(s,m.Start,m.End-1)
 				set m2.Text=line
 				set propcount=-1
 				set ignore=0
-				while m2.Locate() {
+				while ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.val,0) {
 					set propcount=$i(propcount)
-					set val=$zstrip($zstrip($e(line,m2.Start,m2.End-1),">",","),">C")
+					set val=$zstrip($zstrip(val,">",","),">C")
 					if ignorearray.%Get(propcount) {
 						if val'="" {
 							// If this row has data, stop processing the row
@@ -1186,6 +1184,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 					set $zs=$zs*2
 				}
 				set s=s_stream.Read()
+				set s=$replace(s,$c(13)_$c(10),"\r\n")
 				set m.Text=s
 			}
 		}
