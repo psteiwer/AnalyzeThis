@@ -143,6 +143,37 @@ Method TestPunctuation()
 	do $$$AssertEquals(st,0,"EOF, Regex Matched = "_st)
 }
 
+Method TestNoFinalLineFeed()
+{
+	set match=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexLine("\r\n"))
+	set text="A,B,C,D,E,F"_$c(13,10)_"1,2,3,4,5,6"_$c(13,10)_"7,8,9,10,11,12"_$c(13,10)_"13,14,15,16,17,18"
+	set text=$replace(text,$c(13)_$c(10),"\r\n")
+	set match.Text=text
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="A,B,C,D,E,F\r\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="1,2,3,4,5,6\r\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="7,8,9,10,11,12\r\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="13,14,15,16,17,18"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,0,"EOF, Regex Matched = "_st)
+}
+
 
 
 }
