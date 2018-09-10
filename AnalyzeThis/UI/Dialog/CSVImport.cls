@@ -1068,7 +1068,9 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	set stream=##class(%Stream.FileBinary).%New()
 	d stream.LinkToFile(pFileName)
 	set s=stream.Read()
-	set s=$replace(s,$c(13)_$c(10),"\r\n")
+	set pNewLine=##class(AnalyzeThis.Utils).DetermineNewLine(s)
+	set s=$replace(s,$c(13),"\r")
+	set s=$replace(s,$c(10),"\n")
 	set pNewLine=$zconvert(pNewLine,"O","JS")
 	set m=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexLine(pNewLine))
 	set m.Text=s
@@ -1184,7 +1186,8 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 					set $zs=$zs*2
 				}
 				set s=s_stream.Read()
-				set s=$replace(s,$c(13)_$c(10),"\r\n")
+				set s=$replace(s,$c(13),"\r")
+				set s=$replace(s,$c(10),"\n")
 				set m.Text=s
 			}
 		}

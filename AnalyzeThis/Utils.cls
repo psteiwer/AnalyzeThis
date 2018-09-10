@@ -30,4 +30,16 @@ ClassMethod GetRegexProp(pNewLine As %String) As %String
 	Quit "("_$replace(pNewLine,"\","\\")_"|,)"_"(?=(?:(?:\\.|[^""\\])*""(?:\\.|[^""\\])*"")*(?:\\.|[^""\\])*\Z)"
 }
 
+ClassMethod DetermineNewLine(pString As %String) As %String
+{
+	set tNewLine=$c(13)_$c(10)
+	
+	if ($find(pString,$c(10))=0)||($find(pString,$c(10))>($find(pString,$c(13))+1)) {
+		// Assume that headers do not have $c(13) or $c(10)
+		set tNewLine=$c(13)
+	}
+	
+	quit tNewLine
+}
+
 }
