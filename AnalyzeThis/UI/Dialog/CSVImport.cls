@@ -860,6 +860,8 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	}
 	set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,10,..hasHeaders)
 	
+	quit:$$$ISERR(tSC) tSC
+	
 	Set ..propertyJSONStreamID=propertiesJSONStreamId
 	Set ..dataJSONStreamID=dataJSONStreamId
 	
@@ -1065,6 +1067,8 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 /// Takes a CSV file and returns two stream IDs containing relating to a JSON object for the Properties and a JSON object for the Data
 ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSONStreamId, ByRef dataJSONStreamId, pMaxLines As %Integer = 0, pHasHeaders As %Boolean = 1, pNewLine As %String = {$c(13,10)}) As %Status
 {
+	set st=$$$OK
+	
 	set stream=##class(%Stream.FileBinary).%New()
 	d stream.LinkToFile(pFileName)
 	set s=stream.Read()
@@ -1087,64 +1091,71 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	set dynamicArray = []
 	set pos=0
 	
-	if (pHasHeaders) {
-		if ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line) {
-			set m2.Text=line
-			set propcount=-1
-			while ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.prop,0) {
-				set propcount=$i(propcount)
-				set prop=$zstrip($zstrip(prop,">",","),">C")
-				set:$e(prop,1)="""" prop=$e(prop,2,*)
-				set:$e(prop,*)="""" prop=$e(prop,1,*-1)
-				set prop=$zstrip(prop,"*P")
-				d displayarray.%Push(prop)
-				d typearray.%Push("%String")
-				d dateformatarray.%Push("")
-				d intformatarray.%Push("")
-				d includearray.%Push("true")
-				d ignorearray.%Push(prop="")
-				d propposition.%Set(prop,propcount)
+	try {
+		if (pHasHeaders) {
+			if ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line) {
+				set m2.Text=line
+				set propcount=-1
+				while ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.prop,0) {
+					set propcount=$i(propcount)
+					set prop=$zstrip($zstrip(prop,">",","),">C")
+					set:$e(prop,1)="""" prop=$e(prop,2,*)
+					set:$e(prop,*)="""" prop=$e(prop,1,*-1)
+					set prop=$zstrip(prop,"*P")
+					d displayarray.%Push(prop)
+					d typearray.%Push("%String")
+					d dateformatarray.%Push("")
+					d intformatarray.%Push("")
+					d includearray.%Push("true")
+					d ignorearray.%Push(prop="")
+					d propposition.%Set(prop,propcount)
+				}
+				d properties.%Set("Properties",propposition)
+				d properties.%Set("Display",displayarray)
+				d properties.%Set("Type",typearray)
+				d properties.%Set("DateFormat",dateformatarray)
+				d properties.%Set("IntFormat",intformatarray)
+				d properties.%Set("Include",includearray)
+				d properties.%Set("Ignore",ignorearray)
+				set pos=m.End-1
+			} Else {
+				// Headers too long, pick different file
 			}
-			d properties.%Set("Properties",propposition)
-			d properties.%Set("Display",displayarray)
-			d properties.%Set("Type",typearray)
-			d properties.%Set("DateFormat",dateformatarray)
-			d properties.%Set("IntFormat",intformatarray)
-			d properties.%Set("Include",includearray)
-			d properties.%Set("Ignore",ignorearray)
-			set pos=m.End-1
 		} Else {
-			// Headers too long, pick different file
-		}
-	} Else {
-		if ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line) {
-			set m2.Text=line
-			set propcount=-1
-			while ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.prop,0) {
-				set prop="Property"_$i(propcount)
-				d displayarray.%Push(prop)
-				d typearray.%Push("%String")
-				d dateformatarray.%Push("")
-				d intformatarray.%Push("")
-				d includearray.%Push("true")
-				d propposition.%Set(prop,propcount)
+			if ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line) {
+				set m2.Text=line
+				set propcount=-1
+				while ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.prop,0) {
+					set prop="Property"_$i(propcount)
+					d displayarray.%Push(prop)
+					d typearray.%Push("%String")
+					d dateformatarray.%Push("")
+					d intformatarray.%Push("")
+					d includearray.%Push("true")
+					d propposition.%Set(prop,propcount)
+				}
+				d properties.%Set("Properties",propposition)
+				d properties.%Set("Display",displayarray)
+				d properties.%Set("Type",typearray)
+				d properties.%Set("DateFormat",dateformatarray)
+				d properties.%Set("IntFormat",intformatarray)
+				d properties.%Set("Include",includearray)
+				
+				d m.ResetPosition()
+			} Else {
+				// Headers too long, pick different file
 			}
-			d properties.%Set("Properties",propposition)
-			d properties.%Set("Display",displayarray)
-			d properties.%Set("Type",typearray)
-			d properties.%Set("DateFormat",dateformatarray)
-			d properties.%Set("IntFormat",intformatarray)
-			d properties.%Set("Include",includearray)
-			
-			d m.ResetPosition()
-		} Else {
-			// Headers too long, pick different file
 		}
+		
+		set totalprops=propcount
+		set done=0
+		set linecount=0
+	} catch ex {
+		set st=$$$ERROR($$$GeneralError,"Error reading CSV")
 	}
 	
-	set totalprops=propcount
-	set done=0
-	set linecount=0
+	if $$$ISERR(st) quit st
+	
 	try {
 		while ('done)&&((pMaxLines=0)||(linecount<pMaxLines)) {
 			while ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line)&&((pMaxLines=0)||(linecount<pMaxLines)) {
@@ -1193,9 +1204,10 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 		}
 	} catch ex {
 		// Reached max len, pop one item from array
-		//d ##class(AnalyzeThis.UI.Dialog.CSVImport).MakeArraySafe(.dynamicArray)
-		d $system.Status.DisplayError(ex.AsStatus())
+		set st=ex.AsStatus()
 	}
+	
+	if $$$ISERR(st) quit st
 	
 	set dataJSONStream=##class(%Stream.FileBinary).%New()
 	d dynamicArray.%ToJSON(.dataJSONStream)
@@ -1207,6 +1219,6 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	d propertyJSONStream.%Save()
 	set propertyJSONStreamId = propertyJSONStream.%Id()
 	
-	q $$$OK
+	q st
 }
 }
