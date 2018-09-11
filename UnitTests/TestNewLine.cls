@@ -42,4 +42,13 @@ Method TestPunctuation()
 	Do $$$AssertEquals(tNewLine,tExpected,tExpected_" = "_tNewLine)
 }
 
+Method TestLFbasic()
+{
+	set text="""term"",""justice"",""justiceName"",""post_mn"",""post_sd"",""post_med"",""post_025"",""post_975"""_$c(10)_"1965,97,""AFortas"",-1.402,0.275,-1.393,-1.97,-0.89"_$c(10)_"1966,97,""AFortas"",-1.564,0.234,-1.555,-2.04,-1.121"_$c(10)_"1967,97,""AFortas"",-1.479,0.245,-1.471,-1.987,-1.026"_$c(10)
+	Set tNewLine = ##class(AnalyzeThis.Utils).DetermineNewLine(text)
+	Set tExpected = $C(10)
+	Do $$$AssertEquals(tNewLine,tExpected,tExpected_" = "_tNewLine)
+	
+}
+
 }

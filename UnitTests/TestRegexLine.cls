@@ -174,6 +174,37 @@ Method TestNoFinalLineFeed()
 	do $$$AssertEquals(st,0,"EOF, Regex Matched = "_st)
 }
 
+Method TestLFbasic()
+{
+	set match=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexLine("\n"))
+	set text="""term"",""justice"",""justiceName"",""post_mn"",""post_sd"",""post_med"",""post_025"",""post_975"""_$c(10)_"1965,97,""AFortas"",-1.402,0.275,-1.393,-1.97,-0.89"_$c(10)_"1966,97,""AFortas"",-1.564,0.234,-1.555,-2.04,-1.121"_$c(10)_"1967,97,""AFortas"",-1.479,0.245,-1.471,-1.987,-1.026"_$c(10)
+	set text=$replace(text,$c(10),"\n")
+	set match.Text=text
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="""term"",""justice"",""justiceName"",""post_mn"",""post_sd"",""post_med"",""post_025"",""post_975""\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="1965,97,""AFortas"",-1.402,0.275,-1.393,-1.97,-0.89\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="1966,97,""AFortas"",-1.564,0.234,-1.555,-2.04,-1.121\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="1967,97,""AFortas"",-1.479,0.245,-1.471,-1.987,-1.026\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,0,"EOF, Regex Matched = "_st)
+}
+
 
 
 }
