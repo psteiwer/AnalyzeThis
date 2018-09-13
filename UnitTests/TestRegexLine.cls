@@ -205,6 +205,49 @@ Method TestLFbasic()
 	do $$$AssertEquals(st,0,"EOF, Regex Matched = "_st)
 }
 
+Method TestQuoted()
+{
+	set match=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexLine("\r\n"))
+	set text="""A"",""B"",""C"",""D"",""E"",""F"""_$c(13,10)_"""1"",""2"",""3"",""4"",""5"",""6"""_$c(13,10)
+	set text=$replace(text,$c(13)_$c(10),"\r\n")
+	set match.Text=text
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="""A"",""B"",""C"",""D"",""E"",""F""\r\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="""1"",""2"",""3"",""4"",""5"",""6""\r\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,0,"EOF, Regex Matched = "_st)
+}
+
+
+Method TestNoEndQuote()
+{
+	set match=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexLine("\r\n"))
+	set text="""ID"",""Name"",""Sex"",""Age"",""Height"",""Weight"",""Team"",""NOC"",""Games"",""Year"",""Season"",""City"",""Sport"",""Event"",""Medal"""_$c(13,10)_"""1"",""A Dijiang"",""M"",24,180,80,""China"",""CHN"",""1992 Summer"",1992,""Summer"",""Barcelona"",""Basketball"",""Basketball Men's Basketball"",NA"_$c(13,10)_"""2"",""A Lamusi"",""M"",23,170,60,""China"",""CHN"",""2012 Summer"",2012,""Summer"",""London"",""Judo"",""Judo Men's Extra-Li"
+	set text=$replace(text,$c(13)_$c(10),"\r\n")
+	set match.Text=text
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="""ID"",""Name"",""Sex"",""Age"",""Height"",""Weight"",""Team"",""NOC"",""Games"",""Year"",""Season"",""City"",""Sport"",""Event"",""Medal""\r\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,1,"Regex Matched = "_st)
+	set expected="""1"",""A Dijiang"",""M"",24,180,80,""China"",""CHN"",""1992 Summer"",1992,""Summer"",""Barcelona"",""Basketball"",""Basketball Men's Basketball"",NA\r\n"
+	do $$$AssertEquals(out,expected,expected_" = "_out)
+	
+	set st=##class(AnalyzeThis.Utils).GetNextRegex(.match,.out)
+	do $$$AssertEquals(st,0,"EOF, Regex Matched = "_st)
+}
+
 
 
 }
