@@ -4,6 +4,8 @@ Include %DeepSee
 /// This page lets you import data from a CSV file into DeepSee.
 Class AnalyzeThis.UI.CSVImport Extends %DeepSee.UI.standardPage [ System = 4 ]
 {
+Parameter DOMAIN = "AnalyzeThis";
+
 Parameter Version = 1;
 
 /// Displayed name of this page.

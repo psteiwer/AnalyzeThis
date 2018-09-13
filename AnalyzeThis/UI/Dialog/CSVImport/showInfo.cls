@@ -1,6 +1,7 @@
 /// Created using the page template: Default
 Class AnalyzeThis.UI.Dialog.CSVImport.showInfo Extends %CSP.UI.Portal.Dialog.WizardTemplate [ System = 4 ]
 {
+Parameter DOMAIN = "AnalyzeThis";
 
 Property CubeName As %String(ZENURL = "cubeName");
 

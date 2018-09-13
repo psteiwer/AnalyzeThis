@@ -1,6 +1,8 @@
 /// Created using the page template: Default
 Class AnalyzeThis.UI.Dialog.CSVImport Extends %ZEN.Dialog.standardDialog [ System = 4 ]
 {
+Parameter DOMAIN = "AnalyzeThis";
+
 Parameter Version = 1;
 
 Property INPUTTYPE As %ZEN.Datatype.string(ZENURL = "INPUTTYPE");
