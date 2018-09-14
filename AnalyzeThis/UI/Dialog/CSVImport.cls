@@ -99,7 +99,7 @@ XData Contents [ XMLNamespace = "http://www.intersystems.com/zen" ]
 XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 {
 <pane id="body" cellStyle="padding-left:10px;">
-<label id="idRespond" enclosingClass="note" containerStyle="padding-top:10px;padding-left:4px;" hidden="true"/>
+<label id="idRespond" enclosingClass="note" controlStyle="color:red;" containerStyle="padding-top:10px;padding-left:4px;" hidden="true"/>
 <tabGroup id="tabGroup">
 
 <!-- First Page -->
