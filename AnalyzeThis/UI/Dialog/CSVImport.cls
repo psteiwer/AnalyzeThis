@@ -344,6 +344,12 @@ ClientMethod updateStatus() [ Language = javascript ]
 	return;
 }
 
+ClientMethod showMsg(msg) [ Language = javascript ]
+{
+	zen("idRespond").setValue(msg);
+ 	zen("idRespond").setHidden(false);
+}
+
 /// Get the current status of the background task.
 ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
 {
