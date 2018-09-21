@@ -46,4 +46,31 @@ ClassMethod DetermineNewLine(pString As %String) As %String
 	quit tNewLine
 }
 
+ClassMethod ReadStream(ByRef pStream, pString As %String = "") As %String
+{
+	set tRet=pString_pStream.Read()
+	
+	set tQuotes=$length(tRet,"""")-1
+	
+	if tQuotes#2 {
+		// This means there is an odd number of quotes.
+		// Continue to read until a single quote is found
+		set tDone=0
+		while 'tDone {
+			set tNext=pStream.Read(1)
+			set tRet=tRet_tNext
+			if tNext="""" {
+				set tNext=pStream.Read(1)
+				set tRet=tRet_tNext
+				if tNext'="""" {
+					// We are done, quotes are balanced
+					set tDone=1
+				}
+			}
+		}
+	} 
+	
+	quit tRet
+}
+
 }

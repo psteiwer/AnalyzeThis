@@ -1079,7 +1079,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	
 	set stream=##class(%Stream.FileBinary).%New()
 	d stream.LinkToFile(pFileName)
-	set s=stream.Read()
+	set s=##class(AnalyzeThis.Utils).ReadStream(.stream)
 	set pNewLine=##class(AnalyzeThis.Utils).DetermineNewLine(s)
 	set s=$replace(s,$c(13),"\r")
 	set s=$replace(s,$c(10),"\n")
@@ -1204,7 +1204,7 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 				if $s<($zs/2*1024) {
 					set $zs=$zs*2
 				}
-				set s=s_stream.Read()
+				set s=##class(AnalyzeThis.Utils).ReadStream(.stream,s)
 				set s=$replace(s,$c(13),"\r")
 				set s=$replace(s,$c(10),"\n")
 				set m.Text=s
