@@ -197,19 +197,4 @@ ClassMethod EvaluateCube(pCube As %String) As %Status
 	Quit tSC
 }
 
-Storage Default
-{
-<Data name="MetaDataAnalyzeDefaultData">
-<Value name="1">
-<Value>%%CLASSNAME</Value>
-</Value>
-</Data>
-<DataLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DD</DataLocation>
-<DefaultData>MetaDataAnalyzeDefaultData</DefaultData>
-<IdLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DD</IdLocation>
-<IndexLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DI</IndexLocation>
-<StreamLocation>^AnalyzeThis.D3E8F.MetaDataAna4B6DS</StreamLocation>
-<Type>%Storage.Persistent</Type>
-}
-
 }

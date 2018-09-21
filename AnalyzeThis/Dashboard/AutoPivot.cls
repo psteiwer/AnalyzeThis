@@ -1,4 +1,4 @@
-Class AnalyzeThis.Dashboard.AutoPivot Extends %DeepSee.UserLibrary.FolderItem
+Class AnalyzeThis.Dashboard.AutoPivot
 {
 
 Query FindLevels(pcubeName) As %SQLQuery [ SqlProc ]
@@ -945,16 +945,6 @@ ClassMethod SampleScoreCard(pcubeName As %String, pPivotName As %String, pLevel1
 		quit st
 
 		QUIT $$$OK
-}
-
-Storage Default
-{
-<Data name="Properties">
-<Attribute>Properties</Attribute>
-<Structure>subnode</Structure>
-<Subscript>"AnalyzeThis.Dashboard.AutoPivot.Properties"</Subscript>
-</Data>
-<Type>%Storage.Persistent</Type>
 }
 
 }
