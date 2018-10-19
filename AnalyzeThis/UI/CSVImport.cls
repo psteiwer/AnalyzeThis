@@ -462,7 +462,7 @@ ClassMethod GetPivotList(Output pList, pHidden As %Boolean = 0, pCubeName As %St
 	Quit tSC
 }
 
-Query GetImportedCubes() As %Query(ROWSPEC = "CubeName,Analyzer,Architect,Dashboard,ScoreCard,Info,RefreshData,Application") [ SqlProc ]
+Query GetImportedCubes() As %Query(ROWSPEC = "CubeName,Analyzer,Architect,Dashboard,ScoreCard,Info,Application") [ SqlProc ]
 {
 }
 
@@ -476,7 +476,7 @@ ClassMethod GetImportedCubesExecute(ByRef qHandle As %Binary) As %Status
 		Set dash=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 		Set scoreCardName="Generated/Sample ScoreCard for "_CubeName_".dashboard"
 		Set scoreCard=##class(%DeepSee.Dashboard.Utils).%DashboardExists(scoreCardName)
-		set ^||AnalyzeThis.CSVImportExecute($i(count))=$lb(CubeName,"Analyzer","Architect",$case(dash, 0:"", 1:"Dashboard"),$case(scoreCard, 0:"", 1:"ScoreCard"),"Info","RefreshData",$system.CSP.GetPortalApp($NAMESPACE,$replace($this,"%","_")_".zen"),"info")
+		set ^||AnalyzeThis.CSVImportExecute($i(count))=$lb(CubeName,"Analyzer","Architect",$case(dash, 0:"", 1:"Dashboard"),$case(scoreCard, 0:"", 1:"ScoreCard"),"Info",$system.CSP.GetPortalApp($NAMESPACE,$replace($this,"%","_")_".zen"),"info")
 		set CubeName=$o(^AnalyzeThis.ImportCSV(CubeName))
 	}
     Set qHandle = $LB("")
