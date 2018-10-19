@@ -84,6 +84,8 @@ ClassMethod RefreshCube(pCubeName As %String, pLineSize As %Integer = 0) As %Sta
 			set fileLocation=^AnalyzeThis.ImportCSV(pCubeName,version,sourceType)
 			set st=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(fileLocation,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
 			set st=##class(AnalyzeThis.Utils).RefreshJSONData(tDataJSONStreamId,pCubeName)
+			
+			set st=$system.DeepSee.BuildCube(pCubeName)
 		}
 	}
 	quit st
