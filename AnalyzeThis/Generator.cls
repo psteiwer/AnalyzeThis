@@ -49,7 +49,7 @@ ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJ
 		if $$$ISERR(tSC) $$$ThrowStatus(tSC)
 		
 		// Generating Sample Dashboard
-		Do ##class(AnalyzeThis.UI.CSVImport).AddDetails(tCubeName)
+		Do ##class(AnalyzeThis.UI.CSVImport).AddDetails(tCubeName,"CSV",pFileName)
 		
 		Do ..UpdateTracking(6,"Working...")
 		set tSC=##class(AnalyzeThis.Generator).GenerateDash(tCubeName)
@@ -69,7 +69,8 @@ ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJ
 	quit tSC
 }
 
-ClassMethod UpdateTracking(pStep, pMsg) {
+ClassMethod UpdateTracking(pStep, pMsg)
+{
 	Set ^AnalyzeThis.GenerateTracking($j,pStep)=pMsg
 	Quit
 }
@@ -116,6 +117,7 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 		Set prop=##class(%Dictionary.PropertyDefinition).%New()
 		Set prop.Name=value
 		Set prop.Type=dynamicProperties.Type.%Get(key)
+		Set prop.SqlColumnNumber=key+2
 		If prop.Type="%String" {
 			d prop.Parameters.SetAt("","MAXLEN")
 		} ElseIf prop.Type="%Integer" {

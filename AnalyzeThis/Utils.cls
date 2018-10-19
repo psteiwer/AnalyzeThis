@@ -73,4 +73,60 @@ ClassMethod ReadStream(ByRef pStream, pString As %String = "") As %String
 	quit tRet
 }
 
+/// Given a cube name, refresh the data from the data source
+ClassMethod RefreshCube(pCubeName As %String, pLineSize As %Integer = 0) As %Status
+{
+	set st=$$$OK
+	set version=$O(^AnalyzeThis.ImportCSV(pCubeName,""))
+	if version'="" {
+		set sourceType=$O(^AnalyzeThis.ImportCSV(pCubeName,version,""))
+		if sourceType="CSV" {
+			set fileLocation=^AnalyzeThis.ImportCSV(pCubeName,version,sourceType)
+			set st=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(fileLocation,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
+			set st=##class(AnalyzeThis.Utils).RefreshJSONData(tDataJSONStreamId,pCubeName)
+		}
+	}
+	quit st
+}
+
+/// Given a Property Stream ID, Data Stream ID, and a CubeName - populate the source class with data from the stream
+ClassMethod RefreshJSONData(dataJSONStreamId As %String, pCubeName As %String) As %Status
+{
+	set tSC=$$$OK
+	
+	set tClassName="AnalyzeThis.Generated."_pCubeName
+	set tSC=$classmethod(tClassName,"%DeleteExtent")
+	
+	// Get property name array
+	do ##class(AnalyzeThis.Utils).GetPropertyNames(tClassName,.propNames)
+	
+	set dataJSON=##class(%Stream.FileBinary).%OpenId(dataJSONStreamId)
+	set dataArray=[].%FromJSON(dataJSON)
+	Set iterArray=dataArray.%GetIterator()
+	while iterArray.%GetNext(.key,.val) {
+		set obj=$classmethod(tClassName,"%New")
+		set iterObj=dataArray.%Get(key).%GetIterator()
+		set propCount=0
+		while iterObj.%GetNext(.key2,.val2) {
+			set $property(obj,propNames($i(propCount)))=val2
+		}
+		set tSC= obj.%Save()
+	}
+	
+	quit tSC
+}
+
+/// Given a class name, get the property names by order of SqlColumnNumber
+ClassMethod GetPropertyNames(pClassName As %String, Output pPropNames) As %Status
+{
+	set sql="SELECT Name FROM %Dictionary.PropertyDefinition WHERE parent=? ORDER BY SqlColumnNumber"
+	set sqlrs=##class(%SQL.Statement).%ExecDirect(,sql,pClassName)
+	
+	while sqlrs.%Next() {
+		set pPropNames($i(pPropNames))=sqlrs.Name
+	}
+	
+	quit $$$OK
+}
+
 }

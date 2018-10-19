@@ -211,6 +211,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <column colName="Dashboard" link="#(%query.Application)#_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=Generated/Samples%20for%20#(%query.CubeName)#.dashboard"/>
 <column colName="ScoreCard" link="#(%query.Application)#_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=Generated/Sample%20ScoreCard%20for%20#(%query.CubeName)#.dashboard"/>
 <column colName="Info" onclick="return zenPage.showInfo('#(%query.CubeName)#');" linkCaption="Info" link="#"/>
+<column colName="RefreshData" onclick="zenPage.refreshCube('#(%query.CubeName)#');" linkCaption="RefreshData" link="#"/>
 <column colName="Application" hidden="true"/>
 </tablePane>
 </vgroup>
@@ -354,6 +355,19 @@ ClientMethod showInfo(pCubeName) [ Language = javascript ]
 	//d ##class(AnalyzeThis.UI.Dialog.CSVImport.showInfo).drawStats(pCubeName)
 }
 
+/// Refresh the specified cube.
+ClientMethod refreshCube(cubeName) [ Language = javascript ]
+{
+	alert(this.Refresh(cubeName));
+}
+
+/// Trigger Refresh Cube Background Process
+Method Refresh(pCubeName As %String) As %String [ZenMethod]
+{
+	job ##class(AnalyzeThis.Utils).RefreshCube(pCubeName)
+	quit "Data refresh started for "_pCubeName_" started in background"
+}
+
 /// Create a new cube.
 ClientMethod openCube() [ Language = javascript ]
 {
@@ -448,7 +462,7 @@ ClassMethod GetPivotList(Output pList, pHidden As %Boolean = 0, pCubeName As %St
 	Quit tSC
 }
 
-Query GetImportedCubes() As %Query(ROWSPEC = "CubeName,Analyzer,Architect,Dashboard,ScoreCard,Info,Application") [ SqlProc ]
+Query GetImportedCubes() As %Query(ROWSPEC = "CubeName,Analyzer,Architect,Dashboard,ScoreCard,Info,RefreshData,Application") [ SqlProc ]
 {
 }
 
@@ -462,7 +476,7 @@ ClassMethod GetImportedCubesExecute(ByRef qHandle As %Binary) As %Status
 		Set dash=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 		Set scoreCardName="Generated/Sample ScoreCard for "_CubeName_".dashboard"
 		Set scoreCard=##class(%DeepSee.Dashboard.Utils).%DashboardExists(scoreCardName)
-		set ^||AnalyzeThis.CSVImportExecute($i(count))=$lb(CubeName,"Analyzer","Architect",$case(dash, 0:"", 1:"Dashboard"),$case(scoreCard, 0:"", 1:"ScoreCard"),"Info",$system.CSP.GetPortalApp($NAMESPACE,$replace($this,"%","_")_".zen"),"info")
+		set ^||AnalyzeThis.CSVImportExecute($i(count))=$lb(CubeName,"Analyzer","Architect",$case(dash, 0:"", 1:"Dashboard"),$case(scoreCard, 0:"", 1:"ScoreCard"),"Info","RefreshData",$system.CSP.GetPortalApp($NAMESPACE,$replace($this,"%","_")_".zen"),"info")
 		set CubeName=$o(^AnalyzeThis.ImportCSV(CubeName))
 	}
     Set qHandle = $LB("")
@@ -490,9 +504,9 @@ ClassMethod GetImportedCubesClose(ByRef qHandle As %Binary) As %Status [ Interna
     Quit $$$OK
 }
 
-ClassMethod AddDetails(pCubeName As %String)
+ClassMethod AddDetails(pCubeName As %String, pSourceType As %String, pSourceLocation As %String)
 {
-	set ^AnalyzeThis.ImportCSV(pCubeName, ..#Version)=1
+	set ^AnalyzeThis.ImportCSV(pCubeName, ..#Version, pSourceType)=pSourceLocation
 }
 
 }
