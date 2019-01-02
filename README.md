@@ -10,8 +10,13 @@ Provide a CSV file and assign dimensions/measures as necessary. Once ready, clic
 ## Installation
 1. Use the Download ZIP option for this project
 2. Extract the files and copy path
+   * This is the path to the directory that contains README.md and LICENSE
 3. Open terminal and ZN to desired namespace
-4. Load files
-    * do $system.OBJ.LoadDir("<PATH FROM STEP 2>","ck",,1)
-5. From the Management Portal, navigate to DeepSee/Analytics->User Portal
-   * Find "Analyze This" Link
+4. Run the following commands:
+```
+   do $system.OBJ.Load("<PATH FROM STEP 2>/AnalyzeThis/Installer.cls","ck")
+   do ##class(AnalyzeThis.Installer).RunInstaller()
+```
+5. When prompted, again enter path from step 2
+6. From the Management Portal, navigate to DeepSee/Analytics->User Portal
+   * Find "AnalyzeThis" Link
