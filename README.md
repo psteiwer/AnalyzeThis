@@ -1,4 +1,8 @@
-# AnalyzeThis
+[logo]: https://github.com/psteiwer/AnalyzeThis/blob/master/Assets/AnalyzeThis_BookCover.png "AnalyzeThis Cover Image" 
+## AnalyzeThis
+
+![alt text][logo]
+
 Easily transform a CSV file into a personalized preview of DeepSee
 
 ## Accessing
@@ -19,4 +23,6 @@ Provide a CSV file and assign dimensions/measures as necessary. Once ready, clic
 ```
 5. When prompted, again enter path from step 2
 6. From the Management Portal, navigate to DeepSee/Analytics->User Portal
-   * Find "AnalyzeThis" Link
+   * Find new "AnalyzeThis" Link with custom Cover Image
+   
+   ![alt text][logo]
