@@ -558,18 +558,18 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 	Set dash.gridCols=$case(pPos,1:5,2:5,3:10,4:10,:10)
 	
 	//Create widget
-	set skip=1
+	set skip=0
 	if (dexist) {
 		set wn=pname_"-"_wtype
 		if (wexisting'[wn) {
-			set skip=1
+			set skip=0
 		}
 		elseif (wexisting[wn) {
-			set skip=0
+			set skip=1
 		}
 	}
 			
-	if (skip) {
+	if ('skip) {
 		set wcreated=0
 		kill widget, prop
 		set widget= ##class(%DeepSee.Dashboard.Widget).%New()
@@ -679,9 +679,7 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 		Set widget.properties=Properties
 		do dash.widgets.Insert(widget)
 		set st=dash.%Save()
-			
-	}
-	elseif ('skip) {
+	} else {
 		QUIT '$$$OK
 	}
 	set st=dash.%Save()
