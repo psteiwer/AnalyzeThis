@@ -17,7 +17,9 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 	}
 	Do ##class(AnalyzeThis.Dashboard.MetaDataAnalyze).EvaluateCube(pcubeName)
 	Set MetaDataExist=0
-	&sql(select count(*) into :MetaDataExist FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pcubeName))
+	&sql(
+		select count(*) into :MetaDataExist FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pcubeName)
+	)
 	if (SQLCODE) QUIT
 	if ('MetaDataExist) {
 		w:pVerbose "No Meta Data Found"
@@ -535,176 +537,153 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 	kill dash
 	set dashName="Samples for "_pCubeName
 	set dexist=##class(%DeepSee.Dashboard.Utils).%DashboardExists("Generated/"_dashName_".dashboard")
-	if (dexist)
-	{
+	if (dexist) {
 		set dash=##class(%DeepSee.Dashboard.Utils).%OpenDashboard("Generated/"_dashName_".dashboard", .st)	
 		Set wexisting="" 
 		Set key=0
-		While (dash.widgets.GetNext(.key))
-		{
+		While (dash.widgets.GetNext(.key)) {
 			set we=dash.widgets.GetAt(key)
 			set wexisting=wexisting_we.name
 		}
-		
-		
-	}
-	elseif ('dexist)
-	{
+	} elseif ('dexist) {
 		set dash=##class(%DeepSee.Dashboard.Definition).%New()
 		set dash.name=dashName
 		do dash.folderNameSet("Generated")
 		set dash.title=dashName
 	}
+	
 	set dash.snapGrid=1
 	set dash.snapTo=1
 	Set dash.worklistCount=1
 	Set dash.gridCols=$case(pPos,1:5,2:5,3:10,4:10,:10)
 	
 	//Create widget
-		set skip=1
-		if (dexist)
-		{
+	set skip=1
+	if (dexist) {
 		set wn=pname_"-"_wtype
-		if (wexisting'[wn)
-		{
+		if (wexisting'[wn) {
 			set skip=1
 		}
-		elseif (wexisting[wn)
-		{
+		elseif (wexisting[wn) {
 			set skip=0
 		}
-		}
+	}
 			
-		if (skip)
-		{
-			set wcreated=0
-			kill widget, prop
-			set widget= ##class(%DeepSee.Dashboard.Widget).%New()
+	if (skip) {
+		set wcreated=0
+		kill widget, prop
+		set widget= ##class(%DeepSee.Dashboard.Widget).%New()
 			
-			if (wtype'="time") {
+		if (wtype'="time") {
 			set widget.dataSource="Generated-"_$E(pCubeName,1,15)_"/"_pname_".pivot"
 			set widget.name=pname_"-"_wtype
-			}
-			if (wtype="time") Set widget.name="time"
-			if ((wtype'["meter")&&(wtype'="time")&&(wtype'="line"))
-			{
-				set widget.type="pivot"
-				set widget.subtype=wtype
-				Set widget.subtypeClass=wtype
-				if (wtype["timeChart")
-				{
-					Set widget.subtypeClass="lineChart"
-				}
-			}
-			elseif (wtype["meter")
-			{
-				Set LevelName=$PIECE(pname,"*",1)
-				Set card=0, lt="",n=0,sd=0,m=0,wr=0,dt=""
-				&sql(
-				SELECT DimName
-	 			into :DimName FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pCubeName AND LevelName=:LevelName))
-				QUIT:(SQLCODE)
-				set widget.type="meter"
-				set widget.subtype=wtype
-				Set prop=##class(%DeepSee.Dashboard.DataProperty).%New()
-				Set prop.subtype=wtype
-				//
-				
-				Set tMDX="Select ["_DimName_"].[H1].["_LevelName_"].Members on 0 from ["_pCubeName_"]"
-				Set tRS = ##class(%DeepSee.ResultSet).%New()
-				Set tSC = tRS.%PrepareMDX(tMDX)
-				If $$$ISERR(tSC) Quit
-				Set tSC = tRS.%Execute()
-				If $$$ISERR(tSC) Quit
-				kill ^||DeepSee.AxisMembers
-				Do tRS.%GetAxisMembers(1,.pKey)
-				Set tlbl=$LG(^||DeepSee.AxisMembers(pKey,1,1,0),2)
-				if ($data(tlbl)) 
-				{
-					Set prop.dataValue="=["_tlbl_"]"
-					Set prop.label=tlbl
-					//
-					&sql(
-					SELECT Maximum, STDDEV, Mean into :max, :std, :avg FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pCubeName AND LevelName=:LevelName))
-					if ('SQLCODE)
-					{
-						Set prop.rangeUpper=max
-						set prop.thresholdLower=avg-(std/2)
-						set prop.thresholdUpper=avg+(std/2)
-					}
-					do widget.dataProperties.Insert(prop)
-				}
-				
-				if ($data(^||DeepSee.AxisMembers(pKey,1,2,0)))
-				{
-					Set prop2=##class(%DeepSee.Dashboard.DataProperty).%New()
-					Set tlbl2=$LG(^||DeepSee.AxisMembers(pKey,1,2,0),2)
-					if ($data(tlbl2)) 
-						{
-						Set prop2.dataValue="=["_tlbl2_"]"
-						Set prop2.label=tlbl2
-						Set prop2.rangeUpper=max
-						set prop2.thresholdLower=avg-(std/2)
-						set prop2.thresholdUpper=avg+(std/2)
-						do widget.dataProperties.Insert(prop2)
-						}
-				}
-				kill ^||DeepSee.AxisMembers
-					
-			}
-			elseif (wtype="time")
-			{
-				
-				set widget.type="portlet"
-				set widget.subtype="AnalyzeThis.ThirdParty.NVD3timeChart"
-				Set widget.subtypeClass="portlet"
-				Set mdx=pname
-				
-			}
-			elseif (wtype="line")
-			{
-				set widget.type="portlet"
-				set widget.subtype="AnalyzeThis.ThirdParty.AmSmoothedLineChart"
-				Set widget.subtypeClass="portlet"	
-				
-				//set widget.type="pivot"
-				//set widget.subtype="lineChart"
-				//Set widget.subtypeClass="lineChart"		
-			}
-			set widget.title=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(pname)
-			if (wtype="portlet") set widget.title=wtype
-			set widget.maximized=0
-			Set widget.rowSpanL=5
-			Set widget.colSpanL=5
-			Set widget.homeRowL=$CASE(pPos,0:0,1:5,2:0,3:5)
-			Set widget.homeColL=$CASE(pPos,0:0,1:0,2:5,3:5)
-			Kill Properties
-			Set Properties=##class(%ArrayOfDataTypes).%New()
-			Do Properties.SetAt(1,"analyzer")
-			Do Properties.SetAt("chart","chartToggle")
-			Do Properties.SetAt(1,"print")
-			if (wtype="time") Do Properties.SetAt(mdx,"MDX")
-			if (wtype="barChart") {
-				Do Properties.SetAt("none","legendPos")
-				Set Overrides=##class(%ArrayOfDataTypes).%New()
-				Do Overrides.SetAt("{legendVisible:'false',seriesColorScheme:'urban',xAxis:{_type:'axis'},yAxisList:[{_type:'axis'}],chartPivot:true,_type:'"_wtype_"'}",wtype)
-				Do Overrides.SetAt("{hidden:true,_type:'chartLegend'}", "legend")
-				Set widget.overrides=Overrides
-			}
-			elseif (wtype="pivot") {
-			}
-			else {
-				Set Overrides=##class(%ArrayOfDataTypes).%New()
-				Do Overrides.SetAt("{legendVisible:'false',seriesColorScheme:'urban',xAxis:{_type:'axis'},yAxisList:[{_type:'axis'}],_type:'"_wtype_"'}",wtype)
-				Set widget.overrides=Overrides
-			}
-			
-			Set widget.properties=Properties
-			do dash.widgets.Insert(widget)
-			set st=dash.%Save()
-			
 		}
-		elseif ('skip) {QUIT '$$$OK}
+		if (wtype="time") Set widget.name="time"
+		if ((wtype'["meter")&&(wtype'="time")&&(wtype'="line")) {
+			set widget.type="pivot"
+			set widget.subtype=wtype
+			Set widget.subtypeClass=wtype
+			if (wtype["timeChart") {
+				Set widget.subtypeClass="lineChart"
+			}
+		} elseif (wtype["meter") {
+			Set LevelName=$PIECE(pname,"*",1)
+			Set card=0, lt="",n=0,sd=0,m=0,wr=0,dt=""
+			&sql(
+				SELECT DimName into :DimName FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pCubeName AND LevelName=:LevelName)
+			)
+			QUIT:(SQLCODE)
+			set widget.type="meter"
+			set widget.subtype=wtype
+			Set prop=##class(%DeepSee.Dashboard.DataProperty).%New()
+			Set prop.subtype=wtype
+				
+			Set tMDX="Select ["_DimName_"].[H1].["_LevelName_"].Members on 0 from ["_pCubeName_"]"
+			Set tRS = ##class(%DeepSee.ResultSet).%New()
+			Set tSC = tRS.%PrepareMDX(tMDX)
+			If $$$ISERR(tSC) Quit
+			Set tSC = tRS.%Execute()
+			If $$$ISERR(tSC) Quit
+			kill ^||DeepSee.AxisMembers
+			Do tRS.%GetAxisMembers(1,.pKey)
+			Set tlbl=$LG(^||DeepSee.AxisMembers(pKey,1,1,0),2)
+			if ($data(tlbl)) {
+				Set prop.dataValue="=["_tlbl_"]"
+				Set prop.label=tlbl
+				&sql(
+					SELECT Maximum, STDDEV, Mean into :max, :std, :avg FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pCubeName AND LevelName=:LevelName)
+				)
+				if ('SQLCODE) {
+					Set prop.rangeUpper=max
+					set prop.thresholdLower=avg-(std/2)
+					set prop.thresholdUpper=avg+(std/2)
+				}
+				do widget.dataProperties.Insert(prop)
+			}
+				
+			if ($data(^||DeepSee.AxisMembers(pKey,1,2,0))) {
+				Set prop2=##class(%DeepSee.Dashboard.DataProperty).%New()
+				Set tlbl2=$LG(^||DeepSee.AxisMembers(pKey,1,2,0),2)
+				if ($data(tlbl2)) {
+					Set prop2.dataValue="=["_tlbl2_"]"
+					Set prop2.label=tlbl2
+					Set prop2.rangeUpper=max
+					set prop2.thresholdLower=avg-(std/2)
+					set prop2.thresholdUpper=avg+(std/2)
+					do widget.dataProperties.Insert(prop2)
+				}
+			}
+			kill ^||DeepSee.AxisMembers
+					
+		} elseif (wtype="time") {
+			set widget.type="portlet"
+			set widget.subtype="AnalyzeThis.ThirdParty.NVD3timeChart"
+			Set widget.subtypeClass="portlet"
+			Set mdx=pname
+		} elseif (wtype="line") {
+			set widget.type="portlet"
+			set widget.subtype="AnalyzeThis.ThirdParty.AmSmoothedLineChart"
+			Set widget.subtypeClass="portlet"	
+				
+			//set widget.type="pivot"
+			//set widget.subtype="lineChart"
+			//Set widget.subtypeClass="lineChart"		
+		}
+			
+		set widget.title=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(pname)
+		if (wtype="portlet") set widget.title=wtype
+		set widget.maximized=0
+		Set widget.rowSpanL=5
+		Set widget.colSpanL=5
+		Set widget.homeRowL=$CASE(pPos,0:0,1:5,2:0,3:5)
+		Set widget.homeColL=$CASE(pPos,0:0,1:0,2:5,3:5)
+		Kill Properties
+		Set Properties=##class(%ArrayOfDataTypes).%New()
+		Do Properties.SetAt(1,"analyzer")
+		Do Properties.SetAt("chart","chartToggle")
+		Do Properties.SetAt(1,"print")
+		if (wtype="time") Do Properties.SetAt(mdx,"MDX")
+		if (wtype="barChart") {
+			Do Properties.SetAt("none","legendPos")
+			Set Overrides=##class(%ArrayOfDataTypes).%New()
+			Do Overrides.SetAt("{legendVisible:'false',seriesColorScheme:'urban',xAxis:{_type:'axis'},yAxisList:[{_type:'axis'}],chartPivot:true,_type:'"_wtype_"'}",wtype)
+			Do Overrides.SetAt("{hidden:true,_type:'chartLegend'}", "legend")
+			Set widget.overrides=Overrides
+		} elseif (wtype="pivot") {
+		} else {
+			Set Overrides=##class(%ArrayOfDataTypes).%New()
+			Do Overrides.SetAt("{legendVisible:'false',seriesColorScheme:'urban',xAxis:{_type:'axis'},yAxisList:[{_type:'axis'}],_type:'"_wtype_"'}",wtype)
+			Set widget.overrides=Overrides
+		}
+			
+		Set widget.properties=Properties
+		do dash.widgets.Insert(widget)
+		set st=dash.%Save()
+			
+	}
+	elseif ('skip) {
+		QUIT '$$$OK
+	}
 	set st=dash.%Save()
 	quit st
 }
@@ -718,8 +697,7 @@ ClassMethod addFilter(filter, pCubeName As %String)
 	kill dash
 	set dashName="Samples for "_pCubeName
 	set dexist=##class(%DeepSee.Dashboard.Utils).%DashboardExists("Generated/"_dashName_".dashboard")
-	if (dexist)
-	{
+	if (dexist) {
 		Set control=##class(%DeepSee.Dashboard.Control).%New()
 		Set control.name=levelName
 		Set control.target="*"
@@ -740,8 +718,7 @@ ClassMethod addFilter(filter, pCubeName As %String)
 	kill dash
 	set dashName="Sample ScoreCard for "_pCubeName
 	set dexist=##class(%DeepSee.Dashboard.Utils).%DashboardExists("Generated/"_dashName_".dashboard")
-	if (dexist)
-	{
+	if (dexist) {
 		Set control=##class(%DeepSee.Dashboard.Control).%New()
 		Set control.name=levelName
 		Set control.target="*"
@@ -768,17 +745,15 @@ ClassMethod ReformatName(pname As %String) As %String
 	Set tList=$LISTFROMSTRING(pname,"*")
 	Set length=$LISTLENGTH(tList)
 	Set i=2
-	For x=2:1:length-1
-	{
+	For x=2:1:length-1 {
 		Set tname(i)=$piece($LG(tList, x),"-",2)
 		Set i=i+1
 	}
 	Set i=2
 	Set newName=tname(1)
-	while $data(tname(i))
-	{
-	Set newName=newName_" vs "_tname(i)
-	set i=i+1
+	while $data(tname(i)) {
+		Set newName=newName_" vs "_tname(i)
+		set i=i+1
 	}
 	return newName
 }
@@ -791,88 +766,88 @@ ClassMethod SampleScoreCard(pcubeName As %String, pPivotName As %String, pLevel1
 	set dexist=##class(%DeepSee.Dashboard.Utils).%DashboardExists("Generated/"_dashName_".dashboard")
 	if (dexist) QUIT $$$OK
 	
-		set dash=##class(%DeepSee.Dashboard.Definition).%New()
-		set dash.name=dashName
-		do dash.folderNameSet("Generated")
-		set dash.title=dashName
-		set dash.snapGrid=1
-		set dash.snapTo=1
-		Set dash.worklistCount=1
-		
-		//Create widget 1
-		Set LevelName=pLevel1
-		&sql(
-		SELECT Maximum, Minimum, STDDEV, Mean into :max, :min, :std, :avg FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pcubeName AND LevelName=:LevelName))
-		w:pVerbose SQLCODE
-		QUIT:(SQLCODE)
-		set wcreated=0
-		kill widget
-		set widget= ##class(%DeepSee.Dashboard.Widget).%New()
-		
-		set widget.dataSource="Generated-"_$E(pcubeName,1,15)_"/"_pPivotName_".pivot"
-		set widget.name="ScoreCard1"
-		set widget.type="scoreCardWidget"
-		set widget.subtype="regular"
-		set widget.maximized=0
-		Set widget.rowSpanL=5
-		Set widget.colSpanL=10
-		Set widget.homeRowL=0
-		Set widget.homeColL=0
-		
-		kill prop1, prop2, prop3, prop4, prop5
-		Set prop1=##class(%DeepSee.Dashboard.DataProperty).%New()
-		Set prop1.display="itemNo"
-		Do widget.dataProperties.Insert(prop1)
-		
-		Set prop2=##class(%DeepSee.Dashboard.DataProperty).%New()
-		Set prop2.display="label"
-		Set prop2.width=240
-		Do widget.dataProperties.Insert(prop2)
-		
-		Set tlbl=$piece($piece(pPivotName,"*",2),"-",2)
-		Set prop3=##class(%DeepSee.Dashboard.DataProperty).%New()
-		Set prop3.display="value"
-		if (tlbl="%COUNT") Set tlbl="Count"
-		Set prop3.dataValue="=["_tlbl_"]"
-		Set prop3.label=tlbl
-		Set prop3.align="center"
-		Set prop3.override="{headerAlign:'center'}"
-		Do widget.dataProperties.Insert(prop3)
-		
-		Set prop4=##class(%DeepSee.Dashboard.DataProperty).%New()
-		Set prop4.display="plotBox"
-		if (tlbl="%COUNT") Set tlbl="Count"
-		Set prop4.dataValue="=["_tlbl_"]"
-		Set prop4.label=tlbl
-		Set prop4.align="center"
-		Set prop4.override="{headerAlign:'center'}"
-		if ('SQLCODE)
-		{
-			Set prop4.rangeLower=min
-			Set prop4.baseValue=avg
-			Set prop4.thresholdLower=((avg-min)/2)+min
-			Set prop4.thresholdUpper=max-((max-avg)/2)
-		}
-		do widget.dataProperties.Insert(prop4)
-		
-		Set prop5=##class(%DeepSee.Dashboard.DataProperty).%New()
-		Set prop5.display="lamp"
-		if (tlbl="%COUNT") Set tlbl="Count"
-		Set prop5.dataValue="=["_tlbl_"]"
-		Set prop5.label=tlbl
-		Set prop5.align="center"
-		Set prop5.override="{headerAlign:'center'}"
-		Do widget.dataProperties.Insert(prop5)
-		
-		set widget.title=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(pPivotName)
-		do dash.widgets.Insert(widget)
-		
-		if (pLevel2'="")
-		{
+	set dash=##class(%DeepSee.Dashboard.Definition).%New()
+	set dash.name=dashName
+	do dash.folderNameSet("Generated")
+	set dash.title=dashName
+	set dash.snapGrid=1
+	set dash.snapTo=1
+	Set dash.worklistCount=1
+	
+	//Create widget 1
+	Set LevelName=pLevel1
+	&sql(
+		SELECT Maximum, Minimum, STDDEV, Mean into :max, :min, :std, :avg FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pcubeName AND LevelName=:LevelName)
+	)
+	w:pVerbose SQLCODE
+	QUIT:(SQLCODE)
+	set wcreated=0
+	kill widget
+	set widget= ##class(%DeepSee.Dashboard.Widget).%New()
+	
+	set widget.dataSource="Generated-"_$E(pcubeName,1,15)_"/"_pPivotName_".pivot"
+	set widget.name="ScoreCard1"
+	set widget.type="scoreCardWidget"
+	set widget.subtype="regular"
+	set widget.maximized=0
+	Set widget.rowSpanL=5
+	Set widget.colSpanL=10
+	Set widget.homeRowL=0
+	Set widget.homeColL=0
+	
+	kill prop1, prop2, prop3, prop4, prop5
+	Set prop1=##class(%DeepSee.Dashboard.DataProperty).%New()
+	Set prop1.display="itemNo"
+	Do widget.dataProperties.Insert(prop1)
+	
+	Set prop2=##class(%DeepSee.Dashboard.DataProperty).%New()
+	Set prop2.display="label"
+	Set prop2.width=240
+	Do widget.dataProperties.Insert(prop2)
+	
+	Set tlbl=$piece($piece(pPivotName,"*",2),"-",2)
+	Set prop3=##class(%DeepSee.Dashboard.DataProperty).%New()
+	Set prop3.display="value"
+	if (tlbl="%COUNT") Set tlbl="Count"
+	Set prop3.dataValue="=["_tlbl_"]"
+	Set prop3.label=tlbl
+	Set prop3.align="center"
+	Set prop3.override="{headerAlign:'center'}"
+	Do widget.dataProperties.Insert(prop3)
+	
+	Set prop4=##class(%DeepSee.Dashboard.DataProperty).%New()
+	Set prop4.display="plotBox"
+	if (tlbl="%COUNT") Set tlbl="Count"
+	Set prop4.dataValue="=["_tlbl_"]"
+	Set prop4.label=tlbl
+	Set prop4.align="center"
+	Set prop4.override="{headerAlign:'center'}"
+	if ('SQLCODE) {
+		Set prop4.rangeLower=min
+		Set prop4.baseValue=avg
+		Set prop4.thresholdLower=((avg-min)/2)+min
+		Set prop4.thresholdUpper=max-((max-avg)/2)
+	}
+	do widget.dataProperties.Insert(prop4)
+	
+	Set prop5=##class(%DeepSee.Dashboard.DataProperty).%New()
+	Set prop5.display="lamp"
+	if (tlbl="%COUNT") Set tlbl="Count"
+	Set prop5.dataValue="=["_tlbl_"]"
+	Set prop5.label=tlbl
+	Set prop5.align="center"
+	Set prop5.override="{headerAlign:'center'}"
+	Do widget.dataProperties.Insert(prop5)
+	
+	set widget.title=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(pPivotName)
+	do dash.widgets.Insert(widget)
+	
+	if (pLevel2'="") {
 		//Create widget 2
 		Set LevelName=pLevel2
 		&sql(
-		SELECT Maximum, Minimum, STDDEV, Mean into :max, :min, :std, :avg FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pcubeName AND LevelName=:LevelName))
+			SELECT Maximum, Minimum, STDDEV, Mean into :max, :min, :std, :avg FROM AnalyzeThis_Dashboard.MetaData where (CubeName=:pcubeName AND LevelName=:LevelName)
+		)
 		QUIT:(SQLCODE)
 		set wcreated=0
 		kill widget
@@ -914,8 +889,7 @@ ClassMethod SampleScoreCard(pcubeName As %String, pPivotName As %String, pLevel1
 		Set prop4.label=tlbl
 		Set prop4.align="center"
 		Set prop4.override="{headerAlign:'center'}"
-		if ('SQLCODE)
-		{
+		if ('SQLCODE) {
 			Set prop4.rangeLower=min
 			Set prop4.targetValue=avg
 			Set prop4.thresholdLower=((avg-min)/2)+min
@@ -930,21 +904,20 @@ ClassMethod SampleScoreCard(pcubeName As %String, pPivotName As %String, pLevel1
 		Set prop5.label=tlbl
 		Set prop5.align="center"
 		Set prop5.override="{headerAlign:'center'}"
-		if ('SQLCODE)
-		{
+		if ('SQLCODE) {
 			Set prop5.rangeLower=avg
 		}
 		Do widget.dataProperties.Insert(prop5)
 		
 		set widget.title=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(pPivotName)
 		do dash.widgets.Insert(widget)
-		}
-		
-		set st=dash.%Save()
-		w:pVerbose st
-		quit st
+	}
+	
+	set st=dash.%Save()
+	w:pVerbose st
+	quit st
 
-		QUIT $$$OK
+	QUIT $$$OK
 }
 
 }
