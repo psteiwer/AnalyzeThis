@@ -417,51 +417,6 @@ Method Delete(pName As %String) As %String [ ZenMethod ]
 	Quit tMsg
 }
 
-/// Return a list of all currently defined DeepSee Pivots visible to the current user.
-/// This is used by utilities.<br/>
-/// This list takes the form:<br/>
-/// pList(i)=fullName
-/// If <var>pHidden</var> is true, then include trash and local items.<br/>
-/// If <var>pCubeName</var> is provided, then only list pivots based on it.
-ClassMethod GetPivotList(Output pList, pHidden As %Boolean = 0, pCubeName As %String = "") As %Status
-{
-	Set tSC = $$$OK
-	Kill pList
-	Try {
-		set i=1
-		Set tFlag = $zu(115,8,0)
-		Set tStatement = ##class(%SQL.Statement).%New(,"DEFAULT_SCHEMA")
-		Set tSC = tStatement.%Prepare("SELECT ID FROM %DeepSee_Dashboard.Pivot")
-		If $$$ISERR(tSC) Quit
-		
-		Set pCubeName = $$$UPPER(pCubeName)
-
-		Set tRS = tStatement.%Execute()
-		While (tRS.%Next(.tSC)) {
-			If $$$ISERR(tSC) Quit
-			If (tRS.ID '="") {
-				Set tItem = ##class(%DeepSee.UserLibrary.FolderItem).%OpenId(tRS.ID)
-				If ($IsObject(tItem)) {			
-					Set tFullName = $P(tItem.fullName,".",1) // name without extension
-					If (pHidden || ($E(tFullName,1)'="$") || ($E(tFullName,1,3)="$$$")) {
-						If ((pCubeName="")||(pCubeName=$$$UPPER(tItem.cubeName))) {
-							If (tItem.%CheckResource()) {
-								Set pList(i) = tItem.fullName
-								set i=i+1
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	Catch(ex) {
-		Set tSC = ex.AsStatus()
-	}
-	Set tFlag = $zu(115,8,tFlag)
-	Quit tSC
-}
-
 Query GetImportedCubes() As %Query(ROWSPEC = "CubeName,Analyzer,Architect,Dashboard,ScoreCard,Info,Application") [ SqlProc ]
 {
 }
