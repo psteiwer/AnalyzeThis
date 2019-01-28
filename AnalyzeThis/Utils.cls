@@ -74,7 +74,7 @@ ClassMethod ReadStream(ByRef pStream, pString As %String = "") As %String
 }
 
 /// Given a cube name, refresh the data from the data source
-ClassMethod RefreshCube(pCubeName As %String, pLineSize As %Integer = 0) As %Status
+ClassMethod RefreshCube(pCubeName As %String, pLineSize As %Integer = 0, pVerbose As %Integer = 0) As %Status
 {
 	set st=$$$OK
 	set version=$O(^AnalyzeThis.ImportCSV(pCubeName,""))
@@ -82,10 +82,16 @@ ClassMethod RefreshCube(pCubeName As %String, pLineSize As %Integer = 0) As %Sta
 		set sourceType=$O(^AnalyzeThis.ImportCSV(pCubeName,version,""))
 		if sourceType="CSV" {
 			set fileLocation=^AnalyzeThis.ImportCSV(pCubeName,version,sourceType)
+			write:pVerbose "Converting CSV to JSON...",!
 			set st=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(fileLocation,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
+			if $$$ISERR(st) quit st
+			write:pVerbose "CSV successfully converted",!,"Refreshing data from JSON...",!
 			set st=##class(AnalyzeThis.Utils).RefreshJSONData(tDataJSONStreamId,pCubeName)
-			
+			if $$$ISERR(st) quit st
+			write:pVerbose "Data successfully refreshed",!,"Building the cube...",!
 			set st=$system.DeepSee.BuildCube(pCubeName)
+			if $$$ISERR(st) quit st
+			write:pVerbose "Cube successfully built",!
 		}
 	}
 	quit st
