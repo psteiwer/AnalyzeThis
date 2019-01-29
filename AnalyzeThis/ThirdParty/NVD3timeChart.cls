@@ -3,16 +3,13 @@ Class AnalyzeThis.ThirdParty.NVD3timeChart Extends (%DeepSee.Component.Portlet.a
 
 Method %DrawHTML()
 {
-	
 	Set namespace=$NAMESPACE
 	Set username=$USERNAME
 	Set password="SYS"
 	Set mdx=..settings("MDX")
 	
-	
 	&HTML<
 	<html>
-
 <head>
  <style type="text/css">
       body {
@@ -59,31 +56,31 @@ var password="";
 var application="/api/deepsee/v1";
 var namespace='#(namespace)#';
 console.log(window.location.host);
-var host = "http://localhost:57772";
-var mdx = '#(mdx)#';
+var host="http://localhost:57772";
+var mdx='#(mdx)#';
 console.log(window.location.host);
-var connection = new DeepSeeConnection(username,password,host,application,namespace);
+var connection=new DeepSeeConnection(username,password,host,application,namespace);
 console.log(window.location.host);
-var resultSet = new DeepSeeResultSet(connection,'portlet');
+var resultSet=new DeepSeeResultSet(connection,'portlet');
 resultSet.runMDXQuery(mdx,draw);
 
 function draw(resultSet) {
 
 console.log(resultSet);
 var chartDataPoint=[];
-var chartData = [];
+var chartData=[];
 var chartDataArray=[];
 var colct=resultSet.getColumnCount();
 var rowct=resultSet.getRowCount();
 console.log(colct);
 console.log(rowct);
 
-for (var i = 1; i <= rowct; ++i) {
-	for (var j = 1; j<=75; ++j) {
-		chartDataPoint = [Date.parse(resultSet.getOrdinalLabel(1,j)), resultSet.getOrdinalValue(i,j)];
+for (var i=1; i <= rowct; ++i) {
+	for (var j=1; j<=75; ++j) {
+		chartDataPoint=[Date.parse(resultSet.getOrdinalLabel(1,j)), resultSet.getOrdinalValue(i,j)];
 		chartDataArray[j-1]= chartDataPoint;
 	}
-	chartData[i-1] = {"key":i,"values":chartDataArray};	
+	chartData[i-1]={"key":i,"values":chartDataArray};	
 }
 console.log(chartData);
 var chartString=JSON.stringify(chartData);
@@ -94,7 +91,7 @@ var test=sessionStorage.getItem("info");
 data=JSON.parse(chartString);
 	console.log(data);
 	nv.addGraph(function() {
-		var chart = nv.models.stackedAreaChart()
+		var chart=nv.models.stackedAreaChart()
 		.margin({right: 100})
 		.x(function(d) { return d[0] })   //We can modify the data accessor functions...
 		.y(function(d) { return d[1] })   //...in case your data is formatted differently.
@@ -145,7 +142,7 @@ ClassMethod %OnGetPortletSettings(Output pInfo As %List, ByRef pSettings) As %St
 {
 	// DTB111 - add pSettings to make available for user callback
 	Kill pInfo
-	Set pInfo($I(pInfo)) = $LB("MDX",$g(pSettings("MDX")),"","")
+	Set pInfo($I(pInfo))=$LB("MDX",$g(pSettings("MDX")),"","")
 	Quit $$$OK
 }
 

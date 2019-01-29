@@ -19,35 +19,33 @@ Property captionsFromSource As %Boolean;
 
 ClassMethod %OnGetPortletName() As %String
 {
-    quit ""
+    Quit ""
 }
 
 ClassMethod %OnGetPortletIcon() As %String
 {
-    quit ""
+    Quit ""
 }
 
 ClassMethod %OnGetPortletSettings(Output pInfo As %List) As %Status
 {
- 	kill pInfo
-  // $LB(name,value,type,caption,title)
-  	set pInfo($I(pInfo)) = $LB("barColor","","%String",$$$Text("Bar color","DeepSee"),"")
- 	set pInfo($I(pInfo)) = $LB("captionsFromSource",1,"%Boolean",$$$Text("Use captions from source","DeepSee"),"")
-  	set pInfo($I(pInfo)) = $LB("captions","","%String",$$$Text("Captions","DeepSee"),"")
-	set pInfo($I(pInfo)) = $LB("pager",1,"%Boolean",$$$Text("Enable pager?","DeepSee"),"")
-	set pInfo($I(pInfo)) = $LB("enableListing",0,"%Boolean",$$$Text("ÐÐµÑÐ°Ð»Ð¸Ð·Ð°ÑÐ¸Ñ","DeepSee"),"")
-	set pInfo($I(pInfo)) = $LB("hintText","","%String",$$$Text("Ð¢ÐµÐºÑÑ Ð² Ð¿Ð¾Ð´ÑÐºÐ°Ð·ÐºÐµ","DeepSee"),"")
- 	
+ 	Kill pInfo
+ 	// $LB(name,value,type,caption,title)
+  	Set pInfo($I(pInfo)) = $LB("barColor","","%String",$$$Text("Bar color","DeepSee"),"")
+ 	Set pInfo($I(pInfo)) = $LB("captionsFromSource",1,"%Boolean",$$$Text("Use captions from source","DeepSee"),"")
+  	Set pInfo($I(pInfo)) = $LB("captions","","%String",$$$Text("Captions","DeepSee"),"")
+	Set pInfo($I(pInfo)) = $LB("pager",1,"%Boolean",$$$Text("Enable pager?","DeepSee"),"")
+	Set pInfo($I(pInfo)) = $LB("enableListing",0,"%Boolean",$$$Text("Listing","DeepSee"),"")
+	Set pInfo($I(pInfo)) = $LB("hintText","","%String",$$$Text("Tooltip","DeepSee"),"")
         
-    quit $$$OK
+    Quit $$$OK
 }
 
 ClientMethod getConnectedController() [ Language = javascript ]
 {
 	// connect to controller
 	var controller = this.getController();
-	if (null == controller) 
-	{
+	if (null == controller) {
 		// try to connect to dataController
 		this.connectToController();
 		controller = this.getController();
@@ -58,13 +56,10 @@ ClientMethod getConnectedController() [ Language = javascript ]
 
 ClientMethod notifyViewHandler(reason, data1, data2, data3) [ Language = javascript ]
 {
-	
-	switch(reason) 
-	{
+	switch(reason) {
 		case 'dataChange':
 			this.acquireData();
 			this.renderContents();
-			
 			break;
 		case 'modelChange':
 			this.renderContents();
@@ -79,51 +74,50 @@ ClientMethod renderSameParts(self) [ Language = javascript ]
 
 Method %DrawHTML()
 {
-	
-    // This causes ZEN to render this component on the client.
-    set ..renderFlag = ..renderFlag + 1
+	// This causes ZEN to render this component on the client.
+    Set ..renderFlag = ..renderFlag + 1
 	#dim propName As %String = $order(..settings(""))
-	while (propName '= "")
-	{
-		if ("" '= $get(..settings(propName)))
-			try
-			{
-				set $property($this, propName) = ..settings(propName)
+	While (propName '= "") {
+		If ("" '= $get(..settings(propName))) {
+			Try {
+				Set $property($this, propName) = ..settings(propName)
+			} Catch {
+			
 			}
-			catch {}
-		set propName = $order(..settings(propName))
+		}
+		Set propName = $order(..settings(propName))
 	}
 	
- &html<<div id="amchart#(..index)#" class="amchart#(..index)#" style="width: 300px; height: 300px;margin:5px;"></div>
-	<div id="wrapper#(..index)#" style="display:none;"><table id="grid#(..index)#" style="width:100%; height:100%;"></table>
-	<div id="pager#(..index)#"></div>
-	</div>
-  	<!--Ð­ÑÐ¾ ÑÐµÑÐ°ÐµÑ Ð±Ð°Ð³ Ð² Ð¿Ð¾ÑÑÐ»ÐµÑÐµ Ñ Ð·Ð°Ð¿ÑÐ¾ÑÐ¾Ð¼ Ð½ÐµÑÑÑÐµÑÑÐ²ÑÑÑÐ¸Ñ ÑÑÐ½ÐºÑÐ¸Ð¹  -->
-   	<script type='text/javascript'>
-        SVGAnimatedString.prototype.search = function () {return -1;};
-        SVGAnimatedString.prototype.split = function () {return [""]};
-   </script>
-   <script type='text/javascript' src='http://www.amcharts.com/lib/3/amcharts.js'></script>
-   <script type='text/javascript' src='http://www.amcharts.com/lib/3/funnel.js'></script>
-    <script type='text/javascript' src='http://www.amcharts.com/lib/3/serial.js'></script>
-    <script src="http://www.amcharts.com/lib/3/pie.js" type="text/javascript"></script>
-  
+	&html<
+		<div id="amchart#(..index)#" class="amchart#(..index)#" style="width: 300px; height: 300px;margin:5px;"></div>
+		<div id="wrapper#(..index)#" style="display:none;">
+			<table id="grid#(..index)#" style="width:100%; height:100%;"></table>
+			<div id="pager#(..index)#"></div>
+		</div>
+		<!-- This solves a bug in the portlet requesting non-existent functions. -->
+	   	<script type='text/javascript'>
+	        SVGAnimatedString.prototype.search = function () {return -1;};
+	        SVGAnimatedString.prototype.split = function () {return [""]};
+	   </script>
+	   <script type='text/javascript' src='http://www.amcharts.com/lib/3/amcharts.js'></script>
+	   <script type='text/javascript' src='http://www.amcharts.com/lib/3/funnel.js'></script>
+	   <script type='text/javascript' src='http://www.amcharts.com/lib/3/serial.js'></script>
+	   <script src="http://www.amcharts.com/lib/3/pie.js" type="text/javascript"></script>
     >
-	d ##class(AnalyzeThis.ThirdParty.ListingInterface).DrawHTML()
+	Do ##class(AnalyzeThis.ThirdParty.ListingInterface).DrawHTML()
 }
 
 /// Notification from the containing widget that the page is loaded or the widget is resized.
 /// Subclass can implement this, if they wish.
 ClientMethod adjustContentSize(load, width, height) [ Language = javascript ]
 {
-	
 	var obj=document.getElementById('amchart'+this.index);
 	obj.style.width=width+'px';
 	obj.style.height=height+'px';
-	if(this.chart) { 
-	  this.chart.invalidateSize();
-	  resizeGrid(this,width,height);
-	  }
+	if (this.chart) {
+		this.chart.invalidateSize();
+		resizeGrid(this,width,height);
+	}
 }
 
 }

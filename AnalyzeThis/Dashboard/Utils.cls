@@ -9,11 +9,11 @@ ClassMethod DeleteAll(pName As %String) As %Status
 		Quit $$$ERROR($$$GeneralError,"Please enter a valid cube name")
 	}
 
-	set tCubeName=$$$UPPER(pName)
+	Set tCubeName=$$$UPPER(pName)
 	
-	set tCubeClass=##class(%DeepSee.Utils).%GetCubeClass(tCubeName)
-	set tCubeFactClass=##class(%DeepSee.Utils).%GetCubeFactClass(tCubeName)
-	set tSourceClass=$$$DeepSeeMetaGLVN("cubes",tCubeName,"sourceClass")
+	Set tCubeClass=##class(%DeepSee.Utils).%GetCubeClass(tCubeName)
+	Set tCubeFactClass=##class(%DeepSee.Utils).%GetCubeFactClass(tCubeName)
+	Set tSourceClass=$$$DeepSeeMetaGLVN("cubes",tCubeName,"sourceClass")
 	
 	//Delete pivots associated with the cube
 	Do ##class(AnalyzeThis.Dashboard.Utils).GetPivotList(.pivots,,pName)
@@ -25,36 +25,37 @@ ClassMethod DeleteAll(pName As %String) As %Status
 	
 	Do ##class(AnalyzeThis.Dashboard.Utils).DeleteDashboards(pName)
 	
-	set tSC=$classmethod(tCubeFactClass,"%DeleteExtent")
-	If $$$ISERR(tSC) {
-		Quit tSC
-	}
-	set tSC=$system.OBJ.Delete(tCubeClass,"/displayerror=0 /displaylog=0")
+	Set tSC=$classmethod(tCubeFactClass,"%DeleteExtent")
 	If $$$ISERR(tSC) {
 		Quit tSC
 	}
 	
-	set tSC=$classmethod(tSourceClass,"%DeleteExtent")
+	Set tSC=$system.OBJ.Delete(tCubeClass,"/displayerror=0 /displaylog=0")
 	If $$$ISERR(tSC) {
 		Quit tSC
 	}
-	set tSC=$system.OBJ.Delete(tSourceClass,"/displayerror=0 /displaylog=0")
+	
+	Set tSC=$classmethod(tSourceClass,"%DeleteExtent")
+	If $$$ISERR(tSC) {
+		Quit tSC
+	}
+	
+	Set tSC=$system.OBJ.Delete(tSourceClass,"/displayerror=0 /displaylog=0")
 	If $$$ISERR(tSC) {
 		Quit tSC
 	}
 	
 	//Delete MetaDataAnalysis associated with cube
-	set tSC=##class(AnalyzeThis.Dashboard.MetaData).Delete(pName)
-	If $$$ISERR(tSC) {
-		Quit tSC
-	}
-	
-
+	Set tSC=##class(AnalyzeThis.Dashboard.MetaData).Delete(pName)
 	If $$$ISERR(tSC) {
 		Quit tSC
 	}
 
-	k ^AnalyzeThis.ImportCSV(pName)
+	If $$$ISERR(tSC) {
+		Quit tSC
+	}
+
+	Kill ^AnalyzeThis.ImportCSV(pName)
 	
 	Quit tSC
 }
@@ -71,7 +72,7 @@ ClassMethod GetPivotList(Output pList, pHidden As %Boolean = 0, pCubeName As %St
 	Set tSC = $$$OK
 	Kill pList
 	Try {
-		set i=1
+		Set i=1
 		Set tFlag = $zu(115,8,0)
 		Set tStatement = ##class(%SQL.Statement).%New(,"DEFAULT_SCHEMA")
 		Set tSC = tStatement.%Prepare("SELECT ID FROM %DeepSee_Dashboard.Pivot")
@@ -90,15 +91,14 @@ ClassMethod GetPivotList(Output pList, pHidden As %Boolean = 0, pCubeName As %St
 						If ((pCubeName="")||(pCubeName=$$$UPPER(tItem.cubeName))) {
 							If (tItem.%CheckResource()) {
 								Set pList(i) = tItem.fullName
-								set i=i+1
+								Set i=i+1
 							}
 						}
 					}
 				}
 			}
 		}
-	}
-	Catch(ex) {
+	} Catch(ex) {
 		Set tSC = ex.AsStatus()
 	}
 	Set tFlag = $zu(115,8,tFlag)
@@ -113,7 +113,7 @@ ClassMethod DeleteDashboards(pCubeName As %String)
 	
 	Set dashIdx = $O(dashboards(""))
 	While dashIdx '= "" {
-		set dashName=dashboards(dashIdx)
+		Set dashName=dashboards(dashIdx)
 		Set dash=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 		If (dash) {
 			Set tSC=##class(%DeepSee.Dashboard.Utils).%DeleteDashboard(dashName)
@@ -124,7 +124,6 @@ ClassMethod DeleteDashboards(pCubeName As %String)
 		
 		Set dashIdx = $O(dashboards(dashIdx))
 	}
-	
 }
 
 }

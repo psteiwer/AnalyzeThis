@@ -83,7 +83,7 @@ Method GetVersion(pSeed As %String) As %Status [ ZenMethod ]
 {
 	Set version=$o(^AnalyzeThis.ImportCSV(..CubeName,""))
 	&html<<font size='3' color='green'><p> This Cube was created with wizard version number: #(version)# </p></font>>
-	quit $$$OK
+	Quit $$$OK
 }
 
 /// Return a list of all currently defined DeepSee Pivots visible to the current user.
@@ -95,29 +95,29 @@ Method GetVersion(pSeed As %String) As %Status [ ZenMethod ]
 Method GetPivotList(pSeed As %String) As %Status [ ZenMethod ]
 {
 	Set pHidden=0
-	Set tSC = $$$OK
+	Set tSC=$$$OK
 	Kill pList
 	Try {
-		set i=1
-		Set tFlag = $zu(115,8,0)
-		Set tStatement = ##class(%SQL.Statement).%New(,"DEFAULT_SCHEMA")
-		Set tSC = tStatement.%Prepare("SELECT ID FROM %DeepSee_Dashboard.Pivot")
+		Set i=1
+		Set tFlag=$zu(115,8,0)
+		Set tStatement=##class(%SQL.Statement).%New(,"DEFAULT_SCHEMA")
+		Set tSC=tStatement.%Prepare("SELECT ID FROM %DeepSee_Dashboard.Pivot")
 		If $$$ISERR(tSC) Quit
 		
-		Set pCubeName = $$$UPPER(..CubeName)
+		Set pCubeName=$$$UPPER(..CubeName)
 		Set html="<ul style='list-style-type:square'>"
-		Set tRS = tStatement.%Execute()
+		Set tRS=tStatement.%Execute()
 		While (tRS.%Next(.tSC)) {
 			If $$$ISERR(tSC) Quit
 			If (tRS.ID '="") {
-				Set tItem = ##class(%DeepSee.UserLibrary.FolderItem).%OpenId(tRS.ID)
+				Set tItem=##class(%DeepSee.UserLibrary.FolderItem).%OpenId(tRS.ID)
 				If ($IsObject(tItem)) {			
-					Set tFullName = $P(tItem.fullName,".",1) // name without extension
+					Set tFullName=$P(tItem.fullName,".",1) // name without extension
 					If (pHidden || ($E(tFullName,1)'="$") || ($E(tFullName,1,3)="$$$")) {
 						If ((pCubeName="")||(pCubeName=$$$UPPER(tItem.cubeName))) {
 							If (tItem.%CheckResource()) {
-								set i=i+1
-								set tName=tItem.fullName
+								Set i=i+1
+								Set tName=tItem.fullName
 								Set tTitle=##class(AnalyzeThis.Dashboard.AutoPivot).ReformatName(tName)
 								Set html=html_"<li>"_$piece(tTitle,"/",2)_"</li>"
 							}
@@ -126,77 +126,75 @@ Method GetPivotList(pSeed As %String) As %Status [ ZenMethod ]
 				}
 			}
 		}
-		set html="</ul><font size='3' color='green'><p>"_i_" Pivot Tables were made for this cube </p></font>"_html
+		Set html="</ul><font size='3' color='green'><p>"_i_" Pivot Tables were made for this cube </p></font>"_html
 	}
 	Catch(ex) {
-		Set tSC = ex.AsStatus()
+		Set tSC=ex.AsStatus()
 	}
-	Set tFlag = $zu(115,8,tFlag)
+	Set tFlag=$zu(115,8,tFlag)
 	&html<#(html)#>
-	quit tSC
+	Quit tSC
 }
 
 Method GetDashboardList(pSeed As %String) As %Status [ ZenMethod ]
 {
-	Set tSC = $$$OK
-	Set pCubeName = $$$UPPER(..CubeName)
+	Set tSC=$$$OK
+	Set pCubeName=$$$UPPER(..CubeName)
 	Set i=0
 	Set html="<ul style='list-style-type:square'>"
 	
-	set dashName="Sample ScoreCard for "_pCubeName
-	set dexist=##class(%DeepSee.Dashboard.Utils).%DashboardExists("Generated/"_dashName_".dashboard")
-	if (dexist)
-	{		
+	Set dashName="Sample ScoreCard for "_pCubeName
+	Set dexist=##class(%DeepSee.Dashboard.Utils).%DashboardExists("Generated/"_dashName_".dashboard")
+	If (dexist) {		
 		Set html=html_"<li>"_dashName_"</li>"
 		Set i=i+1
 	}
 	
-	set dashName="Samples for "_pCubeName
-	set dexist=##class(%DeepSee.Dashboard.Utils).%DashboardExists("Generated/"_dashName_".dashboard")
-	if (dexist)
-	{	
+	Set dashName="Samples for "_pCubeName
+	Set dexist=##class(%DeepSee.Dashboard.Utils).%DashboardExists("Generated/"_dashName_".dashboard")
+	If (dexist) {	
 		Set html=html_"<li>"_dashName_"</li>"
 		Set i=i+1
 	}
 	
-	set html="</ul><font size='3' color='green'><p>"_i_" Dashboards were made for this cube </p></font>"_html
+	Set html="</ul><font size='3' color='green'><p>"_i_" Dashboards were made for this cube </p></font>"_html
 	&html<#(html)#>
-	quit tSC
+	Quit tSC
 }
 
 Method GetStats(pSeed As %String) As %Status [ ZenMethod ]
 {
-	set st=$$$OK
+	Set st=$$$OK
 	
-	set mdx="SELECT [Measures].[%COUNT] on 1 from ["_..CubeName_"]"
-	set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
-	set totalmembers=rs.%GetOrdinalValue(1)
-	set html="<font size='3' color='green'><p>"_totalmembers_" facts have been built for Cube "_..CubeName_"</p></font><table border=""1""><th>Level Name</th><th>Number of Members</th><th>Percentage of Null Values</th>"
-	set st=##class(%DeepSee.Utils).%GetDimensionList(..CubeName,.info)
-	set d=$order(info(""))
+	Set mdx="SELECT [Measures].[%COUNT] on 1 from ["_..CubeName_"]"
+	Set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
+	Set totalmembers=rs.%GetOrdinalValue(1)
+	Set html="<font size='3' color='green'><p>"_totalmembers_" facts have been built for Cube "_..CubeName_"</p></font><table border=""1""><th>Level Name</th><th>Number of Members</th><th>Percentage of Null Values</th>"
+	Set st=##class(%DeepSee.Utils).%GetDimensionList(..CubeName,.info)
+	Set d=$order(info(""))
 	while d'="" {
-		set h=$order(info(d,""))
+		Set h=$order(info(d,""))
 		while h'="" {
-			set l=$order(info(d,h,""))
+			Set l=$order(info(d,h,""))
 			while l'="" {
-				if $lg(info(d,h,l),1)="l" {
-					set spec="["_$lg(info(d,h,l),2)_"].["_$lg(info(d,h,l),3)_"].["_$lg(info(d,h,l),4)_"]"
-					set mdx="SELECT COUNT("_spec_".Members) on 1 from ["_..CubeName_"]"
-					set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
-					set members=rs.%GetOrdinalValue(1)
+				If $lg(info(d,h,l),1)="l" {
+					Set spec="["_$lg(info(d,h,l),2)_"].["_$lg(info(d,h,l),3)_"].["_$lg(info(d,h,l),4)_"]"
+					Set mdx="SELECT COUNT("_spec_".Members) on 1 from ["_..CubeName_"]"
+					Set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
+					Set members=rs.%GetOrdinalValue(1)
 					
-					set mdx="SELECT ISNULL("_spec_".&[<null>],0)/[Measures].[%COUNT] on 1 from ["_..CubeName_"]"
-					set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
-					set nullpercent=(((rs.%GetOrdinalValue(1)*10000)\1)/100)
-					set html=html_"<tr><td>"_spec_"</td><td>"_members_"</td><td>"_nullpercent_"%</td></tr>"
+					Set mdx="SELECT ISNULL("_spec_".&[<null>],0)/[Measures].[%COUNT] on 1 from ["_..CubeName_"]"
+					Set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
+					Set nullpercent=(((rs.%GetOrdinalValue(1)*10000)\1)/100)
+					Set html=html_"<tr><td>"_spec_"</td><td>"_members_"</td><td>"_nullpercent_"%</td></tr>"
 				}
-				set l=$order(info(d,h,l))
+				Set l=$order(info(d,h,l))
 			}
-			set h=$order(info(d,h))
+			Set h=$order(info(d,h))
 		}
-		set d=$order(info(d))
+		Set d=$order(info(d))
 	}
-	set html=html_"</table>"
+	Set html=html_"</table>"
 	
 	&html<#(html)#>
 	QUIT st
@@ -211,7 +209,7 @@ Method %OnGetTitle() As %String [ Internal ]
 
 ClassMethod DrawPageTitle(pSeed As %String) As %Status [ Internal ]
 {
-	Set tPageTitle = "Import CSV file"
+	Set tPageTitle="Import CSV file"
 	&html<<div class="Description">#(tPageTitle)#
 	</div><hr size="1"/>>
 	Quit $$$OK

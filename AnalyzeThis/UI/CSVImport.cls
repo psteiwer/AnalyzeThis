@@ -241,15 +241,15 @@ Method %OnGetProductName() As %String [ Internal ]
 /// Get information to display in the ribbon bar.
 Method OnGetRibbonInfo(Output pDisplay As %Boolean, Output pViewIcons As %List, Output pSortOptions As %List, Output pSearchBox As %Boolean, Output pRibbonTitle As %String, Output pCommands As %List) As %Status [ Internal ]
 {
-	Set pDisplay = 1
-	Set pSearchBox = 0
-	Set pRibbonTitle = $$$Text("Import CSV Data")
+	Set pDisplay=1
+	Set pSearchBox=0
+	Set pRibbonTitle=$$$Text("Import CSV Data")
 
 	// commands
 	// $LB(id,caption,help,onclick)
-	Set:(..canWrite||..canWritePage) pCommands($I(cmdIdx)) = $LB("cmdNew",$$$Text("New"),$$$Text("Create a cube based off a CSV file"),"zenPage.newCube();")
-	//Set:..canWrite pCommands($I(cmdIdx)) = $LB("cmdOpen",$$$Text("Open"),$$$Text("Open this cube"),"zenPage.openCube();")
-	Set:..canWrite pCommands($I(cmdIdx)) = $LB("cmdRemove",$$$Text("Delete"),$$$Text("Delete this cube"),"zenPage.deleteCube();")
+	Set:(..canWrite||..canWritePage) pCommands($I(cmdIdx))=$LB("cmdNew",$$$Text("New"),$$$Text("Create a cube based off a CSV file"),"zenPage.newCube();")
+	//Set:..canWrite pCommands($I(cmdIdx))=$LB("cmdOpen",$$$Text("Open"),$$$Text("Open this cube"),"zenPage.openCube();")
+	Set:..canWrite pCommands($I(cmdIdx))=$LB("cmdRemove",$$$Text("Delete"),$$$Text("Delete this cube"),"zenPage.deleteCube();")
 	
 	Quit $$$OK
 }
@@ -258,7 +258,7 @@ Method OnGetRibbonInfo(Output pDisplay As %Boolean, Output pViewIcons As %List, 
 ClientMethod setRibbonMessage(message) [ Internal, Language = javascript ]
 {
 	if (message == undefined) {
-		message = '';
+		message='';
 	}
 	self.document.getElementById('ribbonMessage').innerHTML=message;
 }
@@ -268,36 +268,33 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 {
 	switch(popupName) {
 	case 'switchNamespace':
-		var homeurl = zenLink("/csp/sys/%25CSP.Portal.Home.zen");
-		var url = zenPage.GetNewURL(value,"AnalyzeThis.UI.CSVImport.zen");
-		if (url == "" || value == "%SYS") url = homeurl;
-		self.document.location = url;
+		var homeurl=zenLink("/csp/sys/%25CSP.Portal.Home.zen");
+		var url=zenPage.GetNewURL(value,"AnalyzeThis.UI.CSVImport.zen");
+		if (url == "" || value == "%SYS") url=homeurl;
+		self.document.location=url;
 		break;
 	case 'CSVImport':
 		if (action=="okay") {
 			try {
-				self.document.location = zenLink('AnalyzeThis.UI.CSVImport.cls');
-			}
-			catch(ex) {
+				self.document.location=zenLink('AnalyzeThis.UI.CSVImport.cls');
+			} catch(ex) {
+			
 			}
 		}
 		if (action=="dash") {
 			try {
 				self.document.location=zenLink('_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=Generated/Samples%20for%20'+value+'.dashboard')	
-			}
-			catch(ex)
-			{
+			} catch(ex) {
+			
 			}
 		}
 		if (action=="score") {
 			try {
-			self.document.location=zenLink('_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=Generated/Sample%20ScoreCard%20for%20'+value+'.dashboard')	
-			}
-			catch(ex)
-			{
+				self.document.location=zenLink('_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=Generated/Sample%20ScoreCard%20for%20'+value+'.dashboard')	
+			} catch(ex) {
+			
 			}
 		}
-
 
 		break;
 }
@@ -332,7 +329,7 @@ ClientMethod newCube() [ Internal, Language = javascript ]
 			return;
 		}
 	}
-	var parms = {
+	var parms={
 			MODE:"models",
 	};
 	
@@ -347,7 +344,7 @@ ClientMethod showInfo(pCubeName) [ Language = javascript ]
 			return;
 		}
 	}
-	var parms = new Object();
+	var parms=new Object();
 	parms.cubeName=pCubeName;
 	
 	zenPage.launchPopupWindow('AnalyzeThis.UI.Dialog.CSVImport.showInfo.cls','CSVImport','status,resizable=yes,width=900,height=700',parms);
@@ -364,8 +361,8 @@ ClientMethod refreshCube(cubeName) [ Language = javascript ]
 /// Trigger Refresh Cube Background Process
 Method Refresh(pCubeName As %String) As %String [ZenMethod]
 {
-	job ##class(AnalyzeThis.Utils).RefreshCube(pCubeName)
-	quit "Data refresh started for "_pCubeName_" started in background"
+	Job ##class(AnalyzeThis.Utils).RefreshCube(pCubeName)
+	Quit "Data refresh started for "_pCubeName_" started in background"
 }
 
 /// Create a new cube.
@@ -377,7 +374,7 @@ ClientMethod openCube() [ Language = javascript ]
 				return;
 			}
 		}
-		var parms = {
+		var parms={
 				MODE:"models",
 				CUBE:zenPage.getComponentById("table").getValue(),
 		};
@@ -396,9 +393,9 @@ ClientMethod deleteCube() [ Language = javascript ]
 			zenPage.setRibbonMessage('Deleting '+zenPage.getComponentById("table").getValue()+'...');
 			this.Delete(zenPage.getComponentById("table").getValue())
 			try {
-				self.document.location = zenLink('AnalyzeThis.UI.CSVImport.cls');
-			}
-			catch(ex) {
+				self.document.location=zenLink('AnalyzeThis.UI.CSVImport.cls');
+			} catch(ex) {
+			
 			}
 		}
 	}
@@ -407,11 +404,11 @@ ClientMethod deleteCube() [ Language = javascript ]
 /// Delete a cube.
 Method Delete(pName As %String) As %String [ ZenMethod ]
 {
-	Set tMsg = "Cube Deleted."
+	Set tMsg="Cube Deleted."
 	
 	Set tSC=##class(AnalyzeThis.Dashboard.Utils).DeleteAll(pName)
 	If $$$ISERR(tSC) {
-		Set tMsg = $System.Status.GetErrorText(tSC)
+		Set tMsg=$System.Status.GetErrorText(tSC)
 	}
 	
 	Quit tMsg
@@ -423,45 +420,44 @@ Query GetImportedCubes() As %Query(ROWSPEC = "CubeName,Analyzer,Architect,Dashbo
 
 ClassMethod GetImportedCubesExecute(ByRef qHandle As %Binary) As %Status
 {
-	Set tSC = $$$OK
-	kill ^||AnalyzeThis.CSVImportExecute
-	set CubeName=$o(^AnalyzeThis.ImportCSV(""))
-	while CubeName'="" {
+	Set tSC=$$$OK
+	Kill ^||AnalyzeThis.CSVImportExecute
+	Set CubeName=$o(^AnalyzeThis.ImportCSV(""))
+	While CubeName'="" {
 		Set dashName="Generated/Samples for "_CubeName_".dashboard"
 		Set dash=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 		Set scoreCardName="Generated/Sample ScoreCard for "_CubeName_".dashboard"
 		Set scoreCard=##class(%DeepSee.Dashboard.Utils).%DashboardExists(scoreCardName)
-		set ^||AnalyzeThis.CSVImportExecute($i(count))=$lb(CubeName,"Analyzer","Architect",$case(dash, 0:"", 1:"Dashboard"),$case(scoreCard, 0:"", 1:"ScoreCard"),"Info",$system.CSP.GetPortalApp($NAMESPACE,$replace($this,"%","_")_".zen"),"info")
-		set CubeName=$o(^AnalyzeThis.ImportCSV(CubeName))
+		Set ^||AnalyzeThis.CSVImportExecute($i(count))=$lb(CubeName,"Analyzer","Architect",$case(dash, 0:"", 1:"Dashboard"),$case(scoreCard, 0:"", 1:"ScoreCard"),"Info",$system.CSP.GetPortalApp($NAMESPACE,$replace($this,"%","_")_".zen"),"info")
+		Set CubeName=$o(^AnalyzeThis.ImportCSV(CubeName))
 	}
-    Set qHandle = $LB("")
+    Set qHandle=$LB("")
     Quit tSC
 }
 
 ClassMethod GetImportedCubesFetch(ByRef qHandle As %Binary, ByRef Row As %List, ByRef AtEnd As %Integer = 0) As %Status
 {
-	set index=$list(qHandle,1)
-	set index=$o(^||AnalyzeThis.CSVImportExecute(index))
+	Set index=$list(qHandle,1)
+	Set index=$o(^||AnalyzeThis.CSVImportExecute(index))
     If index="" {
-        Set Row = ""
-        Set AtEnd = 1
+        Set Row=""
+        Set AtEnd=1
+    } Else {
+        Set Row=^||AnalyzeThis.CSVImportExecute(index)
     }
-    Else {
-        Set Row = ^||AnalyzeThis.CSVImportExecute(index)
-    }
-    Set qHandle = $LB(index)
+    Set qHandle=$LB(index)
     Quit $$$OK
 }
 
 ClassMethod GetImportedCubesClose(ByRef qHandle As %Binary) As %Status [ Internal, PlaceAfter = GetImportedCubesExecute ]
 {
-    Set qHandle = ""
+    Set qHandle=""
     Quit $$$OK
 }
 
 ClassMethod AddDetails(pCubeName As %String, pSourceType As %String, pSourceLocation As %String)
 {
-	set ^AnalyzeThis.ImportCSV(pCubeName, ..#Version, pSourceType)=pSourceLocation
+	Set ^AnalyzeThis.ImportCSV(pCubeName, ..#Version, pSourceType)=pSourceLocation
 }
 
 }

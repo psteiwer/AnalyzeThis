@@ -32,109 +32,108 @@ ClassMethod GetRegexProp(pNewLine As %String) As %String
 
 ClassMethod DetermineNewLine(pString As %String) As %String
 {
-	set tNewLine=$c(13)_$c(10)
+	Set tNewLine=$c(13)_$c(10)
 	
-	if ($find(pString,$c(10))=0)&&($find(pString,$c(13))>0) {
-		set tNewLine=$c(13)
-	} elseif ($find(pString,$c(10))>0)&&($find(pString,$c(13))=0) {
-		set tNewLine=$c(10)
-	} elseif ($find(pString,$c(10))>($find(pString,$c(13))+1)) {
+	If ($find(pString,$c(10))=0)&&($find(pString,$c(13))>0) {
+		Set tNewLine=$c(13)
+	} ElseIf ($find(pString,$c(10))>0)&&($find(pString,$c(13))=0) {
+		Set tNewLine=$c(10)
+	} ElseIf ($find(pString,$c(10))>($find(pString,$c(13))+1)) {
 		// Assume that headers do not have $c(13) or $c(10)
-		set tNewLine=$c(13)
+		Set tNewLine=$c(13)
 	}
 	
-	quit tNewLine
+	Quit tNewLine
 }
 
 ClassMethod ReadStream(ByRef pStream, pString As %String = "") As %String
 {
-	set tRet=pString_pStream.Read()
+	Set tRet=pString_pStream.Read()
+	Set tQuotes=$length(tRet,"""")-1
 	
-	set tQuotes=$length(tRet,"""")-1
-	
-	if tQuotes#2 {
+	If tQuotes#2 {
 		// This means there is an odd number of quotes.
 		// Continue to read until a single quote is found
-		set tDone=0
-		while 'tDone {
-			set tNext=pStream.Read(1)
-			set tRet=tRet_tNext
-			if tNext="""" {
-				set tNext=pStream.Read(1)
-				set tRet=tRet_tNext
-				if tNext'="""" {
+		Set tDone=0
+		While 'tDone {
+			Set tNext=pStream.Read(1)
+			Set tRet=tRet_tNext
+			If tNext="""" {
+				Set tNext=pStream.Read(1)
+				Set tRet=tRet_tNext
+				If tNext'="""" {
 					// We are done, quotes are balanced
-					set tDone=1
+					Set tDone=1
 				}
 			}
 		}
 	} 
 	
-	quit tRet
+	Quit tRet
 }
 
 /// Given a cube name, refresh the data from the data source
 ClassMethod RefreshCube(pCubeName As %String, pLineSize As %Integer = 0, pVerbose As %Integer = 0) As %Status
 {
-	set st=$$$OK
-	set version=$O(^AnalyzeThis.ImportCSV(pCubeName,""))
-	if version'="" {
-		set sourceType=$O(^AnalyzeThis.ImportCSV(pCubeName,version,""))
-		if sourceType="CSV" {
-			set fileLocation=^AnalyzeThis.ImportCSV(pCubeName,version,sourceType)
-			write:pVerbose "Converting CSV to JSON...",!
-			set st=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(fileLocation,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
-			if $$$ISERR(st) quit st
-			write:pVerbose "CSV successfully converted",!,"Refreshing data from JSON...",!
-			set st=##class(AnalyzeThis.Utils).RefreshJSONData(tDataJSONStreamId,pCubeName)
-			if $$$ISERR(st) quit st
+	Set st=$$$OK
+	Set version=$O(^AnalyzeThis.ImportCSV(pCubeName,""))
+	If version'="" {
+		Set sourceType=$O(^AnalyzeThis.ImportCSV(pCubeName,version,""))
+		If sourceType="CSV" {
+			Set fileLocation=^AnalyzeThis.ImportCSV(pCubeName,version,sourceType)
+			Write:pVerbose "Converting CSV to JSON...",!
+			Set st=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(fileLocation,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
+			If $$$ISERR(st) Quit st
+			Write:pVerbose "CSV successfully converted",!,"Refreshing data from JSON...",!
+			Set st=##class(AnalyzeThis.Utils).RefreshJSONData(tDataJSONStreamId,pCubeName)
+			if $$$ISERR(st) Quit st
 			write:pVerbose "Data successfully refreshed",!,"Building the cube...",!
-			set st=$system.DeepSee.BuildCube(pCubeName)
-			if $$$ISERR(st) quit st
+			Set st=$system.DeepSee.BuildCube(pCubeName)
+			if $$$ISERR(st) Quit st
 			write:pVerbose "Cube successfully built",!
 		}
 	}
-	quit st
+	Quit st
 }
 
 /// Given a Property Stream ID, Data Stream ID, and a CubeName - populate the source class with data from the stream
 ClassMethod RefreshJSONData(dataJSONStreamId As %String, pCubeName As %String) As %Status
 {
-	set tSC=$$$OK
+	Set tSC=$$$OK
 	
-	set tClassName="AnalyzeThis.Generated."_pCubeName
-	set tSC=$classmethod(tClassName,"%DeleteExtent")
+	Set tClassName="AnalyzeThis.Generated."_pCubeName
+	Set tSC=$classmethod(tClassName,"%DeleteExtent")
 	
 	// Get property name array
-	do ##class(AnalyzeThis.Utils).GetPropertyNames(tClassName,.propNames)
+	Do ##class(AnalyzeThis.Utils).GetPropertyNames(tClassName,.propNames)
 	
-	set dataJSON=##class(%Stream.FileBinary).%OpenId(dataJSONStreamId)
-	set dataArray=[].%FromJSON(dataJSON)
+	Set dataJSON=##class(%Stream.FileBinary).%OpenId(dataJSONStreamId)
+	Set dataArray=[].%FromJSON(dataJSON)
 	Set iterArray=dataArray.%GetIterator()
-	while iterArray.%GetNext(.key,.val) {
-		set obj=$classmethod(tClassName,"%New")
-		set iterObj=dataArray.%Get(key).%GetIterator()
-		set propCount=0
-		while iterObj.%GetNext(.key2,.val2) {
-			set $property(obj,propNames($i(propCount)))=val2
+	While iterArray.%GetNext(.key,.val) {
+		Set obj=$classmethod(tClassName,"%New")
+		Set iterObj=dataArray.%Get(key).%GetIterator()
+		Set propCount=0
+		While iterObj.%GetNext(.key2,.val2) {
+			Set $property(obj,propNames($i(propCount)))=val2
 		}
-		set tSC= obj.%Save()
+		Set tSC= obj.%Save()
 	}
 	
-	quit tSC
+	Quit tSC
 }
 
 /// Given a class name, get the property names by order of SqlColumnNumber
 ClassMethod GetPropertyNames(pClassName As %String, Output pPropNames) As %Status
 {
-	set sql="SELECT Name FROM %Dictionary.PropertyDefinition WHERE parent=? ORDER BY SqlColumnNumber"
-	set sqlrs=##class(%SQL.Statement).%ExecDirect(,sql,pClassName)
+	Set sql="SELECT Name FROM %Dictionary.PropertyDefinition WHERE parent=? ORDER BY SqlColumnNumber"
+	Set sqlrs=##class(%SQL.Statement).%ExecDirect(,sql,pClassName)
 	
-	while sqlrs.%Next() {
-		set pPropNames($i(pPropNames))=sqlrs.Name
+	While sqlrs.%Next() {
+		Set pPropNames($i(pPropNames))=sqlrs.Name
 	}
 	
-	quit $$$OK
+	Quit $$$OK
 }
 
 }

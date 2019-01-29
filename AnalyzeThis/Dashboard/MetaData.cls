@@ -30,11 +30,11 @@ ClassMethod Delete(pCubeName As %String) As %Status
 {
  Set exist=""
  &sql(SELECT %ID INTO :exist FROM AnalyzeThis_Dashboard.MetaData WHERE (CubeName=:pCubeName))
- if ((SQLCODE = 0)&&(exist'="")) 
- {
+ If ((SQLCODE = 0)&&(exist'="")) {
 	&sql(DELETE FROM AnalyzeThis_Dashboard.MetaData WHERE (CubeName=:pCubeName))
  }
- quit $$$OK
+ 
+ Quit $$$OK
 }
 
 Storage Default

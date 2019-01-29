@@ -168,36 +168,36 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 /// Update the LineSize property
 Method UpdateLineSize(value) [ Internal, ZenMethod ]
 {
-	set ..LineSize=value
+	Set ..LineSize=value
 }
 
 /// Update the hasHeaders property
 Method UpdateHasHeaders(value) [ Internal, ZenMethod ]
 {
-	set ..hasHeaders=value
+	Set ..hasHeaders=value
 }
 
 /// Update the FileName property
 Method UpdateFileName(value) [ Internal, ZenMethod ]
 {
-	set ..FileName=value
+	Set ..FileName=value
 	do ..GenerateCubeName()
 }
 
 /// Update the LOCALFILENAME property
 Method UpdateLocalFile(value) [ Internal, ZenMethod ]
 {
-	set ..LOCALFILENAME=value
+	Set ..LOCALFILENAME=value
 	
-	set button=..%GetComponentById("btnSubmit")
-	set button.disabled=(value="")
-	if value'="" {
-		set button.controlClass="commandButton"
-	} else {
-		set button.controlClass="commandButtonDisabled"
+	Set button=..%GetComponentById("btnSubmit")
+	Set button.disabled=(value="")
+	If value'="" {
+		Set button.controlClass="commandButton"
+	} Else {
+		Set button.controlClass="commandButtonDisabled"
 	}
 	
-	d ..GenerateCubeName()
+	Do ..GenerateCubeName()
 }
 
 /// Fire popup action to navigate to dashboard
@@ -229,7 +229,7 @@ ClientMethod doLocationChange(flag) [ Internal, Language = javascript ]
 		zen("LocalFile").setHidden(true);
 		zen("btnNext").setHidden(false);
 		zen("btnSubmit").setHidden(true);
-		var FileName = zen("FileName").getValue()
+		var FileName=zen("FileName").getValue()
 		if (zen("FileName").getValue() != "") {
 			zen("btnNext").setProperty('disabled',FileName=="");
 			zen("btnNext").setProperty('controlClass', (FileName!="" ? 'commandButton' :'commandButtonDisabled'));			
@@ -271,13 +271,13 @@ ClientMethod doImportJSON() [ Language = javascript ]
 /// update the state of the footer buttons.
 ClientMethod updateState() [ Language = javascript ]
 {
-	var btnBack = zen('btnBack');
-	var btnNext = zen('btnNext');
-	var btnFinish = zen('btnFinish');
-	var btnGoStats = zen('btnGoStats');
-	var btnHelp = zen('btnHelp');
-	var btnSubmit = zen('btnSubmit');
-	var multi = this.hasMultiplePages();
+	var btnBack=zen('btnBack');
+	var btnNext=zen('btnNext');
+	var btnFinish=zen('btnFinish');
+	var btnGoStats=zen('btnGoStats');
+	var btnHelp=zen('btnHelp');
+	var btnSubmit=zen('btnSubmit');
+	var multi=this.hasMultiplePages();
 
 	if (0) {
 		btnBack.setProperty('hidden',!this.canGoBack());
@@ -304,9 +304,9 @@ ClientMethod updateState() [ Language = javascript ]
 /// Kicks off GenerateAll and starts the update timer
 ClientMethod updateProgress() [ Language = javascript]
 {
-	this.trackingId = this.GenerateAll(this.FileName,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
+	this.trackingId=this.GenerateAll(this.FileName,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
 	if (this.trackingId!='') {
-		zen('timer').timeout = 500;
+		zen('timer').timeout=500;
 		zen('timer').startTimer();
 	}
 }
@@ -314,15 +314,15 @@ ClientMethod updateProgress() [ Language = javascript]
 /// Update the status area.
 ClientMethod updateStatus() [ Language = javascript ]
 {
-	var status = this.CheckStatus(this.trackingId);
-	var html = zen('htmlContent3');
+	var status=this.CheckStatus(this.trackingId);
+	var html=zen('htmlContent3');
 	if (status != '') {
 		html.setContent(status);
-		zen('timer').timeout = 250;
+		zen('timer').timeout=250;
 		zen('timer').startTimer();
 	}
 	else {
-		this.trackingId = '';
+		this.trackingId='';
 		
 		if (zenPage.DashboardExists()) {
 			zen("btnGoDash").setProperty('disabled',0);
@@ -353,17 +353,17 @@ ClientMethod showMsg(msg) [ Language = javascript ]
 /// Get the current status of the background task.
 ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
 {
-	Set tOutput = ""
-	Set tIsComplete = 0
-	Set tIsErr = 0
+	Set tOutput=""
+	Set tIsComplete=0
+	Set tIsErr=0
 
-	merge tTracking = ^AnalyzeThis.GenerateTracking(pTrackingId)
+	Merge tTracking=^AnalyzeThis.GenerateTracking(pTrackingId)
 	
-	Set currStep = $O(tTracking(""),-1)
+	Set currStep=$O(tTracking(""),-1)
 	If currStep="" Quit tOutput
 	For tStep=1:1:currStep {
 		
-		Set tPhase = $Case(tStep,
+		Set tPhase=$Case(tStep,
 							1:"Preparing JSON",
 							2:"Generating Source Class",
 							3:"Importing Data",
@@ -371,30 +371,30 @@ ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
 							5:"Populating Cube",
 							:"Generating Sample Dashboard")
 		
-		Set tStatus = tTracking(tStep)
+		Set tStatus=tTracking(tStep)
 		
 		If tStatus="Working..." {
 			// Leave message as "Working..."
 		} ElseIf $$$ISERR(tStatus) {
-			Set tStatus = $System.Status.GetErrorText(tStatus)
+			Set tStatus=$System.Status.GetErrorText(tStatus)
 			Set tIsErr=1
 		} Else {
-			Set tStatus = "Complete"
+			Set tStatus="Complete"
 			If tStep=6 {
 				Set tIsComplete=1
 			}
 		}
 		
-		Set tOutput = tOutput _ "<tr style="""_$S(tIsErr:"color:#da4848;",1:"")_""">"
-		Set tOutput = tOutput _ "<td>"_tPhase_"</td>"
-		Set tOutput = tOutput _ "<td>"_tStatus_"</td>"
-		Set tOutput = tOutput _ "</tr>"
+		Set tOutput=tOutput _ "<tr style="""_$S(tIsErr:"color:#da4848;",1:"")_""">"
+		Set tOutput=tOutput _ "<td>"_tPhase_"</td>"
+		Set tOutput=tOutput _ "<td>"_tStatus_"</td>"
+		Set tOutput=tOutput _ "</tr>"
 	}
 	For tStep=currStep+1:1:6 {
-		//Set tOutput = tOutput _ "<tr style="""_$S(tErr'="":"color:#da4848;",tIsActive:"font-weight:bold;",1:"background:#E0E0F0;")_""">"
-		Set tOutput = tOutput _ "<tr>"
+		//Set tOutput=tOutput _ "<tr style="""_$S(tErr'="":"color:#da4848;",tIsActive:"font-weight:bold;",1:"background:#E0E0F0;")_""">"
+		Set tOutput=tOutput _ "<tr>"
 		
-		Set tPhase = $Case(tStep,
+		Set tPhase=$Case(tStep,
 							1:"Preparing JSON",
 							2:"Generating Source Class",
 							3:"Importing Data",
@@ -402,13 +402,13 @@ ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
 							5:"Populating Cube",
 							:"Generating Sample Dashboard")
 		
-		Set tOutput = tOutput _ "<td>"_tPhase_"</td>"
-		Set tOutput = tOutput _ "<td>Not Yet Started</td>"
-		Set tOutput = tOutput _ "</tr>"
+		Set tOutput=tOutput _ "<td>"_tPhase_"</td>"
+		Set tOutput=tOutput _ "<td>Not Yet Started</td>"
+		Set tOutput=tOutput _ "</tr>"
 	}
 	
 	If (tOutput'="") {
-		Set tOutput = "<div>"_$$$Text("Status")_ "</div><table class=""statusTable"" cellspacing=""0"" width=""100%"">" _ tOutput _ "</table>"
+		Set tOutput="<div>"_$$$Text("Status")_ "</div><table class=""statusTable"" cellspacing=""0"" width=""100%"">" _ tOutput _ "</table>"
 	}
 
 	If (tIsComplete || tIsErr) {
@@ -421,16 +421,16 @@ ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
 /// Return the tracking id.
 ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
 {
-	Set tTrackingId = ""
-	Set tJobTimeOut = 10
+	Set tTrackingId=""
+	Set tJobTimeOut=10
 	
 	Job ##class(AnalyzeThis.Generator).GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId)::tJobTimeOut
 	If '$Test {
 		&js<alert('Unable to start background job.');>
-		Set tTrackingId = ""
+		Set tTrackingId=""
 	}
 	Else {
-		Set tTrackingId = $ZChild
+		Set tTrackingId=$ZChild
 	}
 	Quit tTrackingId
 }
@@ -440,7 +440,7 @@ Method DashboardExists() As %Status [ ZenMethod ]
 {
 	Set dashName="Generated/Samples for "_..CubeName_".dashboard"
 	Set st=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
-	QUIT st
+	Quit st
 }
 
 /// Using the current cube name, check if a scorecard was generated for this cube
@@ -448,7 +448,7 @@ Method ScoreCardExists() As %Status [ ZenMethod ]
 {
 	Set dashName="Generated/Sample ScoreCard for "_..CubeName_".dashboard"
 	Set st=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
-	QUIT st
+	Quit st
 }
 
 /// Display cube stats in the status area
@@ -462,65 +462,64 @@ ClientMethod drawStats() [ Language = javascript ]
 /// Generate stats display
 Method GetStats() As %String [ ZenMethod ]
 {
-	set st=$$$OK
+	Set st=$$$OK
 	
-	set mdx="SELECT [Measures].[%COUNT] on 1 from ["_..CubeName_"]"
-	set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
-	set totalmembers=rs.%GetOrdinalValue(1)
-	set html="<p>"_totalmembers_" facts have been built for Cube "_..CubeName_"</p><table border=""1""><th>Level Name</th><th>Number of Members</th><th>Percentage of Null Values</th>"
-	set st=##class(%DeepSee.Utils).%GetDimensionList(..CubeName,.info)
-	set d=$order(info(""))
-	while d'="" {
-		set h=$order(info(d,""))
-		while h'="" {
-			set l=$order(info(d,h,""))
-			while l'="" {
-				if $lg(info(d,h,l),1)="l" {
-					set spec="["_$lg(info(d,h,l),2)_"].["_$lg(info(d,h,l),3)_"].["_$lg(info(d,h,l),4)_"]"
-					set mdx="SELECT COUNT("_spec_".Members) on 1 from ["_..CubeName_"]"
-					set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
-					set members=rs.%GetOrdinalValue(1)
+	Set mdx="SELECT [Measures].[%COUNT] on 1 from ["_..CubeName_"]"
+	Set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
+	Set totalmembers=rs.%GetOrdinalValue(1)
+	Set html="<p>"_totalmembers_" facts have been built for Cube "_..CubeName_"</p><table border=""1""><th>Level Name</th><th>Number of Members</th><th>Percentage of Null Values</th>"
+	Set st=##class(%DeepSee.Utils).%GetDimensionList(..CubeName,.info)
+	Set d=$order(info(""))
+	While d'="" {
+		Set h=$order(info(d,""))
+		While h'="" {
+			Set l=$order(info(d,h,""))
+			While l'="" {
+				If $lg(info(d,h,l),1)="l" {
+					Set spec="["_$lg(info(d,h,l),2)_"].["_$lg(info(d,h,l),3)_"].["_$lg(info(d,h,l),4)_"]"
+					Set mdx="SELECT COUNT("_spec_".Members) on 1 from ["_..CubeName_"]"
+					Set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
+					Set members=rs.%GetOrdinalValue(1)
 					
-					set mdx="SELECT ISNULL("_spec_".&[<null>],0)/[Measures].[%COUNT] on 1 from ["_..CubeName_"]"
-					set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
-					set nullpercent=(((rs.%GetOrdinalValue(1)*10000)\1)/100)
-					set html=html_"<tr><td>"_spec_"</td><td>"_members_"</td><td>"_nullpercent_"%</td></tr>"
+					Set mdx="SELECT ISNULL("_spec_".&[<null>],0)/[Measures].[%COUNT] on 1 from ["_..CubeName_"]"
+					Set rs=##class(%DeepSee.ResultSet).%ExecuteDirect(mdx)
+					Set nullpercent=(((rs.%GetOrdinalValue(1)*10000)\1)/100)
+					Set html=html_"<tr><td>"_spec_"</td><td>"_members_"</td><td>"_nullpercent_"%</td></tr>"
 				}
-				set l=$order(info(d,h,l))
+				Set l=$order(info(d,h,l))
 			}
-			set h=$order(info(d,h))
+			Set h=$order(info(d,h))
 		}
-		set d=$order(info(d))
+		Set d=$order(info(d))
 	}
-	set html=html_"</table>"
-	quit html
+	Set html=html_"</table>"
+	Quit html
 }
 
 /// Using file properties, create the cube name
 Method GenerateCubeName() [ ZenMethod ]
 {
-	set file=""
+	Set file=""
 	If ..%GetValueById("InputType")="LOCAL" {
-		set file=..LOCALFILENAME
-	} else {
-		set file=..FileName
+		Set file=..LOCALFILENAME
+	} Else {
+		Set file=..FileName
 	}
-	if $length(file,"\")>$length(file,"/") {
-		set tName=$zstrip($replace($piece($piece(file,"\",*),".",1),"DEEPSEE",""),"*PCW")
-	} else {
-		set tName=$zstrip($replace($piece($piece(file,"/",*),".",1),"DEEPSEE",""),"*PCW")
+	If $length(file,"\")>$length(file,"/") {
+		Set tName=$zstrip($replace($piece($piece(file,"\",*),".",1),"DEEPSEE",""),"*PCW")
+	} Else {
+		Set tName=$zstrip($replace($piece($piece(file,"/",*),".",1),"DEEPSEE",""),"*PCW")
 	}
 	
 	Set ..CubeName=tName
 	Set ..SourceClass="AnalyzeThis.Generated."_tName
-	d ..%SetValueById("CubeName",tName)
+	Do ..%SetValueById("CubeName",tName)
 }
 
 /// Validates and updates the cube name property
 Method UpdateCubeName(tName) [ ZenMethod ]
 {
-	If ($$$UPPER($ZStrip(tName,"<N"))'=$$$UPPER(tName))
-	{
+	If ($$$UPPER($ZStrip(tName,"<N"))'=$$$UPPER(tName)) {
 		&JS<alert("Name cannot start with a number!")
 		zenPage.getComponentById("CubeName").setValue("#(..CubeName)#")>
 	}
@@ -532,9 +531,9 @@ Method UpdateCubeName(tName) [ ZenMethod ]
 ClientMethod drawDone(tab) [ Language = javascript ]
 {
 	
-	var result = this.GetStatus(tab);
-	var id = "idProgress"+tab;
-	this.IMPORTALL = 0;
+	var result=this.GetStatus(tab);
+	var id="idProgress"+tab;
+	this.IMPORTALL=0;
 	if (result.Status == "Done") {
 		if (result.Error != "") {
 			this.showMsg(result.Error);
@@ -542,9 +541,9 @@ ClientMethod drawDone(tab) [ Language = javascript ]
 			zen("btnFinish").setProperty('controlClass','commandButtonDisabled');
 		}
 	} else if (result.Status == "IMPORTALL") {
-		this.IMPORTALL = 1;
+		this.IMPORTALL=1;
 	} else {
-		//var error = $$$Text("Unexpected error occurred. Loading did not finish as expected.");
+		//var error=$$$Text("Unexpected error occurred. Loading did not finish as expected.");
 		//this.showMsg(error);
 		zen("btnNext").setProperty('disabled',true);
 		zen("btnNext").setProperty('controlClass','commandButtonDisabled');
@@ -556,13 +555,13 @@ ClientMethod drawDone(tab) [ Language = javascript ]
 /// the Next button).<br>
 ClientMethod canGoNext() [ Language = javascript ]
 {
-	var tabGroup = zen('tabGroup');
-	var tabNo = tabGroup.getCurrTabNo();	
-	var flag = false;
+	var tabGroup=zen('tabGroup');
+	var tabNo=tabGroup.getCurrTabNo();	
+	var flag=false;
 	switch(tabNo) {
 	case 1:
-		flag = true;
-		if (this.INPUTTYPE == "LOCAL") flag = false;
+		flag=true;
+		if (this.INPUTTYPE == "LOCAL") flag=false;
 		break;
 	case 2:
 		break;
@@ -578,16 +577,16 @@ ClientMethod canGoNext() [ Language = javascript ]
 /// the stats button).<br>
 ClientMethod canStat() [ Language = javascript ]
 {
-	var tabGroup = zen('tabGroup');
-	var tabNo = tabGroup.getCurrTabNo();	
-	var flag = false;
+	var tabGroup=zen('tabGroup');
+	var tabNo=tabGroup.getCurrTabNo();	
+	var flag=false;
 	switch(tabNo) {
 	case 1:
 		break;
 	case 2:
 		break;
 	case 3:
-		flag = true;
+		flag=true;
 		break;
 	case 4:
 		break;
@@ -600,12 +599,12 @@ ClientMethod canStat() [ Language = javascript ]
 /// This is implemented by subclasses.
 ClientMethod canGoBack() [ Language = javascript ]
 {
-	var tabGroup = zen('tabGroup');
-	var tabNo = tabGroup.getCurrTabNo();
-	var flag = true;
+	var tabGroup=zen('tabGroup');
+	var tabNo=tabGroup.getCurrTabNo();
+	var flag=true;
 	switch(tabNo) {
 	case 1:
-		flag = false;
+		flag=false;
 		break;
 	case 2:
 		break;
@@ -621,14 +620,14 @@ ClientMethod canGoBack() [ Language = javascript ]
 /// the Finish button).<br>
 ClientMethod canFinish() [ Language = javascript ]
 {
-	var tabGroup = zen('tabGroup');
-	var tabNo = tabGroup.getCurrTabNo();
-	var flag = false;
+	var tabGroup=zen('tabGroup');
+	var tabNo=tabGroup.getCurrTabNo();
+	var flag=false;
 	switch(tabNo) {
 	case 1:
 		break;
 	case 2:
-		flag = true;
+		flag=true;
 		break;
 	case 3:
 		break;
@@ -647,17 +646,17 @@ ClientMethod hasMultiplePages() [ Language = javascript ]
 /// Go to the next page of the template (if there is one).<br>
 ClientMethod nextPage() [ Language = javascript ]
 {
-	var tabGroup = zen('tabGroup');
-	var tabNo = tabGroup.getCurrTabNo();
+	var tabGroup=zen('tabGroup');
+	var tabNo=tabGroup.getCurrTabNo();
 	switch(tabNo) {
 	case 1:
-		var FileName = zen("FileName").getValue();
-		var inputtype = "REMOTE"
+		var FileName=zen("FileName").getValue();
+		var inputtype="REMOTE"
 		if (this.LOCALFILENAME != "") {
-			filename = this.LOCALFILENAME;
-			inputtype = "LOCAL";
+			filename=this.LOCALFILENAME;
+			inputtype="LOCAL";
 		}
-		var ok = this.ValidateFile(FileName);
+		var ok=this.ValidateFile(FileName);
 		if (ok == 0) {
 			this.showMsg($$$Text("File name is empty."),1);	
 			zen("FileName").focus();
@@ -678,17 +677,17 @@ ClientMethod nextPage() [ Language = javascript ]
 		zen("FileName").focus();
 		break;		
 		}
-		var html = zen("htmlContent");
+		var html=zen("htmlContent");
 		html.setProperty('seed',FileName);
 		tabGroup.showNextTab();
 		break;
 	case 2:
-		var html = zen("htmlContent3");
+		var html=zen("htmlContent3");
 		html.setProperty('seed',1);
 		tabGroup.showNextTab();
 		break;
 	case 3:
-		var html = zen("htmlContent4");
+		var html=zen("htmlContent4");
 		html.setProperty('seed',1);
 		tabGroup.showNextTab();
 		break;
@@ -702,8 +701,8 @@ ClientMethod nextPage() [ Language = javascript ]
 /// This is implemented by subclasses.
 ClientMethod previousPage() [ Language = javascript ]
 {
-	var tabGroup = zen('tabGroup');
-	var tabNo = tabGroup.getCurrTabNo();
+	var tabGroup=zen('tabGroup');
+	var tabNo=tabGroup.getCurrTabNo();
 	switch(tabNo) {
 	case 1:
 		break;
@@ -741,7 +740,7 @@ ClientMethod getDialogValue() [ Internal, Language = javascript ]
 /// User clicked the Browse button.
 ClientMethod browseSelect(name) [ Internal, Language = javascript ]
 {
-	var Dir = zen(name).getValue();
+	var Dir=zen(name).getValue();
 	zenLaunchPopupWindow('%ZEN.Dialog.fileSelect.zen?Dir='+encodeURIComponent(Dir)+'&wildcard=*.csv&showdirectoryonly=0','FileSelect','resizable,width=600,height=700');
 }
 
@@ -767,10 +766,10 @@ ClientMethod onstartHandler() [ Internal, Language = javascript ]
 		// set the first tab for LOCAL correctly
 		this.doLocationChange("LOCAL");		
 		if (this.LOCALFILENAME != "") {
-			var html = zen("htmlContent");
+			var html=zen("htmlContent");
 			html.setProperty('seed',this.LOCALFILENAME);
-			var tabGroup = zen('tabGroup');
-			var tabNo = tabGroup.getCurrTabNo();
+			var tabGroup=zen('tabGroup');
+			var tabNo=tabGroup.getCurrTabNo();
 			if (tabNo == 1) {
 				tabGroup.showNextTab();
 			}
@@ -801,42 +800,42 @@ Method %OnGetSubtitle() As %String [ Internal ]
 /// for controls.
 Method %OnAfterCreatePage() As %Status [ Internal ]
 {
-	Set tSC = ##super()
+	Set tSC=##super()
 	If $$$ISERR(tSC) Quit tSC
 	
 	// try and determine if user is on *same* machine as server
 	// if so, do not provide local upload option
-	Set tTCPAddr = $SYSTEM.TCPDevice.PeerAddr(0)
-	Set tClientAddr = $G(%request.CgiEnvs("REMOTE_ADDR"))
-	Set tIsLocal = ((tClientAddr = "127.0.0.1") ! (tClientAddr = "::1")) & ((tTCPAddr = "127.0.0.1") ! (tTCPAddr = "::1"))
+	Set tTCPAddr=$SYSTEM.TCPDevice.PeerAddr(0)
+	Set tClientAddr=$G(%request.CgiEnvs("REMOTE_ADDR"))
+	Set tIsLocal=((tClientAddr="127.0.0.1") ! (tClientAddr="::1")) & ((tTCPAddr="127.0.0.1") ! (tTCPAddr="::1"))
 	If tIsLocal {
-		Set ..%GetComponentById("InputType").hidden = 1
-		Set ..%GetComponentById("LocalFile").hidden = 1
+		Set ..%GetComponentById("InputType").hidden=1
+		Set ..%GetComponentById("LocalFile").hidden=1
 	}
-	Set FileName = ""
-	Set ..%GetComponentById("FileName").value = FileName
+	Set FileName=""
+	Set ..%GetComponentById("FileName").value=FileName
 	#; Set for Remote input types choice: ServerName or local machine
-	Set ..%GetComponentById("InputType").displayList = $zu(110)_","_$$$Text("My Local Machine")
-	If $G(%request.Data("INPUTTYPE",1)) = "LOCAL" {
-		Set %page.LOCALFILENAME = $G(%session.Data($Username,"Import","LOCALFileName"))
-		Set ..%GetComponentById("InputType").value = "LOCAL"
+	Set ..%GetComponentById("InputType").displayList=$zu(110)_","_$$$Text("My Local Machine")
+	If $G(%request.Data("INPUTTYPE",1))="LOCAL" {
+		Set %page.LOCALFILENAME=$G(%session.Data($Username,"Import","LOCALFileName"))
+		Set ..%GetComponentById("InputType").value="LOCAL"
 	}
 	If $G(%request.Data("LineSize",1)) '= "" {
-		Set %page.LineSize = $G(%request.Data("LineSize",1))
-		Set ..%GetComponentById("LineSize").value = $G(%request.Data("LineSize",1))
-		Set ..LineSize = $G(%request.Data("LineSize",1))
+		Set %page.LineSize=$G(%request.Data("LineSize",1))
+		Set ..%GetComponentById("LineSize").value=$G(%request.Data("LineSize",1))
+		Set ..LineSize=$G(%request.Data("LineSize",1))
 	}
 	If $G(%request.Data("CubeName",1)) '= "" {
-		Set %page.CubeName = $G(%request("CubeName",1))
-		Set ..%GetComponentById("CubeName").value = $G(%request.Data("CubeName",1))
-		Set ..CubeName = $G(%request.Data("CubeName",1))
+		Set %page.CubeName=$G(%request("CubeName",1))
+		Set ..%GetComponentById("CubeName").value=$G(%request.Data("CubeName",1))
+		Set ..CubeName=$G(%request.Data("CubeName",1))
 	}
 	Quit $$$OK
 }
 
 ClassMethod DrawSortPageTitle(pSeed As %String) As %Status [ Internal ]
 {
-	Set tPageTitle = "<i>Please sort each column as Dimension, Date, or Measure. "_ 
+	Set tPageTitle="<i>Please sort each column as Dimension, Date, or Measure. "_ 
 	"<br/>A Measure might be something like revenue, or total discharges.<br/>If it is a measure, please specify if it is a number or currency."_
 	"<br/>A Dimension would be things like zip code, state, or measure description</i>"
 	&html<<div class="Description">#(tPageTitle)#
@@ -846,7 +845,7 @@ ClassMethod DrawSortPageTitle(pSeed As %String) As %Status [ Internal ]
 
 ClassMethod DrawPageTitle(pSeed As %String) As %Status [ Internal ]
 {
-	Set tPageTitle = "Import CSV file"
+	Set tPageTitle="Import CSV file"
 	&html<<div class="Description">#(tPageTitle)#
 	</div><hr size="1"/>>
 	Quit 1
@@ -857,38 +856,38 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
 	
-	quit:pSeed="" tSC
+	Quit:pSeed="" tSC
 	
 	// Get JSON from CSV
-	set file=""
+	Set file=""
 	If ..INPUTTYPE="LOCAL" {
-		set file=..LOCALFILENAME
-	} else {
-		set file=..FileName
+		Set file=..LOCALFILENAME
+	} Else {
+		Set file=..FileName
 	}
-	set tSC = ##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,10,..hasHeaders)
+	Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,10,..hasHeaders)
 	
-	quit:$$$ISERR(tSC) tSC
+	Quit:$$$ISERR(tSC) tSC
 	
 	Set ..propertyJSONStreamID=propertiesJSONStreamId
 	Set ..dataJSONStreamID=dataJSONStreamId
 	
 	Set properties=##class(%Stream.FileBinary).%OpenId(propertiesJSONStreamId)
-	set propertyObj={}.%FromJSON(properties)
+	Set propertyObj={}.%FromJSON(properties)
 	
 	Set data=##class(%Stream.FileBinary).%OpenId(dataJSONStreamId)
-	set dataArray=[].%FromJSON(data)
+	Set dataArray=[].%FromJSON(data)
 	
- 	quit:$$$ISERR(tSC) tSC
+ 	Quit:$$$ISERR(tSC) tSC
  	
 	&html<<table border=1>>
 	&html<<tr>>
-	set iter=propertyObj.Display.%GetIterator()
-	while iter.%GetNext(.key,.val) {
-		if propertyObj.Ignore.%Get(key) {
-			continue
+	Set iter=propertyObj.Display.%GetIterator()
+	While iter.%GetNext(.key,.val) {
+		If propertyObj.Ignore.%Get(key) {
+			Continue
 		}
-		set format=0
+		Set format=0
 		&html<<td align="center" style="vertical-align:top;">Include? <input type="checkbox" name="includeCol#(key)#" id="includeCol#(key)#" onchange="zenPage.updateProp('#(key)#','Include',this.checked,'#(propertiesJSONStreamId)#');" checked></br><select id="propType#(key)#" onchange="zenPage.swapFormat('#(key)#',value); zenPage.updateProp('#(key)#','Type',value,'#(propertiesJSONStreamId)#');">>
 			&html<<option value="%String" selected="selected">Dimension</option>>
 			&html<<option value="%Integer">Measure</option>>
@@ -925,22 +924,22 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	}
 	&html<</tr>>
 	&html<<tr>>
-	set iter=propertyObj.Display.%GetIterator()
-	while iter.%GetNext(.key,.val) {
-		if propertyObj.Ignore.%Get(key) {
-			continue
+	Set iter=propertyObj.Display.%GetIterator()
+	While iter.%GetNext(.key,.val) {
+		If propertyObj.Ignore.%Get(key) {
+			Continue
 		}
 		&html<<th><input type="text" id="propName#(key)#" maxlength="31" value="#(val)#" onchange="zenPage.updateProp('#(key)#','Display',value,'#(propertiesJSONStreamId)#');"></input></th>>
 	}
 	&html<</tr>>
-	set iter=dataArray.%GetIterator()
-	while ((iter.%GetNext(.key,.val)) && (key<10)) {
-		if propertyObj.Ignore.%Get(key) {
-			continue
+	Set iter=dataArray.%GetIterator()
+	While ((iter.%GetNext(.key,.val)) && (key<10)) {
+		If propertyObj.Ignore.%Get(key) {
+			Continue
 		}
 		&html<<tr>>
-		set iter2=val.%GetIterator()
-		while iter2.%GetNext(.key2,.val2) {
+		Set iter2=val.%GetIterator()
+		While iter2.%GetNext(.key2,.val2) {
 			&html<<td>#(val2)#</td>>
 		}
 		&html<</tr>>
@@ -967,52 +966,49 @@ ClientMethod swapFormat(propID, value) [ Internal, Language = javascript ]
 /// As changes are made to the properties, update the JSON stream
 Method updateProp(key, which, value, stream) [ ZenMethod ]
 {
-	set propertyJSON=##class(%Stream.FileBinary).%OpenId(stream)
-	set propertyObj={}.%FromJSON(propertyJSON)
+	Set propertyJSON=##class(%Stream.FileBinary).%OpenId(stream)
+	Set propertyObj={}.%FromJSON(propertyJSON)
 	
-	d propertyObj.%Get(which).%Set(key,value)
+	Do propertyObj.%Get(which).%Set(key,value)
 	
-	d propertyObj.%ToJSON(.propertyJSON)
-	d propertyJSON.%Save()
+	Do propertyObj.%ToJSON(.propertyJSON)
+	Do propertyJSON.%Save()
 }
 
 /// Given a value, find the best guess of type
 ClassMethod FindType(value) As %String
 {
-	set type="String"
-	set type=$select((+value=value):"String",1:"text")
+	Set type="String"
+	Set type=$select((+value=value):"String",1:"text")
 	//Check if it is a date
 	//The following patterns are checked: 
 	//	(N)N/(N)N/(NN)NN
 	//	NNNN-(N)N-(N)N
 	//	18NN, 19NN, 20NN, 21NN
-	if (value?1.2N1"/"1.2N1"/"2.4N) {
-		set type="Date 1"
-	} elseif (value?4N1"-"1.2N1"-"1.2N) {
-		set type="Date 3"
-	}
-	elseif((value?1"18"2N)||(value?1"19"2N)||(value?1"20"2N)||(value?1"21"2N))
-	{
-		set type="Date 5"
+	If (value?1.2N1"/"1.2N1"/"2.4N) {
+		Set type="Date 1"
+	} ElseIf (value?4N1"-"1.2N1"-"1.2N) {
+		Set type="Date 3"
+	} ElseIf((value?1"18"2N)||(value?1"19"2N)||(value?1"20"2N)||(value?1"21"2N)) {
+		Set type="Date 5"
 	}
 	
-	
-	quit type
+	Quit type
 }
 
 /// tab = 2: Content - when DrawContent is finished, Status is "Done".
 ClassMethod GetStatus(tab) As %ZEN.proxyObject [ Internal, ZenMethod ]
 {
-	Set proxy = ##class(%ZEN.proxyObject).%New()
-	Set proxy.Status = $G(%session.Data($Username,"Import","ContentStatus"))
-	Set proxy.Error = $G(%session.Data($Username,"Import","ContentError"))
+	Set proxy=##class(%ZEN.proxyObject).%New()
+	Set proxy.Status=$G(%session.Data($Username,"Import","ContentStatus"))
+	Set proxy.Error=$G(%session.Data($Username,"Import","ContentError"))
 	Quit proxy
 }
 
 /// Validate file name.
 ClassMethod ValidateFile(FILE) As %Integer [ Internal, ZenMethod ]
 {
-	If $ZStrip(FILE,"<>W") = "" Quit 0
+	If $ZStrip(FILE,"<>W")="" Quit 0
 	#; Entered directory only!
 	If ##class(%File).DirectoryExists(FILE) Quit -1
 	#; File does not exist!"
@@ -1028,35 +1024,35 @@ ClassMethod ValidateFile(FILE) As %Integer [ Internal, ZenMethod ]
 /// The necessary parameters are passed in URL. The temp file name is saved in %session and to be used in loading content.
 ClassMethod %OnSubmit(pSubmit As %ZEN.Submit) As %Status [ Internal ]
 {
-	Set tStream = pSubmit.%GetStream("LocalFile")
-	Set dir = ##class(%File).SubDirectoryName($zu(12),"Temp")
+	Set tStream=pSubmit.%GetStream("LocalFile")
+	Set dir=##class(%File).SubDirectoryName($zu(12),"Temp")
 	#; If temp directory does not exist, create it now
-	If ##class(%File).DirectoryExists(dir) = 0 {
+	If ##class(%File).DirectoryExists(dir)=0 {
 		Do ##class(%File).CreateDirectory(dir)
 	}
 	#; Get proper delimeter since SubDirectoryName does not include delimeter
-	Set tDelim = "\"
-	If $$$isUNIX Set tDelim = "/"
-	If $$$isVMS Set tDelim = ""
+	Set tDelim="\"
+	If $$$isUNIX Set tDelim="/"
+	If $$$isVMS Set tDelim=""
 	#; Give it a name so it won't be deleted automatically
-	Set DirFileName = dir_tDelim_pSubmit.%Data("CubeName")_".stream"
-	Set file = ##class(%Stream.FileBinary).%New()
-	Set tSC = file.LinkToFile(DirFileName)
+	Set DirFileName=dir_tDelim_pSubmit.%Data("CubeName")_".stream"
+	Set file=##class(%Stream.FileBinary).%New()
+	Set tSC=file.LinkToFile(DirFileName)
 	If tStream '= "" {
 		#; Copy the stream from local server
-		Set tSC = file.CopyFrom(tStream)
+		Set tSC=file.CopyFrom(tStream)
 		#; Save it to the file stream on the remote server
-		If tSC Set tSC = file.%Save()
+		If tSC Set tSC=file.%Save()
 	}
-	Set %response.Context("INPUTTYPE") = "LOCAL"
-	Set %response.Context("LineSize") = pSubmit.%Data("LineSize")
-	Set %response.Context("CubeName") = pSubmit.%Data("CubeName")
+	Set %response.Context("INPUTTYPE")="LOCAL"
+	Set %response.Context("LineSize")=pSubmit.%Data("LineSize")
+	Set %response.Context("CubeName")=pSubmit.%Data("CubeName")
 	//  remember popup info
-	Set %response.Context("$ZEN_POPUP") = 1
-	Set %response.Context("$ZEN_POPUPPARENT") = +$G(%request.Data("$ZEN_POPUPPARENT",1))
-	Set %response.Context("$ZEN_SOFTMODAL") = ..%OnUseSoftModals()  
+	Set %response.Context("$ZEN_POPUP")=1
+	Set %response.Context("$ZEN_POPUPPARENT")=+$G(%request.Data("$ZEN_POPUPPARENT",1))
+	Set %response.Context("$ZEN_SOFTMODAL")=..%OnUseSoftModals()  
 	//  save the temp local file name to be used in later to load content
-	Set %session.Data($Username,"Import","LOCALFileName") = DirFileName
+	Set %session.Data($Username,"Import","LOCALFileName")=DirFileName
 
 	Quit tSC
 }
@@ -1075,158 +1071,158 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 /// Takes a CSV file and returns two stream IDs containing relating to a JSON object for the Properties and a JSON object for the Data
 ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simplecsv.csv", ByRef propertyJSONStreamId, ByRef dataJSONStreamId, pMaxLines As %Integer = 0, pHasHeaders As %Boolean = 1, pNewLine As %String = {$c(13,10)}) As %Status
 {
-	set st=$$$OK
+	Set st=$$$OK
 	
-	set stream=##class(%Stream.FileBinary).%New()
-	d stream.LinkToFile(pFileName)
-	set s=##class(AnalyzeThis.Utils).ReadStream(.stream)
-	set pNewLine=##class(AnalyzeThis.Utils).DetermineNewLine(s)
-	set s=$replace(s,$c(13),"\r")
-	set s=$replace(s,$c(10),"\n")
-	set pNewLine=$zconvert(pNewLine,"O","JS")
-	set m=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexLine(pNewLine))
-	set m.Text=s
-	set m2=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexProp(pNewLine))
-	set properties = {}
-	set propposition = {}
-	set displayarray = []
-	set typearray = []
-	set dateformatarray = []
-	set includearray = []
-	set intformatarray = []
+	Set stream=##class(%Stream.FileBinary).%New()
+	Do stream.LinkToFile(pFileName)
+	Set s=##class(AnalyzeThis.Utils).ReadStream(.stream)
+	Set pNewLine=##class(AnalyzeThis.Utils).DetermineNewLine(s)
+	Set s=$replace(s,$c(13),"\r")
+	Set s=$replace(s,$c(10),"\n")
+	Set pNewLine=$zconvert(pNewLine,"O","JS")
+	Set m=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexLine(pNewLine))
+	Set m.Text=s
+	Set m2=##class(%Regex.Matcher).%New(##class(AnalyzeThis.Utils).GetRegexProp(pNewLine))
+	Set properties={}
+	Set propposition={}
+	Set displayarray=[]
+	Set typearray=[]
+	Set dateformatarray=[]
+	Set includearray=[]
+	Set intformatarray=[]
 	// ignorearray is an array that says if a column has an empty header
-	set ignorearray = []
-	set dynamicArray = []
-	set pos=0
+	Set ignorearray=[]
+	Set dynamicArray=[]
+	Set pos=0
 	
-	try {
-		if (pHasHeaders) {
-			if ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line) {
-				set m2.Text=line
-				set propcount=-1
-				while ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.prop,0) {
-					set propcount=$i(propcount)
-					set prop=$zstrip($zstrip(prop,">",","),">C")
-					set:$e(prop,1)="""" prop=$e(prop,2,*)
-					set:$e(prop,*)="""" prop=$e(prop,1,*-1)
-					set prop=$zstrip(prop,"*P")
-					d displayarray.%Push(prop)
-					d typearray.%Push("%String")
-					d dateformatarray.%Push("")
-					d intformatarray.%Push("")
-					d includearray.%Push("true")
-					d ignorearray.%Push(prop="")
-					d propposition.%Set(prop,propcount)
+	Try {
+		If (pHasHeaders) {
+			If ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line) {
+				Set m2.Text=line
+				Set propcount=-1
+				While ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.prop,0) {
+					Set propcount=$i(propcount)
+					Set prop=$zstrip($zstrip(prop,">",","),">C")
+					Set:$e(prop,1)="""" prop=$e(prop,2,*)
+					Set:$e(prop,*)="""" prop=$e(prop,1,*-1)
+					Set prop=$zstrip(prop,"*P")
+					Do displayarray.%Push(prop)
+					Do typearray.%Push("%String")
+					Do dateformatarray.%Push("")
+					Do intformatarray.%Push("")
+					Do includearray.%Push("true")
+					Do ignorearray.%Push(prop="")
+					Do propposition.%Set(prop,propcount)
 				}
-				d properties.%Set("Properties",propposition)
-				d properties.%Set("Display",displayarray)
-				d properties.%Set("Type",typearray)
-				d properties.%Set("DateFormat",dateformatarray)
-				d properties.%Set("IntFormat",intformatarray)
-				d properties.%Set("Include",includearray)
-				d properties.%Set("Ignore",ignorearray)
-				set pos=m.End-1
+				Do properties.%Set("Properties",propposition)
+				Do properties.%Set("Display",displayarray)
+				Do properties.%Set("Type",typearray)
+				Do properties.%Set("DateFormat",dateformatarray)
+				Do properties.%Set("IntFormat",intformatarray)
+				Do properties.%Set("Include",includearray)
+				Do properties.%Set("Ignore",ignorearray)
+				Set pos=m.End-1
 			} Else {
 				// Headers too long, pick different file
 			}
 		} Else {
-			if ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line) {
-				set m2.Text=line
-				set propcount=-1
-				while ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.prop,0) {
-					set prop="Property"_$i(propcount)
-					d displayarray.%Push(prop)
-					d typearray.%Push("%String")
-					d dateformatarray.%Push("")
-					d intformatarray.%Push("")
-					d includearray.%Push("true")
-					d propposition.%Set(prop,propcount)
+			If ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line) {
+				Set m2.Text=line
+				Set propcount=-1
+				While ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.prop,0) {
+					Set prop="Property"_$i(propcount)
+					Do displayarray.%Push(prop)
+					Do typearray.%Push("%String")
+					Do dateformatarray.%Push("")
+					Do intformatarray.%Push("")
+					Do includearray.%Push("true")
+					Do propposition.%Set(prop,propcount)
 				}
-				d properties.%Set("Properties",propposition)
-				d properties.%Set("Display",displayarray)
-				d properties.%Set("Type",typearray)
-				d properties.%Set("DateFormat",dateformatarray)
-				d properties.%Set("IntFormat",intformatarray)
-				d properties.%Set("Include",includearray)
+				Do properties.%Set("Properties",propposition)
+				Do properties.%Set("Display",displayarray)
+				Do properties.%Set("Type",typearray)
+				Do properties.%Set("DateFormat",dateformatarray)
+				Do properties.%Set("IntFormat",intformatarray)
+				Do properties.%Set("Include",includearray)
 				
-				d m.ResetPosition()
+				Do m.ResetPosition()
 			} Else {
 				// Headers too long, pick different file
 			}
 		}
 		
-		set totalprops=propcount
-		set done=0
-		set linecount=0
-	} catch ex {
-		set st=$$$ERROR($$$GeneralError,"Error reading CSV")
+		Set totalprops=propcount
+		Set done=0
+		Set linecount=0
+	} Catch ex {
+		Set st=$$$ERROR($$$GeneralError,"Error reading CSV")
 	}
 	
-	if $$$ISERR(st) quit st
+	If $$$ISERR(st) Quit st
 	
-	try {
-		while ('done)&&((pMaxLines=0)||(linecount<pMaxLines)) {
-			while ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line)&&((pMaxLines=0)||(linecount<pMaxLines)) {
-				set dynamicObject = {}
-				set linecount=$i(linecount)
-				set m2.Text=line
-				set propcount=-1
-				set ignore=0
-				while ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.val,0) {
-					set propcount=$i(propcount)
-					set val=$zstrip($zstrip(val,">",","),">C")
-					if ignorearray.%Get(propcount) {
-						if val'="" {
+	Try {
+		While ('done)&&((pMaxLines=0)||(linecount<pMaxLines)) {
+			While ##class(AnalyzeThis.Utils).GetNextRegex(.m,.line)&&((pMaxLines=0)||(linecount<pMaxLines)) {
+				Set dynamicObject={}
+				Set linecount=$i(linecount)
+				Set m2.Text=line
+				Set propcount=-1
+				Set ignore=0
+				While ##class(AnalyzeThis.Utils).GetNextRegex(.m2,.val,0) {
+					Set propcount=$i(propcount)
+					Set val=$zstrip($zstrip(val,">",","),">C")
+					If ignorearray.%Get(propcount) {
+						If val'="" {
 							// If this row has data, stop processing the row
-							set ignore=1
-							quit
-						} else {
+							Set ignore=1
+							Quit
+						} Else {
 							// If this row does not have data for this column, we can continue processing other columns
-							continue
+							Continue
 						}
 					}
-					set:$e(val,1)="""" val=$e(val,2,*)
-					set:$e(val,*)="""" val=$e(val,1,*-1)
+					Set:$e(val,1)="""" val=$e(val,2,*)
+					Set:$e(val,*)="""" val=$e(val,1,*-1)
 					//w "Cell: "_val,!
-					d dynamicObject.%Set(properties.Display.%Get(propcount),val)
+					Do dynamicObject.%Set(properties.Display.%Get(propcount),val)
 				}
-				if (totalprops=propcount) && ('ignore) {
-					d dynamicArray.%Push(dynamicObject)
-					set pos=m.End
+				If (totalprops=propcount) && ('ignore) {
+					Do dynamicArray.%Push(dynamicObject)
+					Set pos=m.End
 				}
 			}
 			
-			set s=$e(s,pos,*)
-			if stream.AtEnd {
-				set done=1
-			} else {
+			Set s=$e(s,pos,*)
+			If stream.AtEnd {
+				Set done=1
+			} Else {
 				//If less than half available memory is used, double available memory
-				if $s<($zs/2*1024) {
-					set $zs=$zs*2
+				If $s<($zs/2*1024) {
+					Set $zs=$zs*2
 				}
-				set s=##class(AnalyzeThis.Utils).ReadStream(.stream,s)
-				set s=$replace(s,$c(13),"\r")
-				set s=$replace(s,$c(10),"\n")
-				set m.Text=s
+				Set s=##class(AnalyzeThis.Utils).ReadStream(.stream,s)
+				Set s=$replace(s,$c(13),"\r")
+				Set s=$replace(s,$c(10),"\n")
+				Set m.Text=s
 			}
 		}
-	} catch ex {
+	} Catch ex {
 		// Reached max len, pop one item from array
-		set st=ex.AsStatus()
+		Set st=ex.AsStatus()
 	}
 	
-	if $$$ISERR(st) quit st
+	If $$$ISERR(st) Quit st
 	
-	set dataJSONStream=##class(%Stream.FileBinary).%New()
-	d dynamicArray.%ToJSON(.dataJSONStream)
-	d dataJSONStream.%Save()
-	set dataJSONStreamId = dataJSONStream.%Id()
+	Set dataJSONStream=##class(%Stream.FileBinary).%New()
+	Do dynamicArray.%ToJSON(.dataJSONStream)
+	Do dataJSONStream.%Save()
+	Set dataJSONStreamId=dataJSONStream.%Id()
 	
-	set propertyJSONStream=##class(%Stream.FileBinary).%New()
-	d properties.%ToJSON(.propertyJSONStream)
-	d propertyJSONStream.%Save()
-	set propertyJSONStreamId = propertyJSONStream.%Id()
+	Set propertyJSONStream=##class(%Stream.FileBinary).%New()
+	Do properties.%ToJSON(.propertyJSONStream)
+	Do propertyJSONStream.%Save()
+	Set propertyJSONStreamId=propertyJSONStream.%Id()
 	
-	q st
+	Quit st
 }
 }
