@@ -664,11 +664,20 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 		Do Properties.SetAt(1,"print")
 		if (wtype="time") Do Properties.SetAt(mdx,"MDX")
 		if (wtype="barChart") {
-			Do Properties.SetAt("none","legendPos")
-			Set Overrides=##class(%ArrayOfDataTypes).%New()
-			Do Overrides.SetAt("{legendVisible:'false',seriesColorScheme:'urban',xAxis:{_type:'axis'},yAxisList:[{_type:'axis'}],chartPivot:true,_type:'"_wtype_"'}",wtype)
-			Do Overrides.SetAt("{hidden:true,_type:'chartLegend'}", "legend")
-			Set widget.overrides=Overrides
+			// Check to see if Highcharts Portlet exists
+			If ##class(%Dictionary.CompiledClass).%ExistsId("%DeepSee.Highcharts.Portlet") {
+				set widget.type="portlet"
+				set widget.subtype="%DeepSee.Highcharts.Portlet"
+				Set widget.subtypeClass="portlet"
+				Do Properties.SetAt(2,"chartType")
+				Do Properties.SetAt(0,"print")
+			} Else {
+				Do Properties.SetAt("none","legendPos")
+				Set Overrides=##class(%ArrayOfDataTypes).%New()
+				Do Overrides.SetAt("{legendVisible:'false',seriesColorScheme:'urban',xAxis:{_type:'axis'},yAxisList:[{_type:'axis'}],chartPivot:true,_type:'"_wtype_"'}",wtype)
+				Do Overrides.SetAt("{hidden:true,_type:'chartLegend'}", "legend")
+				Set widget.overrides=Overrides
+			}
 		} elseif (wtype="pivot") {
 		} else {
 			Set Overrides=##class(%ArrayOfDataTypes).%New()
