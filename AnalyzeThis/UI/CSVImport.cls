@@ -9,7 +9,7 @@ Parameter DOMAIN = "AnalyzeThis";
 Parameter Version = 1;
 
 /// Displayed name of this page.
-Parameter PAGENAME = "CSV Import";
+Parameter PAGENAME = "AnalyzeThis";
 
 /// If this page has multiple views, this is its initial display mode.
 Parameter DEFAULTVIEWMODE;
@@ -223,13 +223,13 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 /// This should be implemented in a subclass.
 Method %OnGetTitle() As %String [ Internal ]
 {
-	Quit $$$Text("CSV Import","AnalyzeThis")
+	Quit $$$Text("AnalyzeThis","AnalyzeThis")
 }
 
 /// Get the (localized) name of the page.
 Method %OnGetPageName() As %String [ Internal ]
 {
-	Quit $$$Text("CSV Import","AnalyzeThis")
+	Quit $$$Text("AnalyzeThis","AnalyzeThis")
 }
 
 /// Get the product name for the page.
@@ -243,7 +243,7 @@ Method OnGetRibbonInfo(Output pDisplay As %Boolean, Output pViewIcons As %List, 
 {
 	Set pDisplay=1
 	Set pSearchBox=0
-	Set pRibbonTitle=$$$Text("Import CSV Data")
+	Set pRibbonTitle=$$$Text("AnalyzeThis")
 
 	// commands
 	// $LB(id,caption,help,onclick)
