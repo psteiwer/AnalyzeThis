@@ -11,6 +11,10 @@ ClassMethod GenerateAll(pSourceType, pSource, pLineSize, pHasHeaders, pCubeName,
 			Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(pSource,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize,pHasHeaders)
 		} ElseIf pSourceType="SQL" {
 			Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(pSource,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
+		} ElseIf pSourceType="Class" {
+			// Get the SQL table name and then pass through SQL method
+			Set sqlQuery=##class(AnalyzeThis.Utils).ClassToQuery(pSource)
+			Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(sqlQuery,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
 		}
 		// Probably should provide a way to clean these instead of deleting them here
 		If pPropertyJSONStreamId'="" {
