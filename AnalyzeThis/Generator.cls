@@ -2,12 +2,16 @@ Class AnalyzeThis.Generator
 {
 
 /// This method will go through the entire generation process. Takes in a CSV file
-ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %Status
+ClassMethod GenerateAll(pSourceType, pSource, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %Status
 {
 	Try {
 		// Preparing JSON
 		Do ..UpdateTracking(1,"Working...")
-		Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(pFileName,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize,pHasHeaders)
+		If pSourceType="CSV" {
+			Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(pSource,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize,pHasHeaders)
+		} ElseIf pSourceType="SQL" {
+			Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(pSource,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
+		}
 		// Probably should provide a way to clean these instead of deleting them here
 		If pPropertyJSONStreamId'="" {
 			// Delete this stream if pPropertyJSONStreamId is populated, it may have updates
@@ -49,7 +53,7 @@ ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJ
 		If $$$ISERR(tSC) $$$ThrowStatus(tSC)
 		
 		// Generating Sample Dashboard
-		Do ##class(AnalyzeThis.UI.CSVImport).AddDetails(tCubeName,"CSV",pFileName)
+		Do ##class(AnalyzeThis.UI.CSVImport).AddDetails(tCubeName,pSourceType,pSource)
 		
 		Do ..UpdateTracking(6,"Working...")
 		Set tSC=##class(AnalyzeThis.Generator).GenerateDash(tCubeName)

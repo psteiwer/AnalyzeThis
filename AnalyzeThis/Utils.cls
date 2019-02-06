@@ -181,8 +181,8 @@ ClassMethod SQLToJSON(pSourceQuery As %String, ByRef propertyJSONStreamId, ByRef
 	Set dynamicArray=[]
 	While sqlrs.%Next() {
 		Set dynamicObject={}
-		For i=1:1:propcount {
-			Do dynamicObject.%Set(properties.Display.%Get(i),sqlrs.%GetData(i))
+		For i=0:1:propcount {
+			Do dynamicObject.%Set(properties.Display.%Get(i),sqlrs.%GetData(i+1))
 		}
 		Do dynamicArray.%Push(dynamicObject)
 		
@@ -191,7 +191,11 @@ ClassMethod SQLToJSON(pSourceQuery As %String, ByRef propertyJSONStreamId, ByRef
 			Quit
 		}
 	}
-
+	
+	Set dataJSONStream=##class(%Stream.FileBinary).%New()
+	Do dynamicArray.%ToJSON(.dataJSONStream)
+	Do dataJSONStream.%Save()
+	Set dataJSONStreamId=dataJSONStream.%Id()
 	
 	Quit tSC
 }
