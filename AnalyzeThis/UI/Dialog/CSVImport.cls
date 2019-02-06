@@ -109,7 +109,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
  <html OnDrawContent="DrawPageTitle" seed="1"/>
  
  <hgroup>
- <radioSet id="SourceType" name="SourceType" label="Source Type" valueList="CSV,SQL" value="CSV" onclick="zenPage.SwitchSourceType();"/>
+ <radioSet id="SourceType" name="SourceType" label="Source Type" valueList="CSV,Class,SQL" value="CSV" onclick="zenPage.SwitchSourceType();"/>
  </hgroup>
  
  <group id="SourceCSV" hidden="false">
@@ -128,8 +128,16 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <checkbox id="chkHeaders" caption="This file has a header row" value="1" onchange="zenPage.UpdateHasHeaders(zenThis.getValue());" captionClass="zenLabel" hint=" (Check box to autmatically assign property names.)"/>
 <checkbox id="chkRecurse" caption="Include subdirectories" captionClass="zenLabel" value="1" hidden="true"/>
 </group>
+
 <group id="SourceSQL" hidden="true">
 <textarea id="SQLText" label="Enter Source SQL query" onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"></textarea>
+</group>
+
+<group id="SourceClass" hidden="true">
+<hgroup id="cubeProp" valign="top">
+<text id="sourceClass" label="Source Class" size="78" required="true" hint="Required. This class must already exist." onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"/>
+<button caption="Browse..." onclick="zenPage.browseClass('sourceClass');" />
+</hgroup>
 </group>
 
 <vgroup enclosingStyle="padding-top:10px;">
@@ -511,17 +519,25 @@ Method GetStats() As %String [ ZenMethod ]
 /// Using file properties, create the cube name
 Method GenerateCubeName() [ ZenMethod ]
 {
-	If ..SourceType'="CSV" Quit
-	Set file=""
-	If ..%GetValueById("InputType")="LOCAL" {
-		Set file=..LOCALFILENAME
+	If ..SourceType="CSV" {
+		Set file=""
+		If ..%GetValueById("InputType")="LOCAL" {
+			Set file=..LOCALFILENAME
+		} Else {
+			Set file=..Source
+		}
+		If $length(file,"\")>$length(file,"/") {
+			Set tName=$zstrip($replace($piece($piece(file,"\",*),".",1),"DEEPSEE",""),"*PCW")
+		} Else {
+			Set tName=$zstrip($replace($piece($piece(file,"/",*),".",1),"DEEPSEE",""),"*PCW")
+		}
+	} ElseIf ..SourceType="Class" {
+		Set tName=..Source
+		// Class should end in .cls, extract package + .cls extension to get class name
+		Set tName=$piece(tName,".",*-1)
 	} Else {
-		Set file=..Source
-	}
-	If $length(file,"\")>$length(file,"/") {
-		Set tName=$zstrip($replace($piece($piece(file,"\",*),".",1),"DEEPSEE",""),"*PCW")
-	} Else {
-		Set tName=$zstrip($replace($piece($piece(file,"/",*),".",1),"DEEPSEE",""),"*PCW")
+		// SouceType not supported to auto generate class name
+		Quit
 	}
 	
 	Set ..CubeName=tName
@@ -698,6 +714,9 @@ ClientMethod nextPage() [ Language = javascript ]
 		} else if (SourceType=="SQL") {
 			var sql=zen("SQLText").getValue();
 			html.setProperty('seed',sql);
+		} else if (SourceType=="Class") {
+			var sourceClass=zen("sourceClass").getValue();
+			html.setProperty('seed',sourceClass);
 		}
 		tabGroup.showNextTab();
 		break;
@@ -768,11 +787,17 @@ ClientMethod browseSelect(name) [ Internal, Language = javascript ]
 /// The id of the field that needs to be updated is saved in "dialogClicked".
 ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = javascript ]
 {
-	if (action == "ok") {
-		zen("FileName").setValue(value);
-		zenPage.UpdateSource(value);
-		zenPage.GenerateCubeName();
-		zenPage.updateState();	
+	if (action=="ok") {
+		if (popupName=="sourceClass") {
+			zenPage.getComponentById(popupName).setValue(value);
+			zenPage.UpdateSource(value);
+			zenPage.updateState();
+		} else if (popupName=="FileSelect") {
+			zen("FileName").setValue(value);
+			zenPage.UpdateSource(value);
+			zenPage.GenerateCubeName();
+			zenPage.updateState();
+		}	
 	}
 }
 
@@ -889,6 +914,10 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	If ..SourceType="SQL" {
 		Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(pSeed,.propertiesJSONStreamId,.dataJSONStreamId,10)
 		
+	} ElseIf ..SourceType="Class" {
+		// Get the SQL table name and then pass through SQL method
+		Set sqlQuery=##class(AnalyzeThis.Utils).ClassToQuery(pSeed)
+		Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(sqlQuery,.propertiesJSONStreamId,.dataJSONStreamId,10)
 	} Else {
 		Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,10,..hasHeaders)
 	}
@@ -1101,6 +1130,7 @@ Method SwitchSourceType() As %Status [ZenMethod]
 	Set sourceType=..%GetComponentById("SourceType")
 	Set sourceCSV=..%GetComponentById("SourceCSV")
 	Set sourceSQL=..%GetComponentById("SourceSQL")
+	Set sourceClass=..%GetComponentById("SourceClass")
 	
 	Set ..SourceType=sourceType.value
 	If sourceType.value="CSV" {
@@ -1109,12 +1139,21 @@ Method SwitchSourceType() As %Status [ZenMethod]
 		
 		// Hide others
 		Set sourceSQL.hidden=1
+		Set sourceClass.hidden=1
 	} ElseIf sourceType.value="SQL" {
 		// Unhide SQL
 		Set sourceSQL.hidden=0
 		
 		// Hide others
 		Set sourceCSV.hidden=1
+		Set sourceClass.hidden=1
+	} ElseIf sourceType.value="Class" {
+		// Unhide SQL
+		Set sourceClass.hidden=0
+		
+		// Hide others
+		Set sourceCSV.hidden=1
+		Set sourceSQL.hidden=1
 	}
 	
 	Quit st
@@ -1276,5 +1315,12 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	Set propertyJSONStreamId=propertyJSONStream.%Id()
 	
 	Quit st
+}
+
+/// Invoke class finder dialog.
+ClientMethod browseClass(popupName) [ Language = javascript ]
+{
+	var mode="sourceclasses";
+	zenLaunchPopupWindow('_DeepSee.UI.Dialog.finderDialog.cls?MODE='+encodeURIComponent(mode),popupName,'resizable,width=900,height=500');
 }
 }

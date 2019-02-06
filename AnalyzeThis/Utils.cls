@@ -200,4 +200,11 @@ ClassMethod SQLToJSON(pSourceQuery As %String, ByRef propertyJSONStreamId, ByRef
 	Quit tSC
 }
 
+ClassMethod ClassToQuery(pClass) As %String
+{
+	// Assume pClass ends in .cls
+	Set sqlTableName=##class(%DeepSee.Utils).%GetSQLTableName($piece(pClass,".",1,*-1))
+	Set sqlQuery="SELECT * FROM "_sqlTableName
+	Quit sqlQuery
+}
 }
