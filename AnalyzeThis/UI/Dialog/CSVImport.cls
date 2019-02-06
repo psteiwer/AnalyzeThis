@@ -14,7 +14,7 @@ Property LineSize As %Integer [ InitialExpression = 10000 ];
 
 Property hasHeaders As %ZEN.Datatype.string [ InitialExpression = 1 ];
 
-Property FileName As %String;
+Property Source As %String;
 
 Property SourceClass As %String;
 
@@ -23,6 +23,8 @@ Property CubeName As %String;
 Property propertyJSONStreamID As %ZEN.Datatype.string;
 
 Property dataJSONStreamID As %ZEN.Datatype.string;
+
+Property SourceType As %String;
 
 /// Id used to track progress.
 Property trackingId As %ZEN.Datatype.string;
@@ -106,6 +108,11 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <tab id="tab1" enclosingStyle="padding-top:20px;" cellStyle="padding-bottom:10px;">
  <html OnDrawContent="DrawPageTitle" seed="1"/>
  
+ <hgroup>
+ <radioSet id="SourceType" name="SourceType" label="Source Type" valueList="CSV,SQL" value="CSV" onclick="zenPage.SwitchSourceType();"/>
+ </hgroup>
+ 
+ <group id="SourceCSV" hidden="false">
  <radioSet id="InputType" name="InputType" label="The import file resides on" valueList="REMOTE,LOCAL" 
  onclick="zenPage.doLocationChange(zenThis.getValue());" value="REMOTE"/>
  
@@ -113,25 +120,30 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <label id="Instructions" value="Please ensure the CSV file name starts with a letter"/>
 </hgroup>
 <hgroup id="idRemoteFile" cellVAlign="bottom" enclosingStyle="padding-top:20px;" >
-<text id="FileName" size="70" label="Enter the path and name of the import file:" onchange="zenPage.UpdateFileName(zenThis.getValue()); zenPage.updateState();"/>
+<text id="FileName" size="70" label="Enter the path and name of the import file:" onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"/>
 <button caption="Browse..." containerStyle="padding-left:2px;" onclick="zenPage.browseSelect('FileName');"/>
 </hgroup>
 <fileUpload id="LocalFile" name="LocalFile" label="Select the path and name of the import file:" size="70" hidden="true" onchange="zenPage.UpdateLocalFile(zenThis.getValue());"/>
 
 <checkbox id="chkHeaders" caption="This file has a header row" value="1" onchange="zenPage.UpdateHasHeaders(zenThis.getValue());" captionClass="zenLabel" hint=" (Check box to autmatically assign property names.)"/>
 <checkbox id="chkRecurse" caption="Include subdirectories" captionClass="zenLabel" value="1" hidden="true"/>
-<expando caption="Advanced" animate="true" expanded="false">
-<vgroup enclosingStyle="padding-top:10px;">
-<label id="LimitLabel" value="Limit the amount of data to read" hint="(Data load will stop after limit is reached)"/>
-<hgroup>
-<text id="LineSize" name="LineSize" value="10000" size="15" label="Line Limit" onchange="zenPage.UpdateLineSize(zenThis.getValue());"/>
-</hgroup>
-</vgroup>
+</group>
+<group id="SourceSQL" hidden="true">
+<textarea id="SQLText" label="Enter Source SQL query" onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"></textarea>
+</group>
 
 <vgroup enclosingStyle="padding-top:10px;">
 <label id="ChangeNameLabel" value="Change the name of the cube"/>
 <hgroup>
 <text id="CubeName" name="CubeName" size="100" label="CubeName" value="#(%page.CubeName)#" onchange="zenPage.UpdateCubeName(zenThis.getValue());"/>
+</hgroup>
+</vgroup>
+
+<expando caption="Advanced" animate="true" expanded="false">
+<vgroup enclosingStyle="padding-top:10px;">
+<label id="LimitLabel" value="Limit the amount of data to read" hint="(Data load will stop after limit is reached)"/>
+<hgroup>
+<text id="LineSize" name="LineSize" value="10000" size="15" label="Line Limit" onchange="zenPage.UpdateLineSize(zenThis.getValue());"/>
 </hgroup>
 </vgroup>
 </expando>
@@ -177,11 +189,11 @@ Method UpdateHasHeaders(value) [ Internal, ZenMethod ]
 	Set ..hasHeaders=value
 }
 
-/// Update the FileName property
-Method UpdateFileName(value) [ Internal, ZenMethod ]
+/// Update the Source property
+Method UpdateSource(value) [ Internal, ZenMethod ]
 {
-	Set ..FileName=value
-	do ..GenerateCubeName()
+	Set ..Source=value
+	Do ..GenerateCubeName()
 }
 
 /// Update the LOCALFILENAME property
@@ -229,10 +241,10 @@ ClientMethod doLocationChange(flag) [ Internal, Language = javascript ]
 		zen("LocalFile").setHidden(true);
 		zen("btnNext").setHidden(false);
 		zen("btnSubmit").setHidden(true);
-		var FileName=zen("FileName").getValue()
+		var Source=zen("FileName").getValue()
 		if (zen("FileName").getValue() != "") {
-			zen("btnNext").setProperty('disabled',FileName=="");
-			zen("btnNext").setProperty('controlClass', (FileName!="" ? 'commandButton' :'commandButtonDisabled'));			
+			zen("btnNext").setProperty('disabled',Source=="");
+			zen("btnNext").setProperty('controlClass', (Source!="" ? 'commandButton' :'commandButtonDisabled'));			
 		}
 	}
 }
@@ -304,7 +316,7 @@ ClientMethod updateState() [ Language = javascript ]
 /// Kicks off GenerateAll and starts the update timer
 ClientMethod updateProgress() [ Language = javascript]
 {
-	this.trackingId=this.GenerateAll(this.FileName,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
+	this.trackingId=this.GenerateAll(this.SourceType,this.Source,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
 	if (this.trackingId!='') {
 		zen('timer').timeout=500;
 		zen('timer').startTimer();
@@ -419,12 +431,12 @@ ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
 
 /// Start the build cube process in the background.
 /// Return the tracking id.
-ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
+ClassMethod GenerateAll(pSourceType,pSource, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
 {
 	Set tTrackingId=""
 	Set tJobTimeOut=10
 	
-	Job ##class(AnalyzeThis.Generator).GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId)::tJobTimeOut
+	Job ##class(AnalyzeThis.Generator).GenerateAll(pSourceType,pSource, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId)::tJobTimeOut
 	If '$Test {
 		&js<alert('Unable to start background job.');>
 		Set tTrackingId=""
@@ -499,11 +511,12 @@ Method GetStats() As %String [ ZenMethod ]
 /// Using file properties, create the cube name
 Method GenerateCubeName() [ ZenMethod ]
 {
+	If ..SourceType'="CSV" Quit
 	Set file=""
 	If ..%GetValueById("InputType")="LOCAL" {
 		Set file=..LOCALFILENAME
 	} Else {
-		Set file=..FileName
+		Set file=..Source
 	}
 	If $length(file,"\")>$length(file,"/") {
 		Set tName=$zstrip($replace($piece($piece(file,"\",*),".",1),"DEEPSEE",""),"*PCW")
@@ -648,37 +661,44 @@ ClientMethod nextPage() [ Language = javascript ]
 {
 	var tabGroup=zen('tabGroup');
 	var tabNo=tabGroup.getCurrTabNo();
+	var html=zen("htmlContent");
 	switch(tabNo) {
 	case 1:
-		var FileName=zen("FileName").getValue();
-		var inputtype="REMOTE"
-		if (this.LOCALFILENAME != "") {
-			filename=this.LOCALFILENAME;
-			inputtype="LOCAL";
+		var SourceType=zen("SourceType").getValue();
+		
+		if (SourceType=="CSV") {
+			var Source=zen("FileName").getValue();
+			var inputtype="REMOTE"
+			if (this.LOCALFILENAME != "") {
+				Source=this.LOCALFILENAME;
+				inputtype="LOCAL";
+			}
+			var ok=this.ValidateFile(Source);
+			if (ok == 0) {
+				this.showMsg($$$Text("File name is empty."),1);	
+				zen("FileName").focus();
+				break;
+			}
+			if (ok == -1) {
+				this.showMsg($$$Text("You have entered a directory path without a file name."),1);
+				zen("FileName").focus();
+				break;	
+			}
+			if (ok == -2) {
+				this.showMsg($$$Text("File does not exist!"),1);
+				zen("FileName").focus();
+				break;		
+			}
+			if (ok == -3) {
+				this.showMsg($$$Text("File Name cannot start with a number!"),1);
+				zen("FileName").focus();
+				break;		
+			}
+			html.setProperty('seed',Source);
+		} else if (SourceType=="SQL") {
+			var sql=zen("SQLText").getValue();
+			html.setProperty('seed',sql);
 		}
-		var ok=this.ValidateFile(FileName);
-		if (ok == 0) {
-			this.showMsg($$$Text("File name is empty."),1);	
-			zen("FileName").focus();
-			break;
-		}
-		if (ok == -1) {
-			this.showMsg($$$Text("You have entered a directory path without a file name."),1);
-			zen("FileName").focus();
-			break;	
-		}
-		if (ok == -2) {
-			this.showMsg($$$Text("File does not exist!"),1);
-			zen("FileName").focus();
-			break;		
-		}
-		if (ok == -3) {
-		this.showMsg($$$Text("File Name cannot start with a number!"),1);
-		zen("FileName").focus();
-		break;		
-		}
-		var html=zen("htmlContent");
-		html.setProperty('seed',FileName);
 		tabGroup.showNextTab();
 		break;
 	case 2:
@@ -750,7 +770,7 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 {
 	if (action == "ok") {
 		zen("FileName").setValue(value);
-		zenPage.UpdateFileName(value);
+		zenPage.UpdateSource(value);
 		zenPage.GenerateCubeName();
 		zenPage.updateState();	
 	}
@@ -783,7 +803,7 @@ ClientMethod onstartHandler() [ Internal, Language = javascript ]
 /// This should be implemented in a subclass.
 Method %OnGetTitle() As %String [ Internal ]
 {
-	Quit $$$TextHTML("Import CSV")
+	Quit $$$TextHTML("Import Data")
 }
 
 /// Get the (localized) subtitle string for the dialog.
@@ -812,8 +832,9 @@ Method %OnAfterCreatePage() As %Status [ Internal ]
 		Set ..%GetComponentById("InputType").hidden=1
 		Set ..%GetComponentById("LocalFile").hidden=1
 	}
-	Set FileName=""
-	Set ..%GetComponentById("FileName").value=FileName
+	Set ..SourceType=..%GetComponentById("SourceType").value
+	Set Source=""
+	Set ..%GetComponentById("FileName").value=Source
 	#; Set for Remote input types choice: ServerName or local machine
 	Set ..%GetComponentById("InputType").displayList=$zu(110)_","_$$$Text("My Local Machine")
 	If $G(%request.Data("INPUTTYPE",1))="LOCAL" {
@@ -845,7 +866,7 @@ ClassMethod DrawSortPageTitle(pSeed As %String) As %Status [ Internal ]
 
 ClassMethod DrawPageTitle(pSeed As %String) As %Status [ Internal ]
 {
-	Set tPageTitle="Import CSV file"
+	Set tPageTitle="Import Data"
 	&html<<div class="Description">#(tPageTitle)#
 	</div><hr size="1"/>>
 	Quit 1
@@ -863,9 +884,14 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	If ..INPUTTYPE="LOCAL" {
 		Set file=..LOCALFILENAME
 	} Else {
-		Set file=..FileName
+		Set file=..Source
 	}
-	Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,10,..hasHeaders)
+	If ..SourceType="SQL" {
+		Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(pSeed,.propertiesJSONStreamId,.dataJSONStreamId,10)
+		
+	} Else {
+		Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,10,..hasHeaders)
+	}
 	
 	Quit:$$$ISERR(tSC) tSC
 	
@@ -1066,6 +1092,32 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 	body.style.height=body.parentNode.offsetHeight+'px'
 	body.offsetWidth=(zenbody.offsetWidth-20)+'px'
 	body.style.width=(zenbody.offsetWidth-20)+'px'
+}
+
+Method SwitchSourceType() As %Status [ZenMethod]
+{
+	Set st=$$$OK
+	
+	Set sourceType=..%GetComponentById("SourceType")
+	Set sourceCSV=..%GetComponentById("SourceCSV")
+	Set sourceSQL=..%GetComponentById("SourceSQL")
+	
+	Set ..SourceType=sourceType.value
+	If sourceType.value="CSV" {
+		// Unhide CSV
+		Set sourceCSV.hidden=0
+		
+		// Hide others
+		Set sourceSQL.hidden=1
+	} ElseIf sourceType.value="SQL" {
+		// Unhide SQL
+		Set sourceSQL.hidden=0
+		
+		// Hide others
+		Set sourceCSV.hidden=1
+	}
+	
+	Quit st
 }
 
 /// Takes a CSV file and returns two stream IDs containing relating to a JSON object for the Properties and a JSON object for the Data

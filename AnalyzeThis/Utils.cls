@@ -136,4 +136,68 @@ ClassMethod GetPropertyNames(pClassName As %String, Output pPropNames) As %Statu
 	Quit $$$OK
 }
 
+ClassMethod SQLToJSON(pSourceQuery As %String, ByRef propertyJSONStreamId, ByRef dataJSONStreamId, pMaxLines As %Integer = 0) As %Status
+{
+	Set tSC=$$$OK
+	
+	// Build Prop JSON
+	Set sqlrs=##class(%SQL.Statement).%ExecDirect(,pSourceQuery)
+	Set metadata=sqlrs.%GetMetadata()
+	Set properties={}
+	Set propposition={}
+	Set displayarray=[]
+	Set typearray=[]
+	Set dateformatarray=[]
+	Set includearray=[]
+	Set intformatarray=[]
+	// ignorearray is an array that says if a column has an empty header
+	Set ignorearray=[]
+	Set propcount=-1
+	For i=1:1:metadata.columnCount {
+		Set propcount=$i(propcount)
+		Set prop=metadata.columns.GetAt(i).colName
+		Do displayarray.%Push(prop)
+		Do typearray.%Push("%String")
+		Do dateformatarray.%Push("")
+		Do intformatarray.%Push("")
+		Do includearray.%Push("true")
+		Do ignorearray.%Push(prop="")
+		Do propposition.%Set(prop,propcount)
+	}
+	Do properties.%Set("Properties",propposition)
+	Do properties.%Set("Display",displayarray)
+	Do properties.%Set("Type",typearray)
+	Do properties.%Set("DateFormat",dateformatarray)
+	Do properties.%Set("IntFormat",intformatarray)
+	Do properties.%Set("Include",includearray)
+	Do properties.%Set("Ignore",ignorearray)
+	
+	Set propertyJSONStream=##class(%Stream.FileBinary).%New()
+	Do properties.%ToJSON(.propertyJSONStream)
+	Do propertyJSONStream.%Save()
+	Set propertyJSONStreamId=propertyJSONStream.%Id()
+	
+	// Build Data JSON
+	Set dynamicArray=[]
+	While sqlrs.%Next() {
+		Set dynamicObject={}
+		For i=0:1:propcount {
+			Do dynamicObject.%Set(properties.Display.%Get(i),sqlrs.%GetData(i+1))
+		}
+		Do dynamicArray.%Push(dynamicObject)
+		
+		Set rowcount=$i(rowcount)
+		If (pMaxLines>0)&&(rowcount>pMaxLines) {
+			Quit
+		}
+	}
+	
+	Set dataJSONStream=##class(%Stream.FileBinary).%New()
+	Do dynamicArray.%ToJSON(.dataJSONStream)
+	Do dataJSONStream.%Save()
+	Set dataJSONStreamId=dataJSONStream.%Id()
+	
+	Quit tSC
+}
+
 }
