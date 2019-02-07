@@ -678,6 +678,7 @@ ClientMethod nextPage() [ Language = javascript ]
 	var tabGroup=zen('tabGroup');
 	var tabNo=tabGroup.getCurrTabNo();
 	var html=zen("htmlContent");
+	this.showMsg("",1);	
 	switch(tabNo) {
 	case 1:
 		var SourceType=zen("SourceType").getValue();
@@ -691,7 +692,7 @@ ClientMethod nextPage() [ Language = javascript ]
 			}
 			var ok=this.ValidateFile(Source);
 			if (ok == 0) {
-				this.showMsg($$$Text("File name is empty."),1);	
+				this.showMsg($$$Text("File required."),1);	
 				zen("FileName").focus();
 				break;
 			}
@@ -713,11 +714,28 @@ ClientMethod nextPage() [ Language = javascript ]
 			html.setProperty('seed',Source);
 		} else if (SourceType=="SQL") {
 			var sql=zen("SQLText").getValue();
+			if (sql=="") {
+				this.showMsg($$$Text("SQL Query required."),1);
+				zen("SQLText").focus();
+				break;
+			}
 			html.setProperty('seed',sql);
 		} else if (SourceType=="Class") {
 			var sourceClass=zen("sourceClass").getValue();
+			if (sourceClass=="") {
+				this.showMsg($$$Text("Source Class required."),1);
+				zen("sourceClass").focus();
+				break;
+			}
 			html.setProperty('seed',sourceClass);
 		}
+		
+		if (zen("CubeName").getValue()=="") {
+			this.showMsg($$$Text("Cube Name required."),1);
+			zen("CubeName").focus();
+			break;
+		}
+		
 		tabGroup.showNextTab();
 		break;
 	case 2:
