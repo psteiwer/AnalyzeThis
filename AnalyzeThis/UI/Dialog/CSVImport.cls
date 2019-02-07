@@ -576,6 +576,8 @@ ClientMethod drawDone(tab) [ Language = javascript ]
 		//this.showMsg(error);
 		zen("btnNext").setProperty('disabled',true);
 		zen("btnNext").setProperty('controlClass','commandButtonDisabled');
+		zen("btnFinish").setProperty('disabled',true);
+		zen("btnFinish").setProperty('controlClass','commandButtonDisabled');
 	}
 	zen(id).setHidden(true);
 }
@@ -931,7 +933,6 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	}
 	If ..SourceType="SQL" {
 		Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(pSeed,.propertiesJSONStreamId,.dataJSONStreamId,10)
-		
 	} ElseIf ..SourceType="Class" {
 		// Get the SQL table name and then pass through SQL method
 		Set sqlQuery=##class(AnalyzeThis.Utils).ClassToQuery(pSeed)

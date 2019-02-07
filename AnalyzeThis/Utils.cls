@@ -142,6 +142,9 @@ ClassMethod SQLToJSON(pSourceQuery As %String, ByRef propertyJSONStreamId, ByRef
 	
 	// Build Prop JSON
 	Set sqlrs=##class(%SQL.Statement).%ExecDirect(,pSourceQuery)
+	If sqlrs.%SQLCODE'=0 {
+		Quit $$$ERROR(5001,"SQLToJSON Error. SQLCODE: "_$SYSTEM.SQL.SQLCODE(sqlrs.%SQLCODE))
+	}
 	Set metadata=sqlrs.%GetMetadata()
 	Set properties={}
 	Set propposition={}
