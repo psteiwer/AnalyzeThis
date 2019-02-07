@@ -204,12 +204,19 @@ Method GetStats(pSeed As %String) As %Status [ ZenMethod ]
 /// This should be implemented in a subclass.
 Method %OnGetTitle() As %String [ Internal ]
 {
-	Quit $$$TextHTML("Import CSV")
+	Quit $$$TextHTML("Cube Info")
+}
+
+/// Get the (localized) subtitle string for the dialog.
+/// This should be implemented in a subclass.
+Method %OnGetSubtitle() As %String [ Internal ]
+{
+	Quit ""
 }
 
 ClassMethod DrawPageTitle(pSeed As %String) As %Status [ Internal ]
 {
-	Set tPageTitle="Import CSV file"
+	Set tPageTitle=$$$TextHTML("Cube Info")
 	&html<<div class="Description">#(tPageTitle)#
 	</div><hr size="1"/>>
 	Quit $$$OK
