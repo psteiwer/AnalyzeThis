@@ -130,12 +130,12 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 </group>
 
 <group id="SourceSQL" hidden="true">
-<textarea id="SQLText" label="Enter Source SQL query" onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"></textarea>
+<textarea id="SQLText" rows="4" cols="53" label="Enter Source SQL query" onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"></textarea>
 </group>
 
 <group id="SourceClass" hidden="true">
 <hgroup id="cubeProp" valign="top">
-<text id="sourceClass" label="Source Class" size="78" required="true" hint="Required. This class must already exist." onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"/>
+<text id="sourceClass" label="Source Class" size="70" required="true" hint="Required. This class must already exist." onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"/>
 <button caption="Browse..." onclick="zenPage.browseClass('sourceClass');" />
 </hgroup>
 </group>
@@ -143,7 +143,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <vgroup enclosingStyle="padding-top:10px;">
 <label id="ChangeNameLabel" value="Change the name of the cube"/>
 <hgroup>
-<text id="CubeName" name="CubeName" size="100" label="CubeName" value="#(%page.CubeName)#" onchange="zenPage.UpdateCubeName(zenThis.getValue());"/>
+<text id="CubeName" name="CubeName" size="70" label="CubeName" value="#(%page.CubeName)#" onchange="zenPage.UpdateCubeName(zenThis.getValue());"/>
 </hgroup>
 </vgroup>
 
