@@ -562,18 +562,13 @@ ClientMethod drawDone(tab) [ Language = javascript ]
 	
 	var result=this.GetStatus(tab);
 	var id="idProgress"+tab;
-	this.IMPORTALL=0;
 	if (result.Status == "Done") {
 		if (result.Error != "") {
 			this.showMsg(result.Error);
 			zen("btnFinish").setProperty('disabled',true);
 			zen("btnFinish").setProperty('controlClass','commandButtonDisabled');
 		}
-	} else if (result.Status == "IMPORTALL") {
-		this.IMPORTALL=1;
 	} else {
-		//var error=$$$Text("Unexpected error occurred. Loading did not finish as expected.");
-		//this.showMsg(error);
 		zen("btnNext").setProperty('disabled',true);
 		zen("btnNext").setProperty('controlClass','commandButtonDisabled');
 		zen("btnFinish").setProperty('disabled',true);
@@ -1019,6 +1014,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 		&html<</tr>>
 	}
 	&html<</table>>
+	Set %session.Data($Username,"Import","ContentStatus") = "Done"
 	Quit tSC
 }
 
