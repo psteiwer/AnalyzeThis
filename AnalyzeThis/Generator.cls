@@ -264,8 +264,11 @@ ClassMethod GenerateCube(pCubeName, pPropertyJSONStreamId) As %Status
 ClassMethod GenerateDash(pCubeName As %String, pVerbose As %Boolean = 0) As %Status
 {
 	Set st=$$$OK
-	Do ##class(AnalyzeThis.Dashboard.AutoPivot).GenerateSampleDashboards(pCubeName,pVerbose)
 	Set dashName="Generated/Samples for "_pCubeName_".dashboard"
+	If ##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName) {
+		Do ##class(AnalyzeThis.Dashboard.Utils).DeleteDashboards(pCubeName)
+	}
+	Do ##class(AnalyzeThis.Dashboard.AutoPivot).GenerateSampleDashboards(pCubeName,pVerbose)
 	Set st=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 	Quit st
 }
