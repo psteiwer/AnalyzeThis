@@ -1007,9 +1007,10 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 			Continue
 		}
 		&html<<tr>>
+		Set tPropNum=-1
 		Set iter2=val.%GetIterator()
 		While iter2.%GetNext(.key2,.val2) {
-			&html<<td>#(val2)#</td>>
+			&html<<td id="p#($I(tPropNum))#r#(key)#">#(val2)#</td>>
 		}
 		&html<</tr>>
 	}
@@ -1024,6 +1025,8 @@ ClientMethod swapFormat(propID, value) [ Internal, Language = javascript ]
 	if ((value=='%Date') || (value=='%TimeStamp'))  {
 		document.getElementById("dateFormat"+propID).style.display=""
 		document.getElementById("intFormat"+propID).style.display="none"
+		
+		zenPage.autoDateFormat(propID);
 	} else if (value=='%Integer') {
 		document.getElementById("intFormat"+propID).style.display=""
 		document.getElementById("dateFormat"+propID).style.display="none"
@@ -1031,6 +1034,41 @@ ClientMethod swapFormat(propID, value) [ Internal, Language = javascript ]
 		document.getElementById("dateFormat"+propID).style.display="none"
 		document.getElementById("intFormat"+propID).style.display="none"
 	}
+}
+
+/// Try and automatically select the date format
+ClientMethod autoDateFormat(propID) [ Internal, Language = javascript ]
+{
+	var dates=[];
+	for (var i=0;i<10;i++) {
+		var prop=document.getElementById("p"+propID+"r"+i);
+		if (prop=="") {
+			return
+		}
+		var temp=parseInt(zenPage.findDateType(prop.innerHTML));
+		if (typeof dates[temp]=="undefined") {
+			dates[temp]=1;
+		} else {
+			dates[temp]+=1;
+		}
+	}
+
+	var typemaxval=0;
+	var typemaxpos=0;
+	for (var i=0;i<6;i++) {
+		if (dates[i]>typemaxval) {
+			typemaxpos=i;
+			typemaxval=dates[i];
+		}
+	}
+	
+	// Can enhance this later to keep type 0 and prevent user from going to next page if type=0
+	if (typemaxpos==0) {
+		typemaxpos=1;
+	}
+	
+	document.getElementById("dateFormat"+propID).value=typemaxpos;
+	document.getElementById("dateFormat"+propID).onchange();
 }
 
 /// As changes are made to the properties, update the JSON stream
@@ -1045,22 +1083,31 @@ Method updateProp(key, which, value, stream) [ ZenMethod ]
 	Do propertyJSON.%Save()
 }
 
-/// Given a value, find the best guess of type
-ClassMethod FindType(value) As %String
+Method findDateType(pValue) As %Integer [ ZenMethod ]
 {
-	Set type="String"
-	Set type=$select((+value=value):"String",1:"text")
-	//Check if it is a date
-	//The following patterns are checked: 
-	//	(N)N/(N)N/(NN)NN
-	//	NNNN-(N)N-(N)N
-	//	18NN, 19NN, 20NN, 21NN
+	Quit ##class(AnalyzeThis.UI.Dialog.CSVImport).FindType(pValue)
+}
+
+/// Given a value, find the best guess of type
+ClassMethod FindType(value) As %Integer
+{
+	Set type=0
+	
 	If (value?1.2N1"/"1.2N1"/"2.4N) {
-		Set type="Date 1"
+		//	[N]N/[N]N/[NN]NN
+		Set type=1
+	} ElseIf (value?2N1" "1(1(1"J",1"j")1(1"A",1"a")1(1"N",1"n"),1(1"F",1"f")1(1"E",1"e")1(1"B",1"b"),1(1"M",1"m")1(1"A",1"a")1(1"R",1"r"),1(1"A",1"a")1(1"P",1"p")1(1"R",1"r"),1(1"M",1"m")1(1"A",1"a")1(1"Y",1"y"),1(1"J",1"j")1(1"U",1"u")1(1"N",1"n"),1(1"J",1"j")1(1"U",1"u")1(1"L",1"l"),1(1"A",1"a")1(1"U",1"u")1(1"G",1"g"),1(1"S",1"s")1(1"E",1"e")1(1"P",1"p"),1(1"O",1"o")1(1"C",1"c")1(1"T",1"t"),1(1"N",1"n")1(1"O",1"o")1(1"V",1"v"),1(1"D",1"d")1(1"E",1"e")1(1"C",1"c"))1" "2.4N) {
+		//  NN (Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec) [NN]NN
+		Set type=2
 	} ElseIf (value?4N1"-"1.2N1"-"1.2N) {
-		Set type="Date 3"
+		//	NNNN-[N]N-[N]N
+		Set type=3
+	} ElseIf (value?2N1"/"2N1"/"2.4N) {
+		//  NN/NN/[NN]NN
+		Set type=4
 	} ElseIf((value?1"18"2N)||(value?1"19"2N)||(value?1"20"2N)||(value?1"21"2N)) {
-		Set type="Date 5"
+		//	18NN, 19NN, 20NN, 21NN
+		Set type=5
 	}
 	
 	Quit type
