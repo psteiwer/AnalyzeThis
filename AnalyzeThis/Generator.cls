@@ -2,12 +2,20 @@ Class AnalyzeThis.Generator
 {
 
 /// This method will go through the entire generation process. Takes in a CSV file
-ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %Status
+ClassMethod GenerateAll(pSourceType, pSource, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %Status
 {
 	Try {
 		// Preparing JSON
 		Do ..UpdateTracking(1,"Working...")
-		Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(pFileName,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize,pHasHeaders)
+		If pSourceType="CSV" {
+			Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(pSource,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize,pHasHeaders)
+		} ElseIf pSourceType="SQL" {
+			Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(pSource,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
+		} ElseIf pSourceType="Class" {
+			// Get the SQL table name and then pass through SQL method
+			Set sqlQuery=##class(AnalyzeThis.Utils).ClassToQuery(pSource)
+			Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(sqlQuery,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
+		}
 		// Probably should provide a way to clean these instead of deleting them here
 		If pPropertyJSONStreamId'="" {
 			// Delete this stream if pPropertyJSONStreamId is populated, it may have updates
@@ -49,7 +57,7 @@ ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJ
 		If $$$ISERR(tSC) $$$ThrowStatus(tSC)
 		
 		// Generating Sample Dashboard
-		Do ##class(AnalyzeThis.UI.CSVImport).AddDetails(tCubeName,"CSV",pFileName)
+		Do ##class(AnalyzeThis.UI.CSVImport).AddDetails(tCubeName,pSourceType,pSource)
 		
 		Do ..UpdateTracking(6,"Working...")
 		Set tSC=##class(AnalyzeThis.Generator).GenerateDash(tCubeName)
@@ -144,6 +152,8 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 			If tempFormat=5 {
 				//Cast back as string until we support partial dates
 				Set prop.Type="%String"
+			} ElseIf tempFormat=30 {
+				// No need to convert since this is in $H already
 			} Else {
 				//Create setter method to translate to $h
 				Set method=##class(%Dictionary.MethodDefinition).%New(class.Name_"||"_prop.Name_"Set")
@@ -256,8 +266,11 @@ ClassMethod GenerateCube(pCubeName, pPropertyJSONStreamId) As %Status
 ClassMethod GenerateDash(pCubeName As %String, pVerbose As %Boolean = 0) As %Status
 {
 	Set st=$$$OK
-	Do ##class(AnalyzeThis.Dashboard.AutoPivot).GenerateSampleDashboards(pCubeName,pVerbose)
 	Set dashName="Generated/Samples for "_pCubeName_".dashboard"
+	If ##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName) {
+		Do ##class(AnalyzeThis.Dashboard.Utils).DeleteDashboards(pCubeName)
+	}
+	Do ##class(AnalyzeThis.Dashboard.AutoPivot).GenerateSampleDashboards(pCubeName,pVerbose)
 	Set st=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 	Quit st
 }

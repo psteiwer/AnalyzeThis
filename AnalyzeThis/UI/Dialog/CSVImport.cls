@@ -14,7 +14,7 @@ Property LineSize As %Integer [ InitialExpression = 10000 ];
 
 Property hasHeaders As %ZEN.Datatype.string [ InitialExpression = 1 ];
 
-Property FileName As %String;
+Property Source As %String;
 
 Property SourceClass As %String;
 
@@ -23,6 +23,8 @@ Property CubeName As %String;
 Property propertyJSONStreamID As %ZEN.Datatype.string;
 
 Property dataJSONStreamID As %ZEN.Datatype.string;
+
+Property SourceType As %String;
 
 /// Id used to track progress.
 Property trackingId As %ZEN.Datatype.string;
@@ -106,6 +108,11 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <tab id="tab1" enclosingStyle="padding-top:20px;" cellStyle="padding-bottom:10px;">
  <html OnDrawContent="DrawPageTitle" seed="1"/>
  
+ <hgroup>
+ <radioSet id="SourceType" name="SourceType" label="Source Type" valueList="CSV,Class,SQL" value="CSV" onclick="zenPage.SwitchSourceType();"/>
+ </hgroup>
+ 
+ <group id="SourceCSV" hidden="false">
  <radioSet id="InputType" name="InputType" label="The import file resides on" valueList="REMOTE,LOCAL" 
  onclick="zenPage.doLocationChange(zenThis.getValue());" value="REMOTE"/>
  
@@ -113,25 +120,38 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <label id="Instructions" value="Please ensure the CSV file name starts with a letter"/>
 </hgroup>
 <hgroup id="idRemoteFile" cellVAlign="bottom" enclosingStyle="padding-top:20px;" >
-<text id="FileName" size="70" label="Enter the path and name of the import file:" onchange="zenPage.UpdateFileName(zenThis.getValue()); zenPage.updateState();"/>
+<text id="FileName" size="70" label="Enter the path and name of the import file:" onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"/>
 <button caption="Browse..." containerStyle="padding-left:2px;" onclick="zenPage.browseSelect('FileName');"/>
 </hgroup>
 <fileUpload id="LocalFile" name="LocalFile" label="Select the path and name of the import file:" size="70" hidden="true" onchange="zenPage.UpdateLocalFile(zenThis.getValue());"/>
 
 <checkbox id="chkHeaders" caption="This file has a header row" value="1" onchange="zenPage.UpdateHasHeaders(zenThis.getValue());" captionClass="zenLabel" hint=" (Check box to autmatically assign property names.)"/>
 <checkbox id="chkRecurse" caption="Include subdirectories" captionClass="zenLabel" value="1" hidden="true"/>
+</group>
+
+<group id="SourceSQL" hidden="true">
+<textarea id="SQLText" rows="4" cols="53" label="Enter Source SQL query" onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"></textarea>
+</group>
+
+<group id="SourceClass" hidden="true">
+<hgroup id="cubeProp" valign="top">
+<text id="sourceClass" label="Source Class" size="70" required="true" hint="Required. This class must already exist." onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"/>
+<button caption="Browse..." onclick="zenPage.browseClass('sourceClass');" />
+</hgroup>
+</group>
+
+<vgroup enclosingStyle="padding-top:10px;">
+<label id="ChangeNameLabel" value="Change the name of the cube"/>
+<hgroup>
+<text id="CubeName" name="CubeName" size="70" label="CubeName" value="#(%page.CubeName)#" onchange="zenPage.UpdateCubeName(zenThis.getValue());"/>
+</hgroup>
+</vgroup>
+
 <expando caption="Advanced" animate="true" expanded="false">
 <vgroup enclosingStyle="padding-top:10px;">
 <label id="LimitLabel" value="Limit the amount of data to read" hint="(Data load will stop after limit is reached)"/>
 <hgroup>
 <text id="LineSize" name="LineSize" value="10000" size="15" label="Line Limit" onchange="zenPage.UpdateLineSize(zenThis.getValue());"/>
-</hgroup>
-</vgroup>
-
-<vgroup enclosingStyle="padding-top:10px;">
-<label id="ChangeNameLabel" value="Change the name of the cube"/>
-<hgroup>
-<text id="CubeName" name="CubeName" size="100" label="CubeName" value="#(%page.CubeName)#" onchange="zenPage.UpdateCubeName(zenThis.getValue());"/>
 </hgroup>
 </vgroup>
 </expando>
@@ -177,11 +197,11 @@ Method UpdateHasHeaders(value) [ Internal, ZenMethod ]
 	Set ..hasHeaders=value
 }
 
-/// Update the FileName property
-Method UpdateFileName(value) [ Internal, ZenMethod ]
+/// Update the Source property
+Method UpdateSource(value) [ Internal, ZenMethod ]
 {
-	Set ..FileName=value
-	do ..GenerateCubeName()
+	Set ..Source=value
+	Do ..GenerateCubeName()
 }
 
 /// Update the LOCALFILENAME property
@@ -229,10 +249,10 @@ ClientMethod doLocationChange(flag) [ Internal, Language = javascript ]
 		zen("LocalFile").setHidden(true);
 		zen("btnNext").setHidden(false);
 		zen("btnSubmit").setHidden(true);
-		var FileName=zen("FileName").getValue()
+		var Source=zen("FileName").getValue()
 		if (zen("FileName").getValue() != "") {
-			zen("btnNext").setProperty('disabled',FileName=="");
-			zen("btnNext").setProperty('controlClass', (FileName!="" ? 'commandButton' :'commandButtonDisabled'));			
+			zen("btnNext").setProperty('disabled',Source=="");
+			zen("btnNext").setProperty('controlClass', (Source!="" ? 'commandButton' :'commandButtonDisabled'));			
 		}
 	}
 }
@@ -304,7 +324,7 @@ ClientMethod updateState() [ Language = javascript ]
 /// Kicks off GenerateAll and starts the update timer
 ClientMethod updateProgress() [ Language = javascript]
 {
-	this.trackingId=this.GenerateAll(this.FileName,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
+	this.trackingId=this.GenerateAll(this.SourceType,this.Source,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
 	if (this.trackingId!='') {
 		zen('timer').timeout=500;
 		zen('timer').startTimer();
@@ -419,12 +439,12 @@ ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
 
 /// Start the build cube process in the background.
 /// Return the tracking id.
-ClassMethod GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
+ClassMethod GenerateAll(pSourceType,pSource, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
 {
 	Set tTrackingId=""
 	Set tJobTimeOut=10
 	
-	Job ##class(AnalyzeThis.Generator).GenerateAll(pFileName, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId)::tJobTimeOut
+	Job ##class(AnalyzeThis.Generator).GenerateAll(pSourceType,pSource, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId)::tJobTimeOut
 	If '$Test {
 		&js<alert('Unable to start background job.');>
 		Set tTrackingId=""
@@ -499,16 +519,25 @@ Method GetStats() As %String [ ZenMethod ]
 /// Using file properties, create the cube name
 Method GenerateCubeName() [ ZenMethod ]
 {
-	Set file=""
-	If ..%GetValueById("InputType")="LOCAL" {
-		Set file=..LOCALFILENAME
+	If ..SourceType="CSV" {
+		Set file=""
+		If ..%GetValueById("InputType")="LOCAL" {
+			Set file=..LOCALFILENAME
+		} Else {
+			Set file=..Source
+		}
+		If $length(file,"\")>$length(file,"/") {
+			Set tName=$zstrip($replace($piece($piece(file,"\",*),".",1),"DEEPSEE",""),"*PCW")
+		} Else {
+			Set tName=$zstrip($replace($piece($piece(file,"/",*),".",1),"DEEPSEE",""),"*PCW")
+		}
+	} ElseIf ..SourceType="Class" {
+		Set tName=..Source
+		// Class should end in .cls, extract package + .cls extension to get class name
+		Set tName=$piece(tName,".",*-1)
 	} Else {
-		Set file=..FileName
-	}
-	If $length(file,"\")>$length(file,"/") {
-		Set tName=$zstrip($replace($piece($piece(file,"\",*),".",1),"DEEPSEE",""),"*PCW")
-	} Else {
-		Set tName=$zstrip($replace($piece($piece(file,"/",*),".",1),"DEEPSEE",""),"*PCW")
+		// SouceType not supported to auto generate class name
+		Quit
 	}
 	
 	Set ..CubeName=tName
@@ -533,20 +562,17 @@ ClientMethod drawDone(tab) [ Language = javascript ]
 	
 	var result=this.GetStatus(tab);
 	var id="idProgress"+tab;
-	this.IMPORTALL=0;
 	if (result.Status == "Done") {
 		if (result.Error != "") {
 			this.showMsg(result.Error);
 			zen("btnFinish").setProperty('disabled',true);
 			zen("btnFinish").setProperty('controlClass','commandButtonDisabled');
 		}
-	} else if (result.Status == "IMPORTALL") {
-		this.IMPORTALL=1;
 	} else {
-		//var error=$$$Text("Unexpected error occurred. Loading did not finish as expected.");
-		//this.showMsg(error);
 		zen("btnNext").setProperty('disabled',true);
 		zen("btnNext").setProperty('controlClass','commandButtonDisabled');
+		zen("btnFinish").setProperty('disabled',true);
+		zen("btnFinish").setProperty('controlClass','commandButtonDisabled');
 	}
 	zen(id).setHidden(true);
 }
@@ -648,37 +674,65 @@ ClientMethod nextPage() [ Language = javascript ]
 {
 	var tabGroup=zen('tabGroup');
 	var tabNo=tabGroup.getCurrTabNo();
+	var html=zen("htmlContent");
+	this.showMsg("",1);	
 	switch(tabNo) {
 	case 1:
-		var FileName=zen("FileName").getValue();
-		var inputtype="REMOTE"
-		if (this.LOCALFILENAME != "") {
-			filename=this.LOCALFILENAME;
-			inputtype="LOCAL";
+		var SourceType=zen("SourceType").getValue();
+		
+		if (SourceType=="CSV") {
+			var Source=zen("FileName").getValue();
+			var inputtype="REMOTE"
+			if (this.LOCALFILENAME != "") {
+				Source=this.LOCALFILENAME;
+				inputtype="LOCAL";
+			}
+			var ok=this.ValidateFile(Source);
+			if (ok == 0) {
+				this.showMsg($$$Text("File required."),1);	
+				zen("FileName").focus();
+				break;
+			}
+			if (ok == -1) {
+				this.showMsg($$$Text("You have entered a directory path without a file name."),1);
+				zen("FileName").focus();
+				break;	
+			}
+			if (ok == -2) {
+				this.showMsg($$$Text("File does not exist!"),1);
+				zen("FileName").focus();
+				break;		
+			}
+			if (ok == -3) {
+				this.showMsg($$$Text("File Name cannot start with a number!"),1);
+				zen("FileName").focus();
+				break;		
+			}
+			html.setProperty('seed',Source);
+		} else if (SourceType=="SQL") {
+			var sql=zen("SQLText").getValue();
+			if (sql=="") {
+				this.showMsg($$$Text("SQL Query required."),1);
+				zen("SQLText").focus();
+				break;
+			}
+			html.setProperty('seed',sql);
+		} else if (SourceType=="Class") {
+			var sourceClass=zen("sourceClass").getValue();
+			if (sourceClass=="") {
+				this.showMsg($$$Text("Source Class required."),1);
+				zen("sourceClass").focus();
+				break;
+			}
+			html.setProperty('seed',sourceClass);
 		}
-		var ok=this.ValidateFile(FileName);
-		if (ok == 0) {
-			this.showMsg($$$Text("File name is empty."),1);	
-			zen("FileName").focus();
+		
+		if (zen("CubeName").getValue()=="") {
+			this.showMsg($$$Text("Cube Name required."),1);
+			zen("CubeName").focus();
 			break;
 		}
-		if (ok == -1) {
-			this.showMsg($$$Text("You have entered a directory path without a file name."),1);
-			zen("FileName").focus();
-			break;	
-		}
-		if (ok == -2) {
-			this.showMsg($$$Text("File does not exist!"),1);
-			zen("FileName").focus();
-			break;		
-		}
-		if (ok == -3) {
-		this.showMsg($$$Text("File Name cannot start with a number!"),1);
-		zen("FileName").focus();
-		break;		
-		}
-		var html=zen("htmlContent");
-		html.setProperty('seed',FileName);
+		
 		tabGroup.showNextTab();
 		break;
 	case 2:
@@ -748,11 +802,17 @@ ClientMethod browseSelect(name) [ Internal, Language = javascript ]
 /// The id of the field that needs to be updated is saved in "dialogClicked".
 ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = javascript ]
 {
-	if (action == "ok") {
-		zen("FileName").setValue(value);
-		zenPage.UpdateFileName(value);
-		zenPage.GenerateCubeName();
-		zenPage.updateState();	
+	if (action=="ok") {
+		if (popupName=="sourceClass") {
+			zenPage.getComponentById(popupName).setValue(value);
+			zenPage.UpdateSource(value);
+			zenPage.updateState();
+		} else if (popupName=="FileSelect") {
+			zen("FileName").setValue(value);
+			zenPage.UpdateSource(value);
+			zenPage.GenerateCubeName();
+			zenPage.updateState();
+		}	
 	}
 }
 
@@ -783,7 +843,7 @@ ClientMethod onstartHandler() [ Internal, Language = javascript ]
 /// This should be implemented in a subclass.
 Method %OnGetTitle() As %String [ Internal ]
 {
-	Quit $$$TextHTML("Import CSV")
+	Quit $$$TextHTML("Import Data")
 }
 
 /// Get the (localized) subtitle string for the dialog.
@@ -812,8 +872,9 @@ Method %OnAfterCreatePage() As %Status [ Internal ]
 		Set ..%GetComponentById("InputType").hidden=1
 		Set ..%GetComponentById("LocalFile").hidden=1
 	}
-	Set FileName=""
-	Set ..%GetComponentById("FileName").value=FileName
+	Set ..SourceType=..%GetComponentById("SourceType").value
+	Set Source=""
+	Set ..%GetComponentById("FileName").value=Source
 	#; Set for Remote input types choice: ServerName or local machine
 	Set ..%GetComponentById("InputType").displayList=$zu(110)_","_$$$Text("My Local Machine")
 	If $G(%request.Data("INPUTTYPE",1))="LOCAL" {
@@ -845,7 +906,7 @@ ClassMethod DrawSortPageTitle(pSeed As %String) As %Status [ Internal ]
 
 ClassMethod DrawPageTitle(pSeed As %String) As %Status [ Internal ]
 {
-	Set tPageTitle="Import CSV file"
+	Set tPageTitle="Import Data"
 	&html<<div class="Description">#(tPageTitle)#
 	</div><hr size="1"/>>
 	Quit 1
@@ -863,9 +924,17 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 	If ..INPUTTYPE="LOCAL" {
 		Set file=..LOCALFILENAME
 	} Else {
-		Set file=..FileName
+		Set file=..Source
 	}
-	Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,10,..hasHeaders)
+	If ..SourceType="SQL" {
+		Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(pSeed,.propertiesJSONStreamId,.dataJSONStreamId,10)
+	} ElseIf ..SourceType="Class" {
+		// Get the SQL table name and then pass through SQL method
+		Set sqlQuery=##class(AnalyzeThis.Utils).ClassToQuery(pSeed)
+		Set tSC=##class(AnalyzeThis.Utils).SQLToJSON(sqlQuery,.propertiesJSONStreamId,.dataJSONStreamId,10)
+	} Else {
+		Set tSC=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(file,.propertiesJSONStreamId,.dataJSONStreamId,10,..hasHeaders)
+	}
 	
 	Quit:$$$ISERR(tSC) tSC
 	
@@ -916,6 +985,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 			&html<<option value="19">[D]D [M]M YYYY</option>>
 			&html<<option value="20">[D]D Mmmmm YYYY</option>>
 			&html<<option value="21">[D]D [M]M YYYY</option>>*/
+			&html<<option value="30">$H</option>>
 			&html<</select><select id="intFormat#(key)#" style="display:none;" onchange="zenPage.updateProp('#(key)#','IntFormat',value,'#(propertiesJSONStreamId)#');"/>>
 			&html<<option value="%Integer" selected="selected">Integer</option>>
 			&html<<option value="%Double">Double</option>>
@@ -938,13 +1008,15 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 			Continue
 		}
 		&html<<tr>>
+		Set tPropNum=-1
 		Set iter2=val.%GetIterator()
 		While iter2.%GetNext(.key2,.val2) {
-			&html<<td>#(val2)#</td>>
+			&html<<td id="p#($I(tPropNum))#r#(key)#">#(val2)#</td>>
 		}
 		&html<</tr>>
 	}
 	&html<</table>>
+	Set %session.Data($Username,"Import","ContentStatus") = "Done"
 	Quit tSC
 }
 
@@ -954,6 +1026,8 @@ ClientMethod swapFormat(propID, value) [ Internal, Language = javascript ]
 	if ((value=='%Date') || (value=='%TimeStamp'))  {
 		document.getElementById("dateFormat"+propID).style.display=""
 		document.getElementById("intFormat"+propID).style.display="none"
+		
+		zenPage.autoDateFormat(propID);
 	} else if (value=='%Integer') {
 		document.getElementById("intFormat"+propID).style.display=""
 		document.getElementById("dateFormat"+propID).style.display="none"
@@ -961,6 +1035,41 @@ ClientMethod swapFormat(propID, value) [ Internal, Language = javascript ]
 		document.getElementById("dateFormat"+propID).style.display="none"
 		document.getElementById("intFormat"+propID).style.display="none"
 	}
+}
+
+/// Try and automatically select the date format
+ClientMethod autoDateFormat(propID) [ Internal, Language = javascript ]
+{
+	var dates=[];
+	for (var i=0;i<10;i++) {
+		var prop=document.getElementById("p"+propID+"r"+i);
+		if (prop==null) {
+			return
+		}
+		var temp=parseInt(zenPage.findDateType(prop.innerHTML));
+		if (typeof dates[temp]=="undefined") {
+			dates[temp]=1;
+		} else {
+			dates[temp]+=1;
+		}
+	}
+
+	var typemaxval=0;
+	var typemaxpos=0;
+	for (var i=0;i<dates.length;i++) {
+		if (dates[i]>typemaxval) {
+			typemaxpos=i;
+			typemaxval=dates[i];
+		}
+	}
+	
+	// Can enhance this later to keep type 0 and prevent user from going to next page if type=0
+	if (typemaxpos==0) {
+		typemaxpos=1;
+	}
+	
+	document.getElementById("dateFormat"+propID).value=typemaxpos;
+	document.getElementById("dateFormat"+propID).onchange();
 }
 
 /// As changes are made to the properties, update the JSON stream
@@ -975,22 +1084,34 @@ Method updateProp(key, which, value, stream) [ ZenMethod ]
 	Do propertyJSON.%Save()
 }
 
-/// Given a value, find the best guess of type
-ClassMethod FindType(value) As %String
+Method findDateType(pValue) As %Integer [ ZenMethod ]
 {
-	Set type="String"
-	Set type=$select((+value=value):"String",1:"text")
-	//Check if it is a date
-	//The following patterns are checked: 
-	//	(N)N/(N)N/(NN)NN
-	//	NNNN-(N)N-(N)N
-	//	18NN, 19NN, 20NN, 21NN
+	Quit ##class(AnalyzeThis.UI.Dialog.CSVImport).FindType(pValue)
+}
+
+/// Given a value, find the best guess of type
+ClassMethod FindType(value) As %Integer
+{
+	Set type=0
+	
 	If (value?1.2N1"/"1.2N1"/"2.4N) {
-		Set type="Date 1"
+		//	[N]N/[N]N/[NN]NN
+		Set type=1
+	} ElseIf (value?2N1" "1(1(1"J",1"j")1(1"A",1"a")1(1"N",1"n"),1(1"F",1"f")1(1"E",1"e")1(1"B",1"b"),1(1"M",1"m")1(1"A",1"a")1(1"R",1"r"),1(1"A",1"a")1(1"P",1"p")1(1"R",1"r"),1(1"M",1"m")1(1"A",1"a")1(1"Y",1"y"),1(1"J",1"j")1(1"U",1"u")1(1"N",1"n"),1(1"J",1"j")1(1"U",1"u")1(1"L",1"l"),1(1"A",1"a")1(1"U",1"u")1(1"G",1"g"),1(1"S",1"s")1(1"E",1"e")1(1"P",1"p"),1(1"O",1"o")1(1"C",1"c")1(1"T",1"t"),1(1"N",1"n")1(1"O",1"o")1(1"V",1"v"),1(1"D",1"d")1(1"E",1"e")1(1"C",1"c"))1" "2.4N) {
+		//  NN (Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec) [NN]NN
+		Set type=2
 	} ElseIf (value?4N1"-"1.2N1"-"1.2N) {
-		Set type="Date 3"
-	} ElseIf((value?1"18"2N)||(value?1"19"2N)||(value?1"20"2N)||(value?1"21"2N)) {
-		Set type="Date 5"
+		//	NNNN-[N]N-[N]N
+		Set type=3
+	} ElseIf (value?2N1"/"2N1"/"2.4N) {
+		//  NN/NN/[NN]NN
+		Set type=4
+	} ElseIf ((value?1"18"2N)||(value?1"19"2N)||(value?1"20"2N)||(value?1"21"2N)) {
+		//	18NN, 19NN, 20NN, 21NN
+		Set type=5
+	} ElseIf (value?5N) {
+		// NNNNN, $H format
+		Set type=30
 	}
 	
 	Quit type
@@ -1066,6 +1187,42 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 	body.style.height=body.parentNode.offsetHeight+'px'
 	body.offsetWidth=(zenbody.offsetWidth-20)+'px'
 	body.style.width=(zenbody.offsetWidth-20)+'px'
+}
+
+Method SwitchSourceType() As %Status [ZenMethod]
+{
+	Set st=$$$OK
+	
+	Set sourceType=..%GetComponentById("SourceType")
+	Set sourceCSV=..%GetComponentById("SourceCSV")
+	Set sourceSQL=..%GetComponentById("SourceSQL")
+	Set sourceClass=..%GetComponentById("SourceClass")
+	
+	Set ..SourceType=sourceType.value
+	If sourceType.value="CSV" {
+		// Unhide CSV
+		Set sourceCSV.hidden=0
+		
+		// Hide others
+		Set sourceSQL.hidden=1
+		Set sourceClass.hidden=1
+	} ElseIf sourceType.value="SQL" {
+		// Unhide SQL
+		Set sourceSQL.hidden=0
+		
+		// Hide others
+		Set sourceCSV.hidden=1
+		Set sourceClass.hidden=1
+	} ElseIf sourceType.value="Class" {
+		// Unhide SQL
+		Set sourceClass.hidden=0
+		
+		// Hide others
+		Set sourceCSV.hidden=1
+		Set sourceSQL.hidden=1
+	}
+	
+	Quit st
 }
 
 /// Takes a CSV file and returns two stream IDs containing relating to a JSON object for the Properties and a JSON object for the Data
@@ -1224,5 +1381,12 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 	Set propertyJSONStreamId=propertyJSONStream.%Id()
 	
 	Quit st
+}
+
+/// Invoke class finder dialog.
+ClientMethod browseClass(popupName) [ Language = javascript ]
+{
+	var mode="sourceclasses";
+	zenLaunchPopupWindow('_DeepSee.UI.Dialog.finderDialog.cls?MODE='+encodeURIComponent(mode),popupName,'resizable,width=900,height=500');
 }
 }

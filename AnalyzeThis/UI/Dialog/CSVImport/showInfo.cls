@@ -64,7 +64,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <label id="idRespond" enclosingClass="note" containerStyle="padding-top:10px;padding-left:4px;" hidden="true"/>
 <label id="test" value="#(%page.CubeName)#" enclosingStyle="font-size: 20px; font-weight: bold;"/>
 <spacer height="5"/>
-<html id="htmlContent4" OnDrawContent="GetVersion" seed="1"/>
+<html id="htmlContent4" OnDrawContent="GetImportInfo" seed="1"/>
 <spacer height="5"/>
 <expando id="nullStats" caption="Null Statistics" cellStyle="font-size: 16px; font-weight: normal" containerStyle="font-size: 18px; font-weight: bold" expanded="false" childIndent="35px" animate="true">
 <html id="htmlContent" OnDrawContent="GetStats" seed="1"/>
@@ -79,10 +79,18 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 </pane>
 }
 
-Method GetVersion(pSeed As %String) As %Status [ ZenMethod ]
+Method GetImportInfo(pSeed As %String) As %Status [ ZenMethod ]
 {
 	Set version=$o(^AnalyzeThis.ImportCSV(..CubeName,""))
-	&html<<font size='3' color='green'><p> This Cube was created with wizard version number: #(version)# </p></font>>
+	Set sourceType=$o(^AnalyzeThis.ImportCSV(..CubeName,version,""),1,source)
+	&html<
+		<font size='3' color='green'>
+			<p>
+				This Cube was created with AnalyzeThis version number: #(version)#
+				<br/>Source Type is: #(sourceType)#
+				<br/>Source is: #(source)#
+			</p>
+		</font>>
 	Quit $$$OK
 }
 
@@ -204,12 +212,19 @@ Method GetStats(pSeed As %String) As %Status [ ZenMethod ]
 /// This should be implemented in a subclass.
 Method %OnGetTitle() As %String [ Internal ]
 {
-	Quit $$$TextHTML("Import CSV")
+	Quit $$$TextHTML("Cube Info")
+}
+
+/// Get the (localized) subtitle string for the dialog.
+/// This should be implemented in a subclass.
+Method %OnGetSubtitle() As %String [ Internal ]
+{
+	Quit ""
 }
 
 ClassMethod DrawPageTitle(pSeed As %String) As %Status [ Internal ]
 {
-	Set tPageTitle="Import CSV file"
+	Set tPageTitle=$$$TextHTML("Cube Info")
 	&html<<div class="Description">#(tPageTitle)#
 	</div><hr size="1"/>>
 	Quit $$$OK
