@@ -985,6 +985,7 @@ Method PropertyCheckJSON(pSeed) As %Status [ ZenMethod ]
 			&html<<option value="19">[D]D [M]M YYYY</option>>
 			&html<<option value="20">[D]D Mmmmm YYYY</option>>
 			&html<<option value="21">[D]D [M]M YYYY</option>>*/
+			&html<<option value="30">$H</option>>
 			&html<</select><select id="intFormat#(key)#" style="display:none;" onchange="zenPage.updateProp('#(key)#','IntFormat',value,'#(propertiesJSONStreamId)#');"/>>
 			&html<<option value="%Integer" selected="selected">Integer</option>>
 			&html<<option value="%Double">Double</option>>
@@ -1055,7 +1056,7 @@ ClientMethod autoDateFormat(propID) [ Internal, Language = javascript ]
 
 	var typemaxval=0;
 	var typemaxpos=0;
-	for (var i=0;i<6;i++) {
+	for (var i=0;i<dates.length;i++) {
 		if (dates[i]>typemaxval) {
 			typemaxpos=i;
 			typemaxval=dates[i];
@@ -1105,9 +1106,12 @@ ClassMethod FindType(value) As %Integer
 	} ElseIf (value?2N1"/"2N1"/"2.4N) {
 		//  NN/NN/[NN]NN
 		Set type=4
-	} ElseIf((value?1"18"2N)||(value?1"19"2N)||(value?1"20"2N)||(value?1"21"2N)) {
+	} ElseIf ((value?1"18"2N)||(value?1"19"2N)||(value?1"20"2N)||(value?1"21"2N)) {
 		//	18NN, 19NN, 20NN, 21NN
 		Set type=5
+	} ElseIf (value?5N) {
+		// NNNNN, $H format
+		Set type=30
 	}
 	
 	Quit type

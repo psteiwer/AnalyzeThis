@@ -152,6 +152,8 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 			If tempFormat=5 {
 				//Cast back as string until we support partial dates
 				Set prop.Type="%String"
+			} ElseIf tempFormat=30 {
+				// No need to convert since this is in $H already
 			} Else {
 				//Create setter method to translate to $h
 				Set method=##class(%Dictionary.MethodDefinition).%New(class.Name_"||"_prop.Name_"Set")
