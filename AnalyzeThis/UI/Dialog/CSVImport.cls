@@ -1043,7 +1043,7 @@ ClientMethod autoDateFormat(propID) [ Internal, Language = javascript ]
 	var dates=[];
 	for (var i=0;i<10;i++) {
 		var prop=document.getElementById("p"+propID+"r"+i);
-		if (prop=="") {
+		if (prop==null) {
 			return
 		}
 		var temp=parseInt(zenPage.findDateType(prop.innerHTML));
