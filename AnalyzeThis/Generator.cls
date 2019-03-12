@@ -98,8 +98,21 @@ ClassMethod GenerateSourceClass(pCubeName, pPropertyJSONStreamId) As %Status
 	
 	Set tSC=##class(AnalyzeThis.Dashboard.Utils).DeleteAll(pCubeName)
 	
-	// Take file from request
-	Set tSC=##class(AnalyzeThis.Generator).JSONToClass(pPropertyJSONStreamId,"AnalyzeThis.Generated."_pCubeName)
+	Set tClassName="AnalyzeThis.Generated."_pCubeName
+	Set tSC=##class(AnalyzeThis.Generator).JSONToClass(pPropertyJSONStreamId,tClassName)
+	If $$$ISERR(tSC) Quit tSC
+	
+	// We need to modify the storage definition so that a mapping of AnalyzeThis.* will work
+	Set tStorage=##class(%Dictionary.StorageDefinition).%OpenId(tClassName_"||Default")
+	Set tStorage.DataLocation="^"_tClassName_"D"
+	Set tStorage.IdLocation="^"_tClassName_"D"
+	Set tStorage.IndexLocation="^"_tClassName_"I"
+	Set tStorage.StreamLocation="^"_tClassName_"S"
+	Set tSC=tStorage.%Save()
+	If $$$ISERR(tSC) Quit tSC
+	
+	// Compile again to take new storage definition
+	Set tSC=$system.OBJ.Compile(tClassName,"fck /displayerror=0 /displaylog=0")
 	
 	Quit tSC
 }
