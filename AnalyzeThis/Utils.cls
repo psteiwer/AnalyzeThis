@@ -205,8 +205,12 @@ ClassMethod SQLToJSON(pSourceQuery As %String, ByRef propertyJSONStreamId, ByRef
 
 ClassMethod ClassToQuery(pClass) As %String
 {
-	// Assume pClass ends in .cls
-	Set sqlTableName=##class(%DeepSee.Utils).%GetSQLTableName($piece(pClass,".",1,*-1))
+	// Check for .cls extension
+	Set tCls=1
+	If $zconvert($extract(pClass,*-3,*),"U")'=".CLS" {
+		Set tCls=0
+	}
+	Set sqlTableName=##class(%DeepSee.Utils).%GetSQLTableName($piece(pClass,".",1,*-tCls))
 	Set sqlQuery="SELECT * FROM "_sqlTableName
 	Quit sqlQuery
 }
