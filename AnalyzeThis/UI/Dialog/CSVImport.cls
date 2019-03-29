@@ -737,6 +737,13 @@ ClientMethod nextPage() [ Language = javascript ]
 			zen("CubeName").focus();
 			break;
 		}
+
+		var uniquename=zenPage.UniqueName(zen("CubeName").getValue());
+		if (uniquename!="") {
+			this.showMsg($$$Text(uniquename),1);
+			zen("CubeName").focus();
+			break;
+		}
 		
 		tabGroup.showNextTab();
 		break;
@@ -1144,6 +1151,18 @@ ClassMethod ValidateFile(FILE) As %Integer [ Internal, ZenMethod ]
 	Set tFILE=$PIECE(FILE,"/",*)
 	If ($$$UPPER($ZStrip(tFILE,"<N"))'=$$$UPPER(tFILE)) Quit -3
 	Quit 1
+}
+
+ClassMethod UniqueName(pName) As %String [ Internal, ZenMethod ]
+{
+	Set tResponse=""
+	Set tSQL="SELECT ID FROM %Dictionary.ClassDefinition WHERE ID %STARTSWITH ?"
+	Set tRS=##class(%SQL.Statement).%ExecDirect(,tSQL,"AnalyzeThis.Generated."_$E(pName,1,16))
+	Set tNotUnique=tRS.%Next()
+	If tNotUnique {
+		Set tResponse="First 16 characters of CubeName must be unique from existing CubeNames. "_pName_" is not unique from "_$Piece(tRS.ID,".",*)
+	}
+	Quit tResponse
 }
 
 /// This method is invoked only when user selects to import from Local Machine.<br/>
