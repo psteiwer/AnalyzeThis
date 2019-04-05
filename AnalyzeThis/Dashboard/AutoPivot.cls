@@ -664,9 +664,9 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 		If (wtype="time") Do Properties.SetAt(mdx,"MDX")
 		If (wtype="barChart") {
 			// Check to see if Highcharts Portlet exists
-			If ##class(%Dictionary.CompiledClass).%ExistsId("%DeepSee.Highcharts.Portlet") {
+			If ##class(%Dictionary.CompiledClass).%ExistsId("ThirdPartyChartPortlets.Highcharts") {
 				Set widget.type="portlet"
-				Set widget.subtype="%DeepSee.Highcharts.Portlet"
+				Set widget.subtype="ThirdPartyChartPortlets.Highcharts"
 				Set widget.subtypeClass="portlet"
 				Do Properties.SetAt(2,"chartType")
 				Do Properties.SetAt(0,"print")
