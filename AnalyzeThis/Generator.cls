@@ -179,6 +179,14 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 		Do class.Properties.Insert(prop)
 		//}
 	}
+	
+	// Set global name directly to allow for global mapping of AnalyzeThis.*
+	Set param=##class(%Dictionary.ParameterDefinition).%New()
+	Set param.Name="DEFAULTGLOBAL"
+	// Unique up to 32 characters, only take first 16 chars of class name to avoid confusion
+	Set param.Default="^AnalyzeThis.G."_$extract($piece(pClassName,".",*),1,16)
+	Do class.Parameters.Insert(param)
+	
 	Set tSC=class.%Save()
 	Set tSC=$system.OBJ.Compile(pClassName,"fck /displayerror=0 /displaylog=0")
 	

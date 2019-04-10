@@ -534,7 +534,12 @@ Method GenerateCubeName() [ ZenMethod ]
 	} ElseIf ..SourceType="Class" {
 		Set tName=..Source
 		// Class should end in .cls, extract package + .cls extension to get class name
-		Set tName=$piece(tName,".",*-1)
+		// If class does not end in .cls, handle appropriately
+		Set tCls=1
+		If $zconvert($extract(tName,*-3,*),"U")'=".CLS" {
+			Set tCls=0
+		}
+		Set tName=$piece(tName,".",*-tCls)
 	} Else {
 		// SouceType not supported to auto generate class name
 		Quit
@@ -729,6 +734,13 @@ ClientMethod nextPage() [ Language = javascript ]
 		
 		if (zen("CubeName").getValue()=="") {
 			this.showMsg($$$Text("Cube Name required."),1);
+			zen("CubeName").focus();
+			break;
+		}
+
+		var uniquename=zenPage.UniqueName(zen("CubeName").getValue());
+		if (uniquename!="") {
+			this.showMsg($$$Text(uniquename),1);
 			zen("CubeName").focus();
 			break;
 		}
@@ -1139,6 +1151,18 @@ ClassMethod ValidateFile(FILE) As %Integer [ Internal, ZenMethod ]
 	Set tFILE=$PIECE(FILE,"/",*)
 	If ($$$UPPER($ZStrip(tFILE,"<N"))'=$$$UPPER(tFILE)) Quit -3
 	Quit 1
+}
+
+ClassMethod UniqueName(pName) As %String [ Internal, ZenMethod ]
+{
+	Set tResponse=""
+	Set tSQL="SELECT ID FROM %Dictionary.ClassDefinition WHERE ID %STARTSWITH ?"
+	Set tRS=##class(%SQL.Statement).%ExecDirect(,tSQL,"AnalyzeThis.Generated."_$E(pName,1,16))
+	Set tNotUnique=tRS.%Next()
+	If tNotUnique {
+		Set tResponse="First 16 characters of CubeName must be unique from existing CubeNames. "_pName_" is not unique from "_$Piece(tRS.ID,".",*)
+	}
+	Quit tResponse
 }
 
 /// This method is invoked only when user selects to import from Local Machine.<br/>
