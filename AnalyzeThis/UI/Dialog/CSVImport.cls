@@ -795,7 +795,9 @@ ClientMethod onloadHandler() [ Internal, Language = javascript ]
 {
 	this.invokeSuper('onloadHandler',arguments);
 	if (this.InvalidParam) {
-		zen("btnNext").setHidden(true);	}
+		zen("btnNext").setHidden(true);
+	}
+	this.onstartHandler();
 }
 
 ClientMethod getDialogValue() [ Internal, Language = javascript ]
