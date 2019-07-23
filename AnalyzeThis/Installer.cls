@@ -1,15 +1,13 @@
 Class AnalyzeThis.Installer
 {
 
-ClassMethod RunInstaller()
+ClassMethod RunInstaller(pRootDir)
 {
 	Set tSC=$$$OK
 	
-	Read "Enter AnalyzeThis root directory: ",tRootDir,!
-	
-	If tRootDir'="" {
-		Do $system.OBJ.LoadDir(tRootDir_"/AnalyzeThis","ck",,1)
-		Set tSC=..ImportImage(tRootDir_"/Assets/AnalyzeThis_BookCover.png")
+	If pRootDir'="" {
+		Do $system.OBJ.LoadDir(pRootDir_"/AnalyzeThis","ck",,1)
+		Set tSC=..ImportImage(pRootDir_"/Assets/AnalyzeThis_BookCover.png")
 		If $$$ISERR(tSC) Quit
 	}
 	

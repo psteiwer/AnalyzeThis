@@ -18,11 +18,11 @@ Provide a Data Source (CSV file, Caché Class, or SQL Query) and assign dimensio
 3. Open terminal and ZN to desired namespace
 4. Run the following commands:
 ```
-   do $system.OBJ.Load("<PATH FROM STEP 2>/AnalyzeThis/Installer.cls","ck")
-   do ##class(AnalyzeThis.Installer).RunInstaller()
+   Set path="PATH FROM STEP 2"
+   Do $system.OBJ.Load(path_"/AnalyzeThis/Installer.cls","ck")
+   Do ##class(AnalyzeThis.Installer).RunInstaller(path)
 ```
-5. When prompted, again enter path from step 2
-6. From the Management Portal, navigate to DeepSee/Analytics->User Portal
+5. From the Management Portal, navigate to DeepSee/Analytics->User Portal
    * Find new "AnalyzeThis" Link with custom Cover Image
    
    ![alt text][logo]

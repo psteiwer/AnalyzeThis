@@ -135,7 +135,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 
 <group id="SourceClass" hidden="true">
 <hgroup id="cubeProp" valign="top">
-<text id="sourceClass" label="Source Class" size="70" required="true" hint="Required. This class must already exist." onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"/>
+<text id="sourceClass" label="Source Class" size="70" required="false" hint="Required. This class must already exist." onchange="zenPage.UpdateSource(zenThis.getValue()); zenPage.updateState();"/>
 <button caption="Browse..." onclick="zenPage.browseClass('sourceClass');" />
 </hgroup>
 </group>
@@ -795,7 +795,9 @@ ClientMethod onloadHandler() [ Internal, Language = javascript ]
 {
 	this.invokeSuper('onloadHandler',arguments);
 	if (this.InvalidParam) {
-		zen("btnNext").setHidden(true);	}
+		zen("btnNext").setHidden(true);
+	}
+	this.onstartHandler();
 }
 
 ClientMethod getDialogValue() [ Internal, Language = javascript ]
@@ -1230,6 +1232,8 @@ Method SwitchSourceType() As %Status [ZenMethod]
 		// Hide others
 		Set sourceSQL.hidden=1
 		Set sourceClass.hidden=1
+		
+		Set sourceClassFile.required=0
 	} ElseIf sourceType.value="SQL" {
 		// Unhide SQL
 		Set sourceSQL.hidden=0
@@ -1237,6 +1241,8 @@ Method SwitchSourceType() As %Status [ZenMethod]
 		// Hide others
 		Set sourceCSV.hidden=1
 		Set sourceClass.hidden=1
+		
+		Set sourceClassFile.required=0
 	} ElseIf sourceType.value="Class" {
 		// Unhide SQL
 		Set sourceClass.hidden=0
@@ -1244,6 +1250,8 @@ Method SwitchSourceType() As %Status [ZenMethod]
 		// Hide others
 		Set sourceCSV.hidden=1
 		Set sourceSQL.hidden=1
+		
+		Set sourceClassFile.required=1
 	}
 	
 	Quit st
