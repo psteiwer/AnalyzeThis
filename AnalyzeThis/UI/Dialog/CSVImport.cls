@@ -324,7 +324,11 @@ ClientMethod updateState() [ Language = javascript ]
 /// Kicks off GenerateAll and starts the update timer
 ClientMethod updateProgress() [ Language = javascript]
 {
-	this.trackingId=this.GenerateAll(this.SourceType,this.Source,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
+	var file=this.Source
+	if (this.INPUTTYPE=='LOCAL') {
+		file=this.LOCALFILENAME
+	}
+	this.trackingId=this.GenerateAll(this.SourceType,file,this.LineSize,this.hasHeaders,this.CubeName,this.propertyJSONStreamID,this.dataJSONStreamID);
 	if (this.trackingId!='') {
 		zen('timer').timeout=500;
 		zen('timer').startTimer();
