@@ -1223,6 +1223,7 @@ Method SwitchSourceType() As %Status [ZenMethod]
 	Set sourceCSV=..%GetComponentById("SourceCSV")
 	Set sourceSQL=..%GetComponentById("SourceSQL")
 	Set sourceClass=..%GetComponentById("SourceClass")
+	Set sourceClassFile=..%GetComponentById("sourceClass")
 	
 	Set ..SourceType=sourceType.value
 	If sourceType.value="CSV" {
