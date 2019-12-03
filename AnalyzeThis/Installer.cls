@@ -16,7 +16,7 @@ ClassMethod RunInstaller(pRootDir)
 	Set tPage="AnalyzeThis.UI.CSVImport.zen"
 	Set tItem.href=$system.CSP.GetPortalApp($namespace,tPage) _ tPage
 	Set tItem.title="Analyze This"
-	Set tItem.bookCover="{background: {style:'background:white;',src:'covers/AnalyzeThis_Cover.png'},header: {text:'$type',style:'display: none;'},title: {text:'$title',style:'display: none;'},image: {style:'display: none;',src:'deepsee/ds2_globe_44.png',imageStyle:'width:64px;height:64px;'},subtitle: {style:'display: none;'},footer: {text:'$owner',style:'display: none;'}}"
+	Set tItem.bookCover="{background: {style:'background:white;',src:'covers/AnalyzeThis_Cover.png'},header: {text:'$type',style:'display: none;'},title: {text:'$title',style:'display: none;'},image: {style:'display: none;',src:'deepsee/ds2_globe_44.png',imageStyle:'width:64px;height:64px;'},subtitle: {text:'"_##class(AnalyzeThis.Utils).GetVersion()_"',style:'font-size:9px;top:179px;'},footer: {text:'$owner',style:'display: none;'}}"
 	Set tSC=tItem.%Save()
 	
 	Quit tSC
