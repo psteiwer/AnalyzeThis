@@ -659,7 +659,7 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 		Kill Properties
 		Set Properties=##class(%ArrayOfDataTypes).%New()
 		Do Properties.SetAt(1,"analyzer")
-		Do Properties.SetAt("chart","chartToggle")
+		Do:wtype'="pivot" Properties.SetAt("chart","chartToggle")
 		Do Properties.SetAt(1,"print")
 		If (wtype="time") Do Properties.SetAt(mdx,"MDX")
 		If (wtype="barChart") {
