@@ -124,6 +124,9 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 		}
 		Set prop=##class(%Dictionary.PropertyDefinition).%New()
 		Set prop.Name=value
+		If $SYSTEM.SQL.IsReservedWord(value) {
+			Set prop.SqlFieldName=value_"_SQLSafe"
+		}
 		Set prop.Type=dynamicProperties.Type.%Get(key)
 		Set prop.SqlColumnNumber=key+2
 		If prop.Type="%String" {
@@ -282,4 +285,5 @@ ClassMethod GenerateDash(pCubeName As %String, pVerbose As %Boolean = 0) As %Sta
 	Set st=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 	Quit st
 }
+
 }
