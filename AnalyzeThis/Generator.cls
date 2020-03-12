@@ -245,7 +245,7 @@ ClassMethod GenerateCube(pCubeName, pPropertyJSONStreamId) As %Status
 	Set propertyObj={}.%FromJSON(tempStream)
 	
 	//Disable items as needed
-	Set model=$zobjclassmethod(tCubeClass,"%GetModel")
+	Set model=$ClassMethod(tCubeClass,"%GetModel")
 	For i=1:1:model.dimensions.Count() {
 		Set tempPos=propertyObj.Properties.%Get(model.dimensions.GetAt(i).name)
 		If propertyObj.Include.%Get(tempPos)'="true" {
