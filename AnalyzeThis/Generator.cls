@@ -182,6 +182,10 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 		Do class.Properties.Insert(prop)
 		//}
 	}
+
+	// Add Refresh Data method directoy to class
+	Set tSC=##class(AnalyzeThis.Generator).GenerateRefreshMethod(.class)
+	Quit:$$$ISERR(tSC) tSC
 	
 	// Set global name directly to allow for global mapping of AnalyzeThis.*
 	Set param=##class(%Dictionary.ParameterDefinition).%New()
@@ -193,6 +197,20 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 	Set tSC=class.%Save()
 	Set tSC=$system.OBJ.Compile(pClassName,"fck /displayerror=0 /displaylog=0")
 	
+	Quit tSC
+}
+
+ClassMethod GenerateRefreshMethod(pClass As %Dictionary.ClassDefinition) As %Status
+{
+	Set tSC=$$$OK
+
+	Set tMethod=##class(%Dictionary.MethodDefinition).%OpenId("AnalyzeThis.Utils||RefreshCube")
+	Set tMethod=tMethod.%ConstructClone()
+	Set tMethod.Name="ReloadData"
+	Set tMethod.FormalSpec=$Replace(tMethod.FormalSpec,"pCubeName:%String","pCubeName:%String="""_$Piece(pClass.Name,".",*)_"""")
+
+	Set tSC=pClass.Methods.Insert(tMethod)
+
 	Quit tSC
 }
 
