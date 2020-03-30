@@ -6,7 +6,7 @@ ClassMethod GetVersion() As %String
 	Quit "v1.1.3"
 }
 
-ClassMethod GetNextRegex(ByRef pMatch,ByRef pResult,pIncludeTerm As %Boolean = 1) As %Boolean
+ClassMethod GetNextRegex(ByRef pMatch, ByRef pResult, pIncludeTerm As %Boolean = 1) As %Boolean
 {
 	Set pResult=""
 	
@@ -27,7 +27,6 @@ ClassMethod GetNextRegex(ByRef pMatch,ByRef pResult,pIncludeTerm As %Boolean = 1
 ClassMethod GetRegexLine(pNewLine As %String) As %String
 {
 	Quit $replace(pNewLine,"\","\\")_"(?=(?:(?:\\.|[^""\\])*""(?:\\.|[^""\\])*"")*(?:\\.|[^""\\])*\Z)"
-	
 }
 
 ClassMethod GetRegexProp(pNewLine As %String) As %String
@@ -219,4 +218,5 @@ ClassMethod ClassToQuery(pClass) As %String
 	Set sqlQuery="SELECT * FROM "_sqlTableName
 	Quit sqlQuery
 }
+
 }
