@@ -77,16 +77,16 @@ ClassMethod ReadStream(ByRef pStream, pString As %String = "") As %String
 }
 
 /// Given a cube name, refresh the data from the data source
-ClassMethod RefreshCube(pCubeName As %String, pLineSize As %Integer = 0, pVerbose As %Integer = 0) As %Status
+ClassMethod RefreshCube(pCubeName As %String, pLineSize As %Integer = 0, pVerbose As %Integer = 0, pFileName As %String = "") As %Status
 {
 	Set st=$$$OK
 	Set version=$O(^AnalyzeThis.ImportCSV(pCubeName,""))
 	If version'="" {
 		Set sourceType=$O(^AnalyzeThis.ImportCSV(pCubeName,version,""))
 		If sourceType="CSV" {
-			Set fileLocation=^AnalyzeThis.ImportCSV(pCubeName,version,sourceType)
+			Set:pFileName="" pFileName=^AnalyzeThis.ImportCSV(pCubeName,version,sourceType)
 			Write:pVerbose "Converting CSV to JSON...",!
-			Set st=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(fileLocation,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
+			Set st=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(pFileName,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
 			If $$$ISERR(st) Quit st
 			Write:pVerbose "CSV successfully converted",!,"Refreshing data from JSON...",!
 			Set st=##class(AnalyzeThis.Utils).RefreshJSONData(tDataJSONStreamId,pCubeName)
