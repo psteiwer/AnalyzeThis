@@ -219,4 +219,35 @@ ClassMethod ClassToQuery(pClass) As %String
 	Quit sqlQuery
 }
 
+ClassMethod URLToStream(pURL, ByRef pStream) As %Status
+{
+	Set tSC=$$$OK
+
+	Set pStream=##class(%Stream.FileCharacter).%New()
+
+	Set tRequest=##class(%Net.HttpRequest).%New()
+	Set tRequest.Https=1
+	Set tRequest.Port=443
+ 	Set tRequest.SSLConfiguration=..GetSSLConfiguration("AnalyzeThis")
+	Set tSC=tRequest.Get(pURL)
+	Quit:$$$ISERR(tSC) tSC
+
+	Set tSC=pStream.Write(tRequest.HttpResponse.Data.Read(tRequest.HttpResponse.Data.SizeGet()))
+	Quit:$$$ISERR(tSC) tSC
+
+	Quit tSC
+}
+
+ClassMethod GetSSLConfiguration(pConfig) As %String
+{
+  New $NAMESPACE
+  Set $NAMESPACE="%SYS"
+  
+  If '##class(Security.SSLConfigs).Exists(pConfig) {
+    Do ##class(Security.SSLConfigs).Create(pConfig)
+  }
+
+  Quit pConfig
+}
+
 }

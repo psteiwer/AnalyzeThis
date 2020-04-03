@@ -1149,6 +1149,10 @@ ClassMethod GetStatus(tab) As %ZEN.proxyObject [ Internal, ZenMethod ]
 ClassMethod ValidateFile(FILE) As %Integer [ Internal, ZenMethod ]
 {
 	If $ZStrip(FILE,"<>W")="" Quit 0
+
+	// Skip validation if it begins with HTTP
+	Quit:$$$UPPER($E(FILE,1,4))="HTTP" 1
+
 	#; Entered directory only!
 	If ##class(%File).DirectoryExists(FILE) Quit -1
 	#; File does not exist!"
@@ -1268,8 +1272,13 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 {
 	Set st=$$$OK
 	
-	Set stream=##class(%Stream.FileBinary).%New()
-	Do stream.LinkToFile(pFileName)
+	If $$$UPPER($e(pFileName,1,4))="HTTP" {
+		Set st=##class(AnalyzeThis.Utils).URLToStream(pFileName,.stream)
+	} Else {
+		Set stream=##class(%Stream.FileBinary).%New()
+		Do stream.LinkToFile(pFileName)
+	}
+
 	Set s=##class(AnalyzeThis.Utils).ReadStream(.stream)
 	Set pNewLine=##class(AnalyzeThis.Utils).DetermineNewLine(s)
 	Set s=$replace(s,$c(13),"\r")
