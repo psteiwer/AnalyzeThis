@@ -228,7 +228,7 @@ ClassMethod URLToStream(pURL, ByRef pStream) As %Status
 	Set tRequest=##class(%Net.HttpRequest).%New()
 	Set tRequest.Https=1
 	Set tRequest.Port=443
- 	Set tRequest.SSLConfiguration="AnalyzeThis"
+ 	Set tRequest.SSLConfiguration=..GetSSLConfiguration("AnalyzeThis")
 	Set tSC=tRequest.Get(pURL)
 	Quit:$$$ISERR(tSC) tSC
 
@@ -236,6 +236,18 @@ ClassMethod URLToStream(pURL, ByRef pStream) As %Status
 	Quit:$$$ISERR(tSC) tSC
 
 	Quit tSC
+}
+
+ClassMethod GetSSLConfiguration(pConfig) As %String
+{
+  New $NAMESPACE
+  Set $NAMESPACE="%SYS"
+  
+  If '##class(Security.SSLConfigs).Exists(pConfig) {
+    Do ##class(Security.SSLConfigs).Create(pConfig)
+  }
+
+  Quit pConfig
 }
 
 }
