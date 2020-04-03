@@ -1,6 +1,7 @@
 /// Created using the page template: Default
 Class AnalyzeThis.UI.Dialog.CSVImport Extends %ZEN.Dialog.standardDialog [ System = 4 ]
 {
+
 Parameter DOMAIN = "AnalyzeThis";
 
 Parameter Version = 1;
@@ -322,7 +323,7 @@ ClientMethod updateState() [ Language = javascript ]
 }
 
 /// Kicks off GenerateAll and starts the update timer
-ClientMethod updateProgress() [ Language = javascript]
+ClientMethod updateProgress() [ Language = javascript ]
 {
 	var file=this.Source
 	if (this.INPUTTYPE=='LOCAL') {
@@ -443,7 +444,7 @@ ClassMethod CheckStatus(pTrackingId As %String) As %String [ ZenMethod ]
 
 /// Start the build cube process in the background.
 /// Return the tracking id.
-ClassMethod GenerateAll(pSourceType,pSource, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
+ClassMethod GenerateAll(pSourceType, pSource, pLineSize, pHasHeaders, pCubeName, pPropertyJSONStreamId, pDataJSONStreamId) As %String [ ZenMethod ]
 {
 	Set tTrackingId=""
 	Set tJobTimeOut=10
@@ -1148,6 +1149,10 @@ ClassMethod GetStatus(tab) As %ZEN.proxyObject [ Internal, ZenMethod ]
 ClassMethod ValidateFile(FILE) As %Integer [ Internal, ZenMethod ]
 {
 	If $ZStrip(FILE,"<>W")="" Quit 0
+
+	// Skip validation if it begins with HTTP
+	Quit:$$$UPPER($E(FILE,1,4))="HTTP" 1
+
 	#; Entered directory only!
 	If ##class(%File).DirectoryExists(FILE) Quit -1
 	#; File does not exist!"
@@ -1219,7 +1224,7 @@ ClientMethod onresizeHandler() [ Internal, Language = javascript ]
 	body.style.width=(zenbody.offsetWidth-20)+'px'
 }
 
-Method SwitchSourceType() As %Status [ZenMethod]
+Method SwitchSourceType() As %Status [ ZenMethod ]
 {
 	Set st=$$$OK
 	
@@ -1267,8 +1272,13 @@ ClassMethod CSVToJSON(pFileName As %String = "C:\Users\psteiwer\Documents\simple
 {
 	Set st=$$$OK
 	
-	Set stream=##class(%Stream.FileBinary).%New()
-	Do stream.LinkToFile(pFileName)
+	If $$$UPPER($e(pFileName,1,4))="HTTP" {
+		Set st=##class(AnalyzeThis.Utils).URLToStream(pFileName,.stream)
+	} Else {
+		Set stream=##class(%Stream.FileBinary).%New()
+		Do stream.LinkToFile(pFileName)
+	}
+
 	Set s=##class(AnalyzeThis.Utils).ReadStream(.stream)
 	Set pNewLine=##class(AnalyzeThis.Utils).DetermineNewLine(s)
 	Set s=$replace(s,$c(13),"\r")
@@ -1409,4 +1419,5 @@ ClientMethod browseClass(popupName) [ Language = javascript ]
 	var mode="sourceclasses";
 	zenLaunchPopupWindow('_DeepSee.UI.Dialog.finderDialog.cls?MODE='+encodeURIComponent(mode),popupName,'resizable,width=900,height=500');
 }
+
 }

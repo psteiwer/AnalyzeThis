@@ -124,6 +124,9 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 		}
 		Set prop=##class(%Dictionary.PropertyDefinition).%New()
 		Set prop.Name=value
+		If $SYSTEM.SQL.IsReservedWord(value) {
+			Set prop.SqlFieldName=value_"_SQLSafe"
+		}
 		Set prop.Type=dynamicProperties.Type.%Get(key)
 		Set prop.SqlColumnNumber=key+2
 		If prop.Type="%String" {
@@ -179,6 +182,10 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 		Do class.Properties.Insert(prop)
 		//}
 	}
+
+	// Add Refresh Data method directoy to class
+	Set tSC=##class(AnalyzeThis.Generator).GenerateRefreshMethod(.class)
+	Quit:$$$ISERR(tSC) tSC
 	
 	// Set global name directly to allow for global mapping of AnalyzeThis.*
 	Set param=##class(%Dictionary.ParameterDefinition).%New()
@@ -190,6 +197,20 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 	Set tSC=class.%Save()
 	Set tSC=$system.OBJ.Compile(pClassName,"fck /displayerror=0 /displaylog=0")
 	
+	Quit tSC
+}
+
+ClassMethod GenerateRefreshMethod(pClass As %Dictionary.ClassDefinition) As %Status
+{
+	Set tSC=$$$OK
+
+	Set tMethod=##class(%Dictionary.MethodDefinition).%OpenId("AnalyzeThis.Utils||RefreshCube")
+	Set tMethod=tMethod.%ConstructClone()
+	Set tMethod.Name="ReloadData"
+	Set tMethod.FormalSpec=$Replace(tMethod.FormalSpec,"pCubeName:%String","pCubeName:%String="""_$Piece(pClass.Name,".",*)_"""")
+
+	Set tSC=pClass.Methods.Insert(tMethod)
+
 	Quit tSC
 }
 
@@ -242,7 +263,7 @@ ClassMethod GenerateCube(pCubeName, pPropertyJSONStreamId) As %Status
 	Set propertyObj={}.%FromJSON(tempStream)
 	
 	//Disable items as needed
-	Set model=$zobjclassmethod(tCubeClass,"%GetModel")
+	Set model=$ClassMethod(tCubeClass,"%GetModel")
 	For i=1:1:model.dimensions.Count() {
 		Set tempPos=propertyObj.Properties.%Get(model.dimensions.GetAt(i).name)
 		If propertyObj.Include.%Get(tempPos)'="true" {
@@ -282,4 +303,5 @@ ClassMethod GenerateDash(pCubeName As %String, pVerbose As %Boolean = 0) As %Sta
 	Set st=##class(%DeepSee.Dashboard.Utils).%DashboardExists(dashName)
 	Quit st
 }
+
 }

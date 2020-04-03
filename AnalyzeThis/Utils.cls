@@ -1,7 +1,12 @@
 Class AnalyzeThis.Utils
 {
 
-ClassMethod GetNextRegex(ByRef pMatch,ByRef pResult,pIncludeTerm As %Boolean = 1) As %Boolean
+ClassMethod GetVersion() As %String
+{
+	Quit "v1.2.0"
+}
+
+ClassMethod GetNextRegex(ByRef pMatch, ByRef pResult, pIncludeTerm As %Boolean = 1) As %Boolean
 {
 	Set pResult=""
 	
@@ -22,7 +27,6 @@ ClassMethod GetNextRegex(ByRef pMatch,ByRef pResult,pIncludeTerm As %Boolean = 1
 ClassMethod GetRegexLine(pNewLine As %String) As %String
 {
 	Quit $replace(pNewLine,"\","\\")_"(?=(?:(?:\\.|[^""\\])*""(?:\\.|[^""\\])*"")*(?:\\.|[^""\\])*\Z)"
-	
 }
 
 ClassMethod GetRegexProp(pNewLine As %String) As %String
@@ -73,16 +77,16 @@ ClassMethod ReadStream(ByRef pStream, pString As %String = "") As %String
 }
 
 /// Given a cube name, refresh the data from the data source
-ClassMethod RefreshCube(pCubeName As %String, pLineSize As %Integer = 0, pVerbose As %Integer = 0) As %Status
+ClassMethod RefreshCube(pCubeName As %String, pLineSize As %Integer = 0, pVerbose As %Integer = 0, pFileName As %String = "") As %Status
 {
 	Set st=$$$OK
 	Set version=$O(^AnalyzeThis.ImportCSV(pCubeName,""))
 	If version'="" {
 		Set sourceType=$O(^AnalyzeThis.ImportCSV(pCubeName,version,""))
 		If sourceType="CSV" {
-			Set fileLocation=^AnalyzeThis.ImportCSV(pCubeName,version,sourceType)
+			Set:pFileName="" pFileName=^AnalyzeThis.ImportCSV(pCubeName,version,sourceType)
 			Write:pVerbose "Converting CSV to JSON...",!
-			Set st=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(fileLocation,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
+			Set st=##class(AnalyzeThis.UI.Dialog.CSVImport).CSVToJSON(pFileName,.tPropertyJSONStreamId,.tDataJSONStreamId,pLineSize)
 			If $$$ISERR(st) Quit st
 			Write:pVerbose "CSV successfully converted",!,"Refreshing data from JSON...",!
 			Set st=##class(AnalyzeThis.Utils).RefreshJSONData(tDataJSONStreamId,pCubeName)
@@ -214,4 +218,36 @@ ClassMethod ClassToQuery(pClass) As %String
 	Set sqlQuery="SELECT * FROM "_sqlTableName
 	Quit sqlQuery
 }
+
+ClassMethod URLToStream(pURL, ByRef pStream) As %Status
+{
+	Set tSC=$$$OK
+
+	Set pStream=##class(%Stream.FileCharacter).%New()
+
+	Set tRequest=##class(%Net.HttpRequest).%New()
+	Set tRequest.Https=1
+	Set tRequest.Port=443
+ 	Set tRequest.SSLConfiguration=..GetSSLConfiguration("AnalyzeThis")
+	Set tSC=tRequest.Get(pURL)
+	Quit:$$$ISERR(tSC) tSC
+
+	Set tSC=pStream.Write(tRequest.HttpResponse.Data.Read(tRequest.HttpResponse.Data.SizeGet()))
+	Quit:$$$ISERR(tSC) tSC
+
+	Quit tSC
+}
+
+ClassMethod GetSSLConfiguration(pConfig) As %String
+{
+  New $NAMESPACE
+  Set $NAMESPACE="%SYS"
+  
+  If '##class(Security.SSLConfigs).Exists(pConfig) {
+    Do ##class(Security.SSLConfigs).Create(pConfig)
+  }
+
+  Quit pConfig
+}
+
 }

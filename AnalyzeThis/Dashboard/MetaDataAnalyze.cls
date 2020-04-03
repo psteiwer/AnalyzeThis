@@ -160,7 +160,7 @@ ClassMethod EvaluateCube(pCube As %String) As %Status
 		
 		Set namespace=$NAMESPACE
 		Set tCubeClass=##class(%DeepSee.Utils).%GetCubeClass(tCube)
-		Set tSC=$zobjclassmethod(tCubeClass,"%GetSourceInfo",.tSourceInfo)
+		Set tSC=$ClassMethod(tCubeClass,"%GetSourceInfo",.tSourceInfo)
 		Set tSourceClass=tSourceInfo("sourceClass")
 		Set class=##class(%Dictionary.ClassDefinition).%OpenId(tSourceClass,,.st)
 	
