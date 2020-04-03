@@ -1,7 +1,7 @@
-[logo]: https://github.com/psteiwer/AnalyzeThis/blob/master/Assets/AnalyzeThis_BookCover.png "AnalyzeThis Cover Image" 
+[logo]: https://github.com/psteiwer/AnalyzeThis/blob/master/Assets/AnalyzeThis_BookCover.png "AnalyzeThis Cover Image"
 ## AnalyzeThis
 
-![alt text][logo]
+<!--![alt text][logo]-->
 
 After selecting a Data Source (CSV file, Caché Class, or SQL Query), your data is easily and quickly transformed into a personalized preview of DeepSee
 
@@ -25,4 +25,4 @@ Provide a Data Source (CSV file, Caché Class, or SQL Query) and assign dimensio
 5. From the Management Portal, navigate to DeepSee/Analytics->User Portal
    * Find new "AnalyzeThis" Link with custom Cover Image
    
-   ![alt text][logo]
+<!--![alt text][logo]-->
