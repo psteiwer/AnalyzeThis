@@ -219,4 +219,23 @@ ClassMethod ClassToQuery(pClass) As %String
 	Quit sqlQuery
 }
 
+ClassMethod URLToStream(pURL, ByRef pStream) As %Status
+{
+	Set tSC=$$$OK
+
+	Set pStream=##class(%Stream.FileCharacter).%New()
+
+	Set tRequest=##class(%Net.HttpRequest).%New()
+	Set tRequest.Https=1
+	Set tRequest.Port=443
+ 	Set tRequest.SSLConfiguration="AnalyzeThis"
+	Set tSC=tRequest.Get(pURL)
+	Quit:$$$ISERR(tSC) tSC
+
+	Set tSC=pStream.Write(tRequest.HttpResponse.Data.Read(tRequest.HttpResponse.Data.SizeGet()))
+	Quit:$$$ISERR(tSC) tSC
+
+	Quit tSC
+}
+
 }
