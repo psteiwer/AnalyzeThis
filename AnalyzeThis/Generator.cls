@@ -165,11 +165,11 @@ ClassMethod JSONToClass(propertiesJSON As %String, pClassName As %String) As %St
 				Set method.ReturnType="%Status"
 				
 				If (prop.Type="%Date") {
-					Do method.Implementation.WriteLine(" Try { Set pVal=$zdh(pVal,"_tempFormat_") }")
+					Do method.Implementation.WriteLine(" Try { Set pVal=$zdh(pVal,"_tempFormat_",,5,""99"") }")
 				} Else {
 					// This is a %TimeStamp type, convert to %Date since %DeepSee.WizardUtils does not handle %TimeStamp
 					Set prop.Type="%Date"
-					Do method.Implementation.WriteLine(" Try { Set pVal=+$zdth(pVal,"_tempFormat_") }")
+					Do method.Implementation.WriteLine(" Try { Set pVal=+$zdth(pVal,"_tempFormat_",,5,""99"" }")
 				}
 				Do method.Implementation.WriteLine(" Catch ex {  }")
 				Do method.Implementation.WriteLine(" Set i%"_prop.Name_"=pVal")
