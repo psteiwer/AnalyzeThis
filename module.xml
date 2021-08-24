@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+  <Document name="analyzethis.ZPM">
+    <Module>
+      <Name>analyzethis</Name>
+      <Description>Module that helps to generate cubes, pivots and dashboards vs IRIS data</Description>
+      <Version>1.1.5</Version>
+      <Packaging>module</Packaging>
+      <Resource Name="AnalyzeThis.PKG"/>
+      <UnitTest Name="/UnitTests" Package="UnitTests" Phase="test"/>
+      <FileCopy Name="Assets/AnalyzeThis_BookCover.png" Target="${libdir}AnalyzeThis/Assets"/>
+      <Invokes>
+       <Invoke Class="AnalyzeThis.Installer" Method="RunInstaller">
+        <Arg>${libdir}AnalyzeThis/Assets</Arg>
+        </Invoke>
+      </Invokes>
+    </Module>
+
+  </Document>
+</Export>
