@@ -8,10 +8,9 @@
       <Packaging>module</Packaging>
       <Resource Name="AnalyzeThis.PKG"/>
       <UnitTest Name="/UnitTests" Package="UnitTests" Phase="test"/>
-      <FileCopy Name="Assets/AnalyzeThis_BookCover.png" Target="${libdir}AnalyzeThis/Assets"/>
+      <FileCopy Name="Assets/AnalyzeThis_BookCover.png" Target="${cspdir}broker/covers/AnalyzeThis_BookCover.png"/>
       <Invokes>
        <Invoke Class="AnalyzeThis.Installer" Method="RunInstaller">
-        <Arg>${libdir}AnalyzeThis/Assets</Arg>
         </Invoke>
       </Invokes>
     </Module>
