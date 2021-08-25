@@ -1,14 +1,14 @@
 Class AnalyzeThis.Installer
 {
 
-ClassMethod RunInstaller(pRootDir)
+ClassMethod RunInstaller(pRootDir) As %Status
 {
 	Set tSC=$$$OK
 	
-	If pRootDir'="" {
+	If $get(pRootDir)'="" {
 		Do $system.OBJ.LoadDir(pRootDir_"/AnalyzeThis","ck",,1)
 		Set tSC=..ImportImage(pRootDir_"/Assets/AnalyzeThis_BookCover.png")
-		If $$$ISERR(tSC) Quit
+		If $$$ISERR(tSC) Quit tSC
 	}
 	
 	Set tItem=##class(%DeepSee.UserLibrary.Link).%New()
@@ -28,7 +28,7 @@ ClassMethod ImportImage(pDir) As %Status
 	Set tSC=$$$OK
 	Set tStream=##class(%Stream.FileBinary).%New()
 	Set tSC=tStream.LinkToFile(pDir)
-	If $$$ISERR(tSC) Quit
+	If $$$ISERR(tSC) Quit tSC
 	Set tName="AnalyzeThis_Cover.png"
 
 	If $IsObject(tStream)&&(tName'="") {
