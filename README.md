@@ -1,6 +1,6 @@
 [logo]: https://github.com/psteiwer/AnalyzeThis/blob/master/Assets/AnalyzeThis_BookCover.png "AnalyzeThis Cover Image"
 ## AnalyzeThis
-
+ [![Quality Gate Status](https://community.objectscriptquality.com/api/project_badges/measure?project=intersystems_iris_community%2Fanalyzethis&metric=alert_status)](https://community.objectscriptquality.com/dashboard?id=intersystems_iris_community%2Fanalyzethis)
 <!--![alt text][logo]-->
 
 After selecting a Data Source (CSV file, Caché Class, or SQL Query), your data is easily and quickly transformed into a personalized preview of DeepSee
