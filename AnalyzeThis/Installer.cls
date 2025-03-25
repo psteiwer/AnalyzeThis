@@ -34,7 +34,7 @@ ClassMethod ImportImage(pDir) As %Status
 	If $IsObject(tStream)&&(tName'="") {
 		Set tFileName=##class(%File).NormalizeDirectory(tName,##class(%DeepSee.UI.Dialog.ImageUpload).%GetImageDirectory())
 		Set tLocalFile=##class(%File).%New(tFileName)
-		Set tSC=tLocalFile.Open("WSN")
+		Set tSC = tLocalFile.Open("WUNK\RAW\")
 		If $$$ISERR(tSC) Quit
 		
 		Set tSC=tLocalFile.CopyFrom(tStream)
