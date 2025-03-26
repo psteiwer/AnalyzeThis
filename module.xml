@@ -4,11 +4,11 @@
     <Module>
       <Name>analyzethis</Name>
       <Description>Module that helps to generate cubes, pivots and dashboards vs IRIS data</Description>
-      <Version>1.2.4</Version>
+      <Version>1.2.5</Version>
       <Packaging>module</Packaging>
       <Resource Name="AnalyzeThis.PKG"/>
       <UnitTest Name="/UnitTests" Package="UnitTests" Phase="test"/>
-      <FileCopy Name="Assets/AnalyzeThis_BookCover.png" Target="${cspdir}broker/covers/AnalyzeThis_BookCover.png"/>
+      <FileCopy Name="Assets/AnalyzeThis_Cover.png" Target="${cspdir}broker/covers/AnalyzeThis_Cover.png"/>
       <Invokes>
        <Invoke Class="AnalyzeThis.Installer" Method="RunInstaller">
         </Invoke>

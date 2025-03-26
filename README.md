@@ -1,4 +1,4 @@
-[logo]: https://github.com/psteiwer/AnalyzeThis/blob/master/Assets/AnalyzeThis_BookCover.png "AnalyzeThis Cover Image"
+[logo]: https://github.com/psteiwer/AnalyzeThis/blob/master/Assets/AnalyzeThis_Cover.png "AnalyzeThis Cover Image"
 ## AnalyzeThis
 
 <!--![alt text][logo]-->

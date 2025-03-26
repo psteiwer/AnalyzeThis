@@ -7,7 +7,7 @@ ClassMethod RunInstaller(pRootDir) As %Status
 	
 	If $get(pRootDir)'="" {
 		Do $system.OBJ.LoadDir(pRootDir_"/AnalyzeThis","ck",,1)
-		Set tSC=..ImportImage(pRootDir_"/Assets/AnalyzeThis_BookCover.png")
+		Set tSC=..ImportImage(pRootDir_"/Assets/AnalyzeThis_Cover.png")
 		If $$$ISERR(tSC) Quit tSC
 	}
 	
