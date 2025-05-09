@@ -3,7 +3,7 @@ Class AnalyzeThis.Utils
 
 ClassMethod GetVersion() As %String
 {
-	Quit "v1.2.5"
+	Quit "v1.2.6"
 }
 
 ClassMethod GetNextRegex(ByRef pMatch, ByRef pResult, pIncludeTerm As %Boolean = 1) As %Boolean
