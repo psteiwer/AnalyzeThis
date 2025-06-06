@@ -167,7 +167,7 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 			}
 				
 			//Pivot
-			If ((lt="Dimension")&&(card<20)&&(card>0)&&(dt'="Date")) {
+			If ((lt="Dimension")&&(card<20)&&(card>2)&&(dt'="Date")) {
 				Set tScore=1
 				Set tScore=tScore+(4/card)
 				Set tScore=tScore+(wr*3)
