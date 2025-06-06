@@ -164,7 +164,8 @@ ClassMethod SQLToJSON(pSourceQuery As %String, ByRef propertyJSONStreamId, ByRef
 		Set propcount=$i(propcount)
 		Set prop=metadata.columns.GetAt(i).colName
 		Do displayarray.%Push(prop)
-		Do typearray.%Push("%String")
+		// TODO - Use full value. However, this was causing problems with dashboard generation for "time" types
+		Do typearray.%Push("%"_$extract(metadata.columns.GetAt(i).typeClass.Name,10,*))
 		Do dateformatarray.%Push("")
 		Do intformatarray.%Push("")
 		Do includearray.%Push("true")
