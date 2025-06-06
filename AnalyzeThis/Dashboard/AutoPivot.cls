@@ -175,7 +175,7 @@ ClassMethod GenerateSampleDashboards(pcubeName As %String, pVerbose As %Boolean 
 				If (tScore>scores(11)) {
 					If (scores(11)'=0)&&(scores(10)=0) {
 						Set scores(10)=scores(11)
-						Set names(10)=$replace(names(11),"*row*","*col")
+						Set names(10)=$replace(names(11),"*row*","*col*")
 					}
 					Set scores(11)=tScore
 					Set names(11)=Levelname_"*row*"_lt_"*"_DimName
