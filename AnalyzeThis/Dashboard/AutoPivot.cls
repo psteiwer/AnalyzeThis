@@ -677,6 +677,10 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 				Set widget.overrides=Overrides
 			}
 		} ElseIf (wtype="pivot") {
+			Set control=##class(%DeepSee.Dashboard.Control).%New()
+			Set control.action="showListing"
+			Set control.type="auto"
+			Do widget.controls.Insert(control)
 		} Else {
 			Set Overrides=##class(%ArrayOfDataTypes).%New()
 			Do Overrides.SetAt("{legendVisible:'false',seriesColorScheme:'urban',xAxis:{_type:'axis'},yAxisList:[{_type:'axis'}],_type:'"_wtype_"'}",wtype)
