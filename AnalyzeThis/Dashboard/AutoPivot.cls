@@ -681,6 +681,15 @@ ClassMethod AddWidget(pCubeName As %String, pname As %String, wtype As %String, 
 			Set control.action="showListing"
 			Set control.type="auto"
 			Do widget.controls.Insert(control)
+		} ElseIf (wtype="pieChart") {
+			// Check to see if Highcharts Portlet exists
+			If ##class(%Dictionary.CompiledClass).%ExistsId("ThirdPartyChartPortlets.Highcharts.PieChart") {
+				Set widget.type="portlet"
+				Set widget.subtype="ThirdPartyChartPortlets.Highcharts.Highcharts"
+				Set widget.subtypeClass="portlet"
+				Do Properties.SetAt("PieChart","chartType")
+				Do Properties.SetAt(0,"print")
+			} 
 		} Else {
 			Set Overrides=##class(%ArrayOfDataTypes).%New()
 			Do Overrides.SetAt("{legendVisible:'false',seriesColorScheme:'urban',xAxis:{_type:'axis'},yAxisList:[{_type:'axis'}],_type:'"_wtype_"'}",wtype)
