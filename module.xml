@@ -4,7 +4,7 @@
     <Module>
       <Name>analyzethis</Name>
       <Description>Module that helps to generate cubes, pivots and dashboards vs IRIS data</Description>
-      <Version>1.2.8</Version>
+      <Version>1.2.9</Version>
       <Packaging>module</Packaging>
       <Resource Name="AnalyzeThis.PKG"/>
       <UnitTest Name="/UnitTests" Package="UnitTests" Phase="test"/>
